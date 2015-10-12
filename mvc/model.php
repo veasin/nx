@@ -4,7 +4,7 @@ namespace nx\mvc;
 class model{
 	/**
 	 *
-	 * @var app
+	 * @var \nx\app
 	 */
 	public $app = null;
 	public $options = [];
@@ -12,9 +12,25 @@ class model{
 	public $_sql =[];
 	public function __construct($set = []){
 		$this->options = $set;
-		//$this->app = nx::$app;
+		$this->app = \nx\app::$instance;
+
+		//init use trait
+		foreach(class_uses($this) as $_trait){
+			$_method =str_replace('\\', '_', $_trait);
+			if(method_exists($this, $_method)) $this->$_method();
+		}
+
 		if(method_exists($this, '_init')) $this->_init();
 	}
+
+	/**
+	 * @param string $name
+	 * @return \PDO
+	 */
+	protected function db($name ='default'){
+		return $this->app->db($name);
+	}
+
 	/**
 	 * @param array $set
 	 * @return self

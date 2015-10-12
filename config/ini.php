@@ -2,15 +2,18 @@
 namespace nx\config;
 
 /**
- * Trait files
+ * Trait ini
  * @trait app
  * @package nx\config
  */
-trait files{
-	protected function nx_config_files(){
+trait ini{
+	protected function nx_config_ini(){
+		$file =$this->path.'/'.(isset($this->setup['config.ini']) ?$this->setup['config.ini'] :'config').'.ini';
 		!isset($this->config) && $this->config =[];
 		if(isset($this->buffer)){
-			if(!isset($this->buffer['config'])) $this->buffer['config'] =[];
+			//if(!isset($this->buffer['config'])) $this->buffer['config'] =[];
+			$this->buffer['config'] =@parse_ini_file($file, true);
+			$this->buffer['config']['ini.file'] =$file;
 		}
 	}
 
@@ -22,14 +25,6 @@ trait files{
 		if(strpos($word, '.') !== false) list($_ns, $_key) =explode('.', $word, 2);
 
 		$buffer =&$this->buffer['config'];
-		if(!isset($buffer[$_ns])){
-			$config = [];
-			if(is_file($file =$this->path.'/config/'.$_ns.'.php')){
-				include $file;
-			}
-			$buffer[$_ns] =$config;
-		}
-
 		$_config =$params;
 		if(isset($buffer[$_ns])){
 			if(is_null($_key)) $_config =$buffer[$_ns];

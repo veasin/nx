@@ -42,6 +42,11 @@ class autoload{
 		}
 		return false;
 	}
+	/**
+	 * factory
+	 * @param array $map
+	 * @return static
+	 */
 	static public function register($map){
 		return new static($map);
 	}

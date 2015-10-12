@@ -1,6 +1,11 @@
 <?php
 namespace nx\log;
 
+/**
+ * Class header
+ * @trait app
+ * @package nx\log
+ */
 trait header{
 	static private $_nx_log_num=0;
 	protected function nx_log_header(){

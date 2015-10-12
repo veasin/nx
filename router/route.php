@@ -1,6 +1,11 @@
 <?php
 namespace nx\router;
 
+/**
+ * Class route
+ * @trait app
+ * @package nx\router
+ */
 trait route{
 	private $_router_rules =[];
 	public function router(){

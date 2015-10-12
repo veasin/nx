@@ -1,6 +1,11 @@
 <?php
 namespace nx\control;
 
+/**
+ * Class mvc
+ * @trait controller
+ * @package nx\control
+ */
 trait mvc{
 	public function control($route){
 		if(isset($route[0]) && is_string($route[0])){

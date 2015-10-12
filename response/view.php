@@ -3,6 +3,9 @@ namespace nx\response;
 
 trait view
 {
+	/**
+	 * @var \nx\mvc\view
+	 */
 	public $response = null;
 
 	protected function nx_response_view()

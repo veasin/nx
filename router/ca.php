@@ -1,6 +1,11 @@
 <?php
 namespace nx\router;
 
+/**
+ * Class ca
+ * @trait app
+ * @package nx\router
+ */
 trait ca{
 	public function router(){
 		$this->control([

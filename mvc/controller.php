@@ -2,6 +2,8 @@
 namespace nx\mvc;
 
 class controller{
+	static public $instance =null;
+
 	const doExt = 'on';
 	const doBefore = 'before';
 	const doAfter = 'after';
@@ -22,16 +24,17 @@ class controller{
 	public $_status = [1 => 'error',];
 	public function __construct($route, $app){
 		$this->app = $app;
+		$this->route = $route;
 
-		//初始化use trait
-		$uses =class_uses($this);
-		foreach($uses as $_trait){
+		static::$instance =$this;
+
+		//init use trait
+		foreach(class_uses($this) as $_trait){
 			$_method =str_replace('\\', '_', $_trait);
 			if(method_exists($this, $_method)) $this->$_method();
 		}
 
 		$this->data =$this->response;
-		$this->route = $route;
 
 		$this->exec(self::doBefore);
 		$this->exec($this->route[1], true);
@@ -59,18 +62,23 @@ class controller{
 				break;
 		}
 	}
-	public function exec($name, $hook = false){
+
+	/**
+	 * @param $name
+	 * @param bool|false $hook
+	 */
+	private function exec($name, $hook = false){
 		if($hook){
 			$found =false;
 			foreach([static::doBefore, $this->method(), static::doExt, static::doAfter] as $_prex){
 				if(method_exists($this, $_fun =$_prex.$name)){
 					$found =true;
-					$r =$this->$_fun();
+					$r =$this->$_fun($this->response, $this->app);
 					if($r ===false) break;
 				}
 			}
 			if($found ===false) $this->nofound($name);
-		}else if(method_exists($this, $name)) $this->$name();
+		}else if(method_exists($this, $name)) $this->$name($this->response, $this->app);
 	}
 	/**
 	 * @param null $name
@@ -89,6 +97,20 @@ class controller{
 	public function method($method = null){
 		return $this->app->request->method($method);
 	}
+
+	/**
+	 * @param $var
+	 * @return mixed
+	 */
+	public function log($var){
+		return $this->app->log($var);
+	}
+
+	/**
+	 * @param string $name
+	 * @param null $def
+	 * @return mixed
+	 */
 	public function config($name, $def=null){
 		return $this->app->config($name, $def);
 	}
@@ -113,21 +135,6 @@ class controller{
 			elseif(is_string($data)) $_data['msg'] = $data;
 		}
 		$this->data->set($_data);
-		return false;
-
-
-		unset($this->data['_file_']);
-		if(!is_numeric($code)){
-			if(isset($code['data']) || isset($code['err'])) $this->data->merge($code);else{
-				$this->data['err'] = 0;
-				$this->data['data'] = $code;
-			}
-		}else{
-			$this->data['err'] = $code;
-			if(isset($this->_status[$code])) $this->data['msg'] = $this->app->i18n($this->_status[$code]);
-			if($code ==0 && func_num_args() > 1) $this->data['data'] = $data;
-			elseif(is_string($data)) $this->data['msg'] = $data;
-		}
 		return false;
 	}
 }

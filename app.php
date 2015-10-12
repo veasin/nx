@@ -1,11 +1,17 @@
 <?php
 namespace nx;
 
-use nx\log\header;
-
+/**
+ * Class app
+ * @package nx
+ */
 class app{
 	protected $buffer =[];
-	//protected $response =[];
+	protected $setup =[];
+
+	static public $instance =null;
+
+
 	/**
 	 * @var \nx\request
 	 */
@@ -14,18 +20,19 @@ class app{
 	public $path ='';
 
 	public function __construct(){
-		//初始化use trait
-		$uses =class_uses($this);
-		foreach($uses as $_trait){
+		header(__NAMESPACE__.':vea 2005-2016');
+		static::$instance =$this;
+
+		if($this->path =='') $this->path =dirname($_SERVER['SCRIPT_FILENAME']);
+
+		//init use trait
+		foreach(class_uses($this) as $_trait){
 			$_method =str_replace('\\', '_', $_trait);
 			if(method_exists($this, $_method)) $this->$_method();
 		}
 
-		if($this->path =='') $this->path =dirname($_SERVER['SCRIPT_FILENAME']);
-
 		$this->request =new request();
 		//$this->response['app'] =get_class($this);
-		header(__NAMESPACE__.':vea 2005-2016');
 	}
 
 	public function __destruct(){
