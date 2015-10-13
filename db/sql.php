@@ -116,7 +116,7 @@ class sql{
 		if($Clear) $this->args = [];
 		self::$history[] = $this->_sql;
 		$r = $this->_db()->query($this->_sql);
-		if($r->errorCode() !=='00000') return false;
+		if($r ===false || $r->errorCode() !=='00000') return false;
 		return $r->fetchAll(\PDO::FETCH_ASSOC);
 	}
 	/**
@@ -134,7 +134,7 @@ class sql{
 		if($Clear) $this->args = [];
 		self::$history[] = $this->_sql;
 		$r = $this->_db()->query($this->_sql);
-		if($r->errorCode() !=='00000') return false;
+		if($r ===false || $r->errorCode() !=='00000') return false;
 		$result = $r->fetch(\PDO::FETCH_ASSOC);
 		if(!is_null($Col) && is_array($result)) return $result[$Col];
 		return $result;
