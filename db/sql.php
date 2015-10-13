@@ -12,8 +12,6 @@ class sql{
 	 * @var callable
 	 */
 	private $_dbcb =null;
-	private $_db_cfg = null;//默认数据库配置名
-	static public $db = [];//hDB数组，根据 $_db_cfg索引
 
 	public  $table = null;//表名
 	public  $primary = null;//主键
@@ -40,12 +38,12 @@ class sql{
 	public function __destruct(){}
 
 	public function _clone(){
-		$clone =static::factory($this->table, $this->primary, $this->_db);
+		$clone =static::factory($this->table, $this->primary, $this->_dbcb);
 		$clone->args =$this->args;
 		return $clone;
 	}
 	public function clear(){
-		return static::factory($this->table, $this->primary, $this->_db);
+		return static::factory($this->table, $this->primary, $this->_dbcb);
 	}
 
 	/**
