@@ -11,7 +11,7 @@ trait file{
 		$this->buffer['log_file'] =[
 			'file' =>$file,
 			'line' =>$line,
-			'handle' =>fopen($file, 'a'),
+			'handle' =>@fopen($file, 'a'),
 		];
 
 		$this->log(' -- '.$_SERVER['REQUEST_TIME'].':['.$_SERVER['REQUEST_METHOD'].']'.$_SERVER['REQUEST_URI'].'', true);
