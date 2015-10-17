@@ -19,9 +19,10 @@ class app{
 
 	public $path ='';
 
-	public function __construct(){
+	public function __construct($setup=[]){
 		header(__NAMESPACE__.':vea 2005-2016');
 		static::$instance =$this;
+		if(!empty($setup)) $this->setup =array_merge($this->setup, $setup);
 
 		if($this->path =='') $this->path =dirname($_SERVER['SCRIPT_FILENAME']);
 
@@ -73,8 +74,8 @@ class app{
 		}
 	}
 
-	static public function factory(){
-		return new static();
+	static public function factory($setup =[]){
+		return new static($setup);
 	}
 
 	public function run($route=null){
