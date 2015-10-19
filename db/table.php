@@ -18,10 +18,10 @@ trait table{
 	 * @param $name
 	 * @param null $primary
 	 * @param string $config
-	 * @return \nx\db\sql
+	 * @return \nx\db\builder
 	 */
 	public function table($name, $primary = null, $config = 'default'){
-		return \nx\db\sql::factory($name, $primary, function () use ($config){
+		return \nx\db\builder::factory($name, $primary, function () use ($config){
 			return $this->db($config);
 		});
 	}
