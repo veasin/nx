@@ -13,17 +13,17 @@ class sql{
 	 */
 	private $_dbcb =null;
 
-	public  $table = null;//±íÃû
-	public  $primary = null;//Ö÷¼ü
-	private $_sql = '';//Ã¿´ÎÖ´ĞĞ²éÑ¯Éú³ÉµÄsql
-	public $args = []; //±¾´Î²éÑ¯ÁÙÊ±»º´æ
+	public  $table = null;//è¡¨å
+	public  $primary = null;//ä¸»é”®
+	private $_sql = '';//æ¯æ¬¡æ‰§è¡ŒæŸ¥è¯¢ç”Ÿæˆçš„sql
+	public $args = []; //æœ¬æ¬¡æŸ¥è¯¢ä¸´æ—¶ç¼“å­˜
 
-	public static $history = [];//ÀúÊ·¼ÇÂ¼
+	public static $history = [];//å†å²è®°å½•
 
 	/**
-	 * ¹¤³§ ²úÉúÊµÀı
-	 * @param string $Table ±íÃû
-	 * @param string $Primary Ö÷¼üÃû
+	 * å·¥å‚ äº§ç”Ÿå®ä¾‹
+	 * @param string $Table è¡¨å
+	 * @param string $Primary ä¸»é”®å
 	 * @param callable $DB
 	 * @return static
 	 */
@@ -47,14 +47,14 @@ class sql{
 	}
 
 	/**
-	 * Ìí¼ÓĞÂ¼ÍÂ¼£¬ Ö»Õë¶Ôµ±Ç°±í½øĞĞ²Ù×÷
-	 * $tab->create('SQL')£»          Ö±½ÓÖ´ĞĞsqlÓï¾ä
-	 * $tab->create([field=>value, ...]);            ±ê×¼µ÷ÓÃ·½Ê½
-	 * $tab->create([[],[],[]]);    Í¬Ê±¶àÌõ¼ÇÂ¼²åÈë
+	 * æ·»åŠ æ–°çºªå½•ï¼Œ åªé’ˆå¯¹å½“å‰è¡¨è¿›è¡Œæ“ä½œ
+	 * $tab->create('SQL')ï¼›          ç›´æ¥æ‰§è¡Œsqlè¯­å¥
+	 * $tab->create([field=>value, ...]);            æ ‡å‡†è°ƒç”¨æ–¹å¼
+	 * $tab->create([[],[],[]]);    åŒæ—¶å¤šæ¡è®°å½•æ’å…¥
 	 *
 	 * @param array|string          $Fields
-	 * @param boolean $IsReplace    MySQLµÄ REPLACEÄ£Ê½²åÈë
-	 * @return bool|mixed           ×îºó²åÈëid»òfalse
+	 * @param boolean $IsReplace    MySQLçš„ REPLACEæ¨¡å¼æ’å…¥
+	 * @return bool|mixed           æœ€åæ’å…¥idæˆ–false
 	 */
 	public function create($Fields, $IsReplace = null){
 		if(is_array($Fields)){
@@ -65,7 +65,7 @@ class sql{
 				$_cols = array_keys($Fields);
 				$_vals = array_values($__fields);
 				$_vals = implode(", ", $_vals);
-			} else {//Ò»´Î²åÈë¶àÌõÄ£Ê½
+			} else {//ä¸€æ¬¡æ’å…¥å¤šæ¡æ¨¡å¼
 				$_cols = array_keys($_first);
 				$_vals = [];
 				foreach($Fields as $_n => $_fields){
@@ -86,14 +86,14 @@ class sql{
 		}
 		self::$history[] = $this->_sql;
 		$o = $this->_db()->query($this->_sql);
-		$this->args = [];//ÇåÀí
+		$this->args = [];//æ¸…ç†
 		if($o && $this->lastId()) return $this->lastId();
 		return $o;
 	}
 	/**
-	 * Ö´ĞĞmysqlº¯Êı£¬²¢·µ»ØÏà¶ÔÓ¦µÄ½á¹û
-	 * @param string $fun   º¯ÊıÃû
-	 * @param string $N     ²ÎÊı
+	 * æ‰§è¡Œmysqlå‡½æ•°ï¼Œå¹¶è¿”å›ç›¸å¯¹åº”çš„ç»“æœ
+	 * @param string $fun   å‡½æ•°å
+	 * @param string $N     å‚æ•°
 	 * @param string $SQL
 	 * @param bool   $Clear
 	 * @return bool|string
@@ -103,8 +103,8 @@ class sql{
 		return $this->readOne("RESULT", $SQL, $Clear);
 	}
 	/**
-	 * ·µ»ØËùÓĞ¼ÇÂ¼
-	 * @param string $SQL Ö±½Ó²éÑ¯µÄSQL£¬Ê¡È´Ê±Ê¹ÓÃ×ÔÓĞº¯Êı¹¹½¨
+	 * è¿”å›æ‰€æœ‰è®°å½•
+	 * @param string $SQL ç›´æ¥æŸ¥è¯¢çš„SQLï¼Œçœå´æ—¶ä½¿ç”¨è‡ªæœ‰å‡½æ•°æ„å»º
 	 * @return array
 	 */
 	public function read($SQL = "", $Clear =true){
@@ -120,9 +120,9 @@ class sql{
 		return $r->fetchAll(\PDO::FETCH_ASSOC);
 	}
 	/**
-	 * ·µ»ØµÚÒ»Ìõ¼ÇÂ¼
-	 * @param string $Col ×Ö¶ÎÃû£¬ÈçÉèÖÃ£¬Ö±½Ó·µ»Ø×Ö¶ÎÄÚÈİ
-	 * @param string $SQL Ö±½Ó²éÑ¯µÄSQL£¬Ê¡È´Ê±Ê¹ÓÃ×ÔÓĞº¯Êı¹¹½¨
+	 * è¿”å›ç¬¬ä¸€æ¡è®°å½•
+	 * @param string $Col å­—æ®µåï¼Œå¦‚è®¾ç½®ï¼Œç›´æ¥è¿”å›å­—æ®µå†…å®¹
+	 * @param string $SQL ç›´æ¥æŸ¥è¯¢çš„SQLï¼Œçœå´æ—¶ä½¿ç”¨è‡ªæœ‰å‡½æ•°æ„å»º
 	 * @return boolean|string
 	 */
 	public function readOne($Col = null, $SQL = "", $Clear =true){
@@ -140,9 +140,9 @@ class sql{
 		return $result;
 	}
 	/**
-	 * ¸üĞÂ¼ÇÂ¼
-	 * @param string $SQL Ö±½Ó²éÑ¯µÄSQL£¬Ê¡È´Ê±Ê¹ÓÃ×ÔÓĞº¯Êı¹¹½¨
-	 * @return boolean|mixed    false»òĞŞ¸ÄµÄÌõÄ¿Êı
+	 * æ›´æ–°è®°å½•
+	 * @param string $SQL ç›´æ¥æŸ¥è¯¢çš„SQLï¼Œçœå´æ—¶ä½¿ç”¨è‡ªæœ‰å‡½æ•°æ„å»º
+	 * @return boolean|mixed    falseæˆ–ä¿®æ”¹çš„æ¡ç›®æ•°
 	 */
 	public function update($SQL = ""){
 		if(empty($SQL)){
@@ -158,9 +158,9 @@ class sql{
 		return $this->_db()->exec($this->_sql);
 	}
 	/**
-	 * É¾³ı¼ÇÂ¼
-	 * @param string $SQL Ö±½Ó²éÑ¯µÄSQL£¬Ê¡È´Ê±Ê¹ÓÃ×ÔÓĞº¯Êı¹¹½¨
-	 * @return mixed        false »òÉ¾³ıµÄÌõÄ¿Êı
+	 * åˆ é™¤è®°å½•
+	 * @param string $SQL ç›´æ¥æŸ¥è¯¢çš„SQLï¼Œçœå´æ—¶ä½¿ç”¨è‡ªæœ‰å‡½æ•°æ„å»º
+	 * @return mixed        false æˆ–åˆ é™¤çš„æ¡ç›®æ•°
 	 */
 	public function delete($SQL = ""){
 		if(empty($SQL)){
@@ -172,10 +172,10 @@ class sql{
 		return $this->_db()->exec($this->_sql);
 	}
 	/**
-	 * ¼Ì³Ğ select, filter
+	 * ç»§æ‰¿ select, filter
 	 * join(\nx\db\sql, ['id'])->join('user', ['id'=>'user_id'])->join('user', ['user.id'=>'editor.user_id'])
 	 *
-	 * @param string|\nx\db\sql $Table //±íÃû
+	 * @param string|\nx\db\sql $Table //è¡¨å
 	 * @param null   $Conditions
 	 * @param string $Join
 	 * @return $this
@@ -258,7 +258,7 @@ class sql{
 	}
 
 	/**
-	 * Ò»´ÎÖ»¸üĞÂÒ»ÕÅ±í
+	 * ä¸€æ¬¡åªæ›´æ–°ä¸€å¼ è¡¨
 	 * set(['name'=>'vea', 'login'=>[1, '+'], 'count'=>['num', 'COUNT'], 'nickname'=>'`user.name`'])->set('name', 'vea')
 	 *
 	 * @param      $field
@@ -356,9 +356,9 @@ class sql{
 	}
 
 	/**
-	 * ·ÖÒ³
-	 * @param int $Rows ²éÑ¯·µ»ØĞĞÊı
-	 * @param int  $Offset ²éÑ¯ÆğÊ¼ĞĞÊı
+	 * åˆ†é¡µ
+	 * @param int $Rows æŸ¥è¯¢è¿”å›è¡Œæ•°
+	 * @param int  $Offset æŸ¥è¯¢èµ·å§‹è¡Œæ•°
 	 * @return $this
 	 */
 	public function limit($Rows =false, $Offset = 0){
@@ -368,7 +368,7 @@ class sql{
 	}
 
 	/**
-	 * ¿É¶à´Îµ÷ÓÃ£¬Ã¿´Î AND()
+	 * å¯å¤šæ¬¡è°ƒç”¨ï¼Œæ¯æ¬¡ AND()
 	 * ->where(1)->where('id', 1)->where('user.id', 1, '>', 'or)
 	 * ->where([['id', 1, '>', 'or'], ['stutas', 0, '=', 'or']])
 	 * ->where(['id'=>1, 'stutas'=>[0, '>'], 'user.name'=>['a', 'like', 'or']], 'AND')
@@ -379,7 +379,7 @@ class sql{
 		return $this->_withWHERE(func_get_args(), func_num_args());
 	}
 	/**
-	 * »ñµÃ×îºóÒ»´Î²éÑ¯µÄSQL
+	 * è·å¾—æœ€åä¸€æ¬¡æŸ¥è¯¢çš„SQL
 	 * @return string
 	 */
 	public function getLastSql(){
@@ -403,13 +403,13 @@ class sql{
 		return $cb();
 	}
 	/**
-	 * ·µ»Ø×îºóÊı¾İ¿â´íÎó
+	 * è¿”å›æœ€åæ•°æ®åº“é”™è¯¯
 	 */
 	public function lastError(){
 		return $this->_db()->errorCode();
 	}
 	/**
-	 * ·µ»Ø×îºó²åÈëid
+	 * è¿”å›æœ€åæ’å…¥id
 	 */
 	public function lastId(){
 		return $this->_db()->lastInsertId();
@@ -543,18 +543,18 @@ class sql{
 		$_limit = empty($args['limit']) ?'' :$args['limit'];
 		return "DELETE FROM `{$table}`{$_where}{$_limit}";
 	}
-	/*--------------- ±ğ³Æ »ò¿ì½İ·½·¨ ----------------------------------------------------------*/
+	/*--------------- åˆ«ç§° æˆ–å¿«æ·æ–¹æ³• ----------------------------------------------------------*/
 	/**
-	 * ·µ»ØµÚÒ»Ìõ¼ÇÂ¼
-	 * @param string $SQL Ö±½Ó²éÑ¯µÄSQL£¬Ê¡È´Ê±Ê¹ÓÃ×ÔÓĞº¯Êı¹¹½¨
-	 * @param string $Col ×Ö¶ÎÃû£¬ÈçÉèÖÃ£¬Ö±½Ó·µ»Ø×Ö¶ÎÄÚÈİ
+	 * è¿”å›ç¬¬ä¸€æ¡è®°å½•
+	 * @param string $SQL ç›´æ¥æŸ¥è¯¢çš„SQLï¼Œçœå´æ—¶ä½¿ç”¨è‡ªæœ‰å‡½æ•°æ„å»º
+	 * @param string $Col å­—æ®µåï¼Œå¦‚è®¾ç½®ï¼Œç›´æ¥è¿”å›å­—æ®µå†…å®¹
 	 * @return boolean|unknown
 	 */
 	public function first($Col = null, $SQL = "", $Clear =true){
 		return $this->readOne($Col, $SQL, $Clear);
 	}
 	/**
-	 * Ñ¡ÔñÏÔÊ¾µÄ×Ö¶Î
+	 * é€‰æ‹©æ˜¾ç¤ºçš„å­—æ®µ
 	 * @param string $Fields
 	 * @return $this
 	 */
@@ -562,16 +562,16 @@ class sql{
 		return $this->select($Fields);
 	}
 	/**
-	 * ¹©¸üĞÂÊ¹ÓÃ ÉèÖÃ×Ö¶ÎÄÚÈİ
-	 * @param array $Fields Êı×é
+	 * ä¾›æ›´æ–°ä½¿ç”¨ è®¾ç½®å­—æ®µå†…å®¹
+	 * @param array $Fields æ•°ç»„
 	 * @return $this
 	 */
 	public function setFields($field, $value=false){
 		return $this->set($field, $value);
 	}
 	/**
-	 * ÅÅĞò
-	 * @param array $Sort Ê¡È´Îª°´ÕÕÖ÷¼üÅÅĞò£¬
+	 * æ’åº
+	 * @param array $Sort çœå´ä¸ºæŒ‰ç…§ä¸»é”®æ’åºï¼Œ
 	 *  0:$this->table.primary ASC
 	 *  1:string:$this->table.{1} ASC
 	 *  2:string,string:$this->table.{1} {2}
@@ -579,7 +579,7 @@ class sql{
 	 *  1:array:
 	 *    [0=>[$k=>$v],1=>[$k=>$v],...]:$this->table.$k $v
 	 *    [$t=>[$k=>$v],$t=>[$k=>$v],...]:$t.$k $v
-	 * ?2£ºstring,array:[0=>[$k=>$v],1=>[$k=>$v],...]:{1}.$k $v
+	 * ?2ï¼šstring,array:[0=>[$k=>$v],1=>[$k=>$v],...]:{1}.$k $v
 	 *
 	 * @return $this
 	 */
@@ -587,18 +587,18 @@ class sql{
 		return $this->sort($field, $asc);
 	}
 	/**
-	 * ·µ»Ø¼ÇÂ¼×ÜÊı
-	 * @param string $SQL Î´ÆôÓÃ
-	 * @param string $N Í³¼Æ×Ö¶Î
-	 * @return Ambigous <boolean, number>    ·µ»Øfalse»ò×Ö¶ÎÊıÁ¿
+	 * è¿”å›è®°å½•æ€»æ•°
+	 * @param string $SQL æœªå¯ç”¨
+	 * @param string $N ç»Ÿè®¡å­—æ®µ
+	 * @return Ambigous <boolean, number>    è¿”å›falseæˆ–å­—æ®µæ•°é‡
 	 */
 	public function count($N = '*', $SQL = ""){
 		return (int)$this->_clone()->fun('COUNT', $N, $SQL, false);
 	}
 	/**
-	 * ·ÖÒ³
-	 * @param number $Page ´ÓµÚ1Ò³¿ªÊ¼
-	 * @param number $Max Ã¿Ò³ÌõÊı
+	 * åˆ†é¡µ
+	 * @param number $Page ä»ç¬¬1é¡µå¼€å§‹
+	 * @param number $Max æ¯é¡µæ¡æ•°
 	 * @return $this
 	 */
 	public function page($Page = 1, $Max = 15){
@@ -607,21 +607,21 @@ class sql{
 		return $this->limit($Rows, $Offset);
 	}
 	/**
-	 * ¹ıÂË
-	 * @param array $Conds ¹ıÂËÌõ¼ş (1), ('id', 1), ('id', 1, '>'), (['id', 1], ['id', 1, '>'], 'id >1', 'id'=>1, 'id'=>[1, '>'])
-	 *                                    1¸ö²ÎÊı
-	 *                                        ·ÇÊı×éÉèÖÃÖ÷¼üÎª´ËÖµ
-	 *                                        Êı×é°´ÕÕkeyÎª×Ö¶ÎÃûvalueÎªÖµÒÀ´Î¹ıÂË
-	 *                                    2¸ö²ÎÊı
-	 *                                        1Îª×Ö¶ÎÃû 2Îª´Ë×Ö¶ÎÖµ
+	 * è¿‡æ»¤
+	 * @param array $Conds è¿‡æ»¤æ¡ä»¶ (1), ('id', 1), ('id', 1, '>'), (['id', 1], ['id', 1, '>'], 'id >1', 'id'=>1, 'id'=>[1, '>'])
+	 *                                    1ä¸ªå‚æ•°
+	 *                                        éæ•°ç»„è®¾ç½®ä¸»é”®ä¸ºæ­¤å€¼
+	 *                                        æ•°ç»„æŒ‰ç…§keyä¸ºå­—æ®µåvalueä¸ºå€¼ä¾æ¬¡è¿‡æ»¤
+	 *                                    2ä¸ªå‚æ•°
+	 *                                        1ä¸ºå­—æ®µå 2ä¸ºæ­¤å­—æ®µå€¼
 	 * @return $this
 	 */
 	public function filter($Conds){
 		return $this->_withWHERE(func_get_args(), func_num_args());
 	}
 	/**
-	 * Ö±Ğ´¹ıÂËÌõ¼ş
-	 * @param string $Conditions sql¹ıÂË×Ö·û´®
+	 * ç›´å†™è¿‡æ»¤æ¡ä»¶
+	 * @param string $Conditions sqlè¿‡æ»¤å­—ç¬¦ä¸²
 	 * @return $this
 	 */
 	public function filterStr($Conditions){

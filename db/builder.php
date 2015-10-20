@@ -2,6 +2,16 @@
 namespace nx\db;
 
 /**
+ * $buffer
+ * $this->where($something)->limit()->sort()->read()
+ *
+ * $buffer[] =['where', [$something]]
+ * $buffer[] =['limit']
+ * $buffer[] =['sort']
+ * $buffer[] =['read']
+ *
+ * $buffer => $cache
+ *
  * Class sql
  * @package nx\db
  */
@@ -15,6 +25,9 @@ class builder{
 
 	private $params =[];
 	private $args =[];
+
+	private $where ='';
+	private $where_params =[];
 
 	public static function factory($Table, $Primary = 'id', $DB =null){
 		return new static($Table, $Primary, $DB);
@@ -145,7 +158,7 @@ class builder{
 	 */
 	public function update($fields=[], $value=false){
 		$this->params =[];
-		$is_named =true;
+		$is_named =false;
 		$sql ='';
 
 		$_fields =[];
@@ -161,7 +174,7 @@ class builder{
 			} else return false;
 		} else return false;
 
-		if(!empty($sql)){
+		if(empty($sql)){
 			$_set = [];
 			foreach($_fields as $_field => $_value){
 				if(!is_array($_value)){
@@ -187,12 +200,20 @@ class builder{
 			if(empty($_set)) return false;
 			$_set = implode(', ', $_set);
 
-			$_where = empty($args['filter']) ?'' :' WHERE ' . $args['filter'];
-			$_limit = empty($args['limit']) ?'' :$args['limit'];
+			if(!empty($this->args['filter'])){
+				$_where =' WHERE ' .$this->args['filter'];
+				$this->params =array_merge($this->params, $this->where_params);
+				$this->args['filter'] ='';
+				$this->where_params =[];
+			} else $_where ='';
+
+			//$_where = empty($this->args['filter']) ?'' :' WHERE ' .$this->args['filter'];
+			$_limit = empty($this->args['limit']) ?'' :$this->args['limit'];
 
 			$sql = "UPDATE `{$this->table}` SET {$_set}{$_where}{$_limit}";
 		}
 		$sth = $this->db()->prepare($sql);
+		if($sth ===false) return false;
 		$ok =$sth->execute(!empty($this->params) ?$this->params :null);
 		$this->params =[];
 		return $ok ?$sth->rowCount() :$ok;
@@ -208,7 +229,52 @@ class builder{
 	 * @return array
 	 */
 	public function read($fields=[]){
-		return [];
+		$_tables =[];
+		if(func_num_args() <=1){
+			if (is_array($fields) && !empty($fields)){
+				if(is_array(current($Fields))) $_tables =$Fields;		//->select(['user'=>['id', 'name'], 'info'=>[]])
+				else $_tables[$this->table] =$Fields;					//->select(['id', 'name'=>'user', 'info.name'])
+			} elseif(is_string($fields)){
+				if((strpos($fields, '`') !==false || strpos($fields, '(') !==false || strpos($fields, ',') !==false)){
+					$this->args['select'] =$fields;						//->select("COUNT(*) `COUNT`, `name`")
+					return $this;
+				} else $_tables[$this->table]=func_get_args();			//->select('id')
+			} else $_tables[$this->table]=['*'];							//->select(unknow)
+		} else $_tables[$this->table] =func_get_args();					//->select('id', 'name')
+
+		$_fs =[];
+		foreach($_tables as $_table =>$_fields){						//[tab1=>fields, tab2=>fields]
+			foreach($_fields as $_key =>$_field){						//$_fields =['tab.field', 'field']
+				$_tab =$_table;
+				if(is_numeric($_key)){
+					if(strpos($_field, '.') !==false) list($_tab, $_field) =explode('.', $_field); //['tab.field']
+					$_field =($_field =='*') ?$_field :"`{$_field}`";
+					$_fs[] ="`{$_tab}`.{$_field}";
+				} else{
+					if(is_array($_field)){								//$_fields =['count'=>['count', '*']]
+						if(isset($_field[2])) $_tab =$_field[2];
+						$_fs[] =isset($_field[1]) ?"{$_field[0]}(`{$_tab}`.`{$_field[1]}`) `{$_key}`" :"{$_field[0]}() `{$_key}`";
+					}else{												//$_fields =['tab.field'=>'field', 'COUNT(*)'=>'field']
+						if(strpos($_key, '(') !== false){
+							$_fs[] = "{$_key} `{$_field}`";
+						} else{
+							if(strpos($_key, '.') !== false) list($_tab, $_key) = explode('.', $_key);
+							$_fs[] = "`{$_tab}`.`{$_key}` `{$_field}`";
+						}
+					}
+				}
+			}
+		}
+
+		$this->args['select'] =implode(', ', $_fs);
+		$sql =$this->_buildSELECT($this->table, $this->args);
+
+		$sth = $this->db()->prepare($sql);
+		if($sth ===false) return false;
+		$ok =$sth->execute(!empty($this->params) ?$this->params :null);
+		$this->params =[];
+		if($ok ===false) return false;
+		return $sth->fetchAll();
 	}
 	/**
 	 * 删除记录
@@ -255,7 +321,7 @@ class builder{
 
 		if($Num ==0) return $this;
 		$conds =$Args[0];
-		if(!isset($this->args['filter'])) $this->args['filter'] ='';
+		if(!isset($this->args['filter']))$this->args['filter'] ='';
 		$_conds =[];
 		$link ='AND';
 
@@ -276,6 +342,7 @@ class builder{
 					break;
 				default://(id, 1) ('id', 1, '>') ('id', 1, '>', 'or)
 					$_conds[] =$Args;
+					if($Num ==4) $link =$Args[3];
 					break;
 			}
 		}
@@ -290,30 +357,31 @@ class builder{
 						$_opt = (isset($_val[2])) ?$_val[2] :$_opt;		//[['id', 1, '>'], ['stutas', 0, '=']]
 						$_col = $_val[0];
 						$_link =(isset($_val[3])) ?$_val[3] :$link;		//[['id', 1, '>', 'or'], ['stutas', 0, '=', 'or']]
-						//$_val = $_val[1];
+						$_val = $_val[1];
+						/*
 						if($is_named){
 							$this->params[':'.$_col] =$_val[1];
 							$_val =':'.$_col;
 						} else {
 							$this->params[] =$_val[1];
 							$_val ='?';
-						}
-					}
-					else{												// ['id'=>[1], 'stutas'=>[0]]
+						}*/
+					}else{												// ['id'=>[1], 'stutas'=>[0]]
 						$_opt = (isset($_val[1])) ?$_val[1] :$_opt;		// ['id'=>[1, '>'], 'stutas'=>[0, '=']]
 						$_link =(isset($_val[2])) ?$_val[2] :$link;		//['id'=>[1, '>', 'or'], 'stutas'=>[0, '=', 'or']]
-						//$_val = $_val[0];
+						$_val = $_val[0];
+						/*
 						if($is_named){
 							$this->params[':'.$_col] =$_val[0];
 							$_val =':'.$_col;
 						} else {
 							$this->params[] =$_val[0];
 							$_val ='?';
-						}
+						}*/
 					}
 				}														//['id'=>1, 'stutas'=>0]
 				if(strpos($_col, '.') !==false) list($_tab, $_col) =explode('.', $_col);
-				if(is_string($_val)) $_val =$this->_value($_col, $_val);
+				//if(is_string($_val)) $_val =$this->_value($_col, $_val);
 				/*if(is_string($_val) && $_val[0] =='`' && $_val[strlen($_val)-1] =='`'){
 					$_tab2 =$this->table;
 					$_val =substr($_val, 1, -1);
@@ -331,6 +399,7 @@ class builder{
 					case '*=':
 					case '/=':
 						$_opt = "=`{$_tab}`.`{$_col}` {$_opt[0]}";
+						$_val =$this->_value($_col, $_val);
 						break;
 					case 'not':
 					case 'NOT':
@@ -373,7 +442,7 @@ class builder{
 					default:
 						if(strpos($_val, '(') === false){
 							if($is_named){
-								$this->params[$_val] =$_val;
+								$this->params[$_col] =$_val;
 								$_val =':'.$_col;
 							} else {
 								$this->params[] =$_val;
@@ -388,8 +457,40 @@ class builder{
 					?$_val											//['id >1', 'stutas =0']
 					:"`{$_tab}`.`{$_col}` {$_opt} {$_val}";
 			}
-			if(!empty($_where)) $this->args['filter'] .=empty($this->args['filter']) ?"({$_where})" :" {$link} ({$_where})";
+			if(!empty($_where))$this->args['filter'] .=empty($this->args['filter']) ?"({$_where})" :" {$link} ({$_where})";
+			$this->where_params =$this->params;
 		}
 		return $this;
 	}
+
+	private function _buildSELECT($table, $args){
+		$get = empty($args['select']) ?"`{$table}`.*" :$args['select'];
+		$sort = empty($args['sort']) ?'' :$args['sort'];
+		$where = empty($args['filter']) ?'WHERE 1' :' WHERE '.$args['filter'];
+		$limit = empty($args['limit']) ?'' :$args['limit'];
+		$join = empty($args['join']) ?'' :$args['join'];
+		if(is_array($join)){
+			$join =[];
+			foreach($args['join'] as $_joins){
+				list($_join, $_get, $_where) =$_joins;
+				$join[] =$_join;
+				if(!empty($_get)) $get .=', '.$_get;
+				if(!empty($_where)) $where .=' AND '.$_where;
+			}
+			$join =implode('', $join);
+		}
+		$group = empty($args['group']) ?'' :$args['group'];
+		return "SELECT {$get} FROM `{$table}`{$join}{$where}{$group}{$sort}{$limit}";
+	}
+	private function _buildUPDATE($table, $args){
+		$_where = empty($args['filter']) ?'' :' WHERE '.$args['filter'];
+		$_limit = empty($args['limit']) ?'' :$args['limit'];
+		return "UPDATE `{$table}` SET {$args['set']}{$_where}{$_limit}";
+	}
+	private function _buildDELETE($table, $args){
+		$_where = empty($args['filter']) ?'' :' WHERE '.$args['filter'];
+		$_limit = empty($args['limit']) ?'' :$args['limit'];
+		return "DELETE FROM `{$table}`{$_where}{$_limit}";
+	}
+
 }
