@@ -2,6 +2,28 @@
 namespace nx\db;
 
 /**
+ *
+ * 读取所有 read[select] : get read getAll select all
+ * 读取一列 first : getOne readOne first one
+ * 一列字段 pluck =>readOne('col')
+ * 读取某列 lists =>read('col1', 'col2') =>select('col1', 'col2')->get()
+ * 查找    find where filter query
+ * 添加    create[insert]
+ * 删除    remove[delete]
+ * 更新    save[update]
+ * 翻页    limit page chunk skip&take
+ * 连接    join
+ * 分组    group groupBy
+ * 总数    count
+ * 顺序    order orderBy
+ *
+ *
+ * $this->create([]);
+ * $this->find(15)->get('id', 'name')
+ * $this->find(['id'=>15])->select('id', 'name')->get()
+ *
+ *
+ *
  * $buffer
  * $this->where($something)->limit()->sort()->read()
  *
@@ -19,7 +41,7 @@ class builder{
 	/**
 	 * @var callable
 	 */
-	private $_dbcb =null;
+	private $_db_callback =null;
 	public  $table = null;//表名
 	public  $primary = null;//主键
 
@@ -35,13 +57,13 @@ class builder{
 	public function __construct($Table, $Primary = 'id', $DB=null){
 		$this->table = $Table;
 		$this->primary = $Primary;
-		$this->_dbcb = $DB;
+		$this->_db_callback = $DB;
 	}
 	/**
 	 * @return \PDO
 	 */
 	private function db(){
-		$cb =$this->_dbcb;
+		$cb =$this->_db_callback;
 		return $cb();
 	}
 
@@ -55,7 +77,7 @@ class builder{
 		if(!empty($params)){
 			$ok =$this->db()->exec($sql);
 		} else{
-			$_first =current($params);
+			$_first =current($params);//单层转换为多层，使用循环处理
 			if(!is_array($_first)){
 				$_first =$params;
 				$params =[$params];
@@ -102,7 +124,8 @@ class builder{
 			$fields =[$fields];
 		}
 		$_cols =array_keys($_first);
-		$is_named =!isset($_first[0]);
+		//$is_named =!isset($_first[0]);
+		$is_named =false;
 
 		$col =[];
 		$prepare=[];
@@ -198,19 +221,8 @@ class builder{
 				$_set[] = "`{$_field}` ={$_val}";
 			}
 			if(empty($_set)) return false;
-			$_set = implode(', ', $_set);
-
-			if(!empty($this->args['filter'])){
-				$_where =' WHERE ' .$this->args['filter'];
-				$this->params =array_merge($this->params, $this->where_params);
-				$this->args['filter'] ='';
-				$this->where_params =[];
-			} else $_where ='';
-
-			//$_where = empty($this->args['filter']) ?'' :' WHERE ' .$this->args['filter'];
-			$_limit = empty($this->args['limit']) ?'' :$this->args['limit'];
-
-			$sql = "UPDATE `{$this->table}` SET {$_set}{$_where}{$_limit}";
+			$this->args['set'] = implode(', ', $_set);
+			$sql =$this->_buildUPDATE();
 		}
 		$sth = $this->db()->prepare($sql);
 		if($sth ===false) return false;
@@ -229,11 +241,55 @@ class builder{
 	 * @return array
 	 */
 	public function read($fields=[]){
+		$this->params =[];
+
+		$sql =$this->_buildSELECT();
+
+		$sth = $this->db()->prepare($sql);
+		if($sth ===false) return false;
+		$ok =$sth->execute(!empty($this->params) ?$this->params :null);
+		$this->params =[];
+		if($ok ===false) return false;
+		return $sth->fetchAll();
+	}
+	/**
+	 * 删除记录
+	 * @return int|false		false 或删除的条目数
+	 */
+	public function delete($sql='' ,$params=[]){
+		$this->params =[];
+		$is_named =false;
+		$sql ='';
+
+		if(func_num_args() ==2 && is_string($sql)){
+			$this->params =$params;
+			$is_named =!isset($params[0]);
+		}
+
+		if(empty($sql)){
+			$sql =$this->_buildDELETE();
+		}
+		$sth = $this->db()->prepare($sql);
+		if($sth ===false) return false;
+		$ok =$sth->execute(!empty($this->params) ?$this->params :null);
+		$this->params =[];
+		return $ok ?$sth->rowCount() :$ok;
+	}
+
+	/**
+	 * ->select('id', 'name')
+	 * ->select(['id', 'name'=>'user', 'info.name', 'count'=>['count', '*']])
+	 * ->select(['user'=>['id', 'name'], 'info'=>[]])
+	 *
+	 * @param array $fields
+	 * @return $this
+	 */
+	public function select($fields =[]){
 		$_tables =[];
 		if(func_num_args() <=1){
 			if (is_array($fields) && !empty($fields)){
-				if(is_array(current($Fields))) $_tables =$Fields;		//->select(['user'=>['id', 'name'], 'info'=>[]])
-				else $_tables[$this->table] =$Fields;					//->select(['id', 'name'=>'user', 'info.name'])
+				if(is_array(current($fields))) $_tables =$fields;		//->select(['user'=>['id', 'name'], 'info'=>[]])
+				else $_tables[$this->table] =$fields;					//->select(['id', 'name'=>'user', 'info.name'])
 			} elseif(is_string($fields)){
 				if((strpos($fields, '`') !==false || strpos($fields, '(') !==false || strpos($fields, ',') !==false)){
 					$this->args['select'] =$fields;						//->select("COUNT(*) `COUNT`, `name`")
@@ -265,25 +321,9 @@ class builder{
 				}
 			}
 		}
-
 		$this->args['select'] =implode(', ', $_fs);
-		$sql =$this->_buildSELECT($this->table, $this->args);
-
-		$sth = $this->db()->prepare($sql);
-		if($sth ===false) return false;
-		$ok =$sth->execute(!empty($this->params) ?$this->params :null);
-		$this->params =[];
-		if($ok ===false) return false;
-		return $sth->fetchAll();
+		return $this;
 	}
-	/**
-	 * 删除记录
-	 * @return int|false		false 或删除的条目数
-	 */
-	public function delete(){
-		return 0;
-	}
-
 	/**
 	 * 分页
 	 * @param int $Rows 查询返回行数
@@ -358,37 +398,14 @@ class builder{
 						$_col = $_val[0];
 						$_link =(isset($_val[3])) ?$_val[3] :$link;		//[['id', 1, '>', 'or'], ['stutas', 0, '=', 'or']]
 						$_val = $_val[1];
-						/*
-						if($is_named){
-							$this->params[':'.$_col] =$_val[1];
-							$_val =':'.$_col;
-						} else {
-							$this->params[] =$_val[1];
-							$_val ='?';
-						}*/
 					}else{												// ['id'=>[1], 'stutas'=>[0]]
 						$_opt = (isset($_val[1])) ?$_val[1] :$_opt;		// ['id'=>[1, '>'], 'stutas'=>[0, '=']]
 						$_link =(isset($_val[2])) ?$_val[2] :$link;		//['id'=>[1, '>', 'or'], 'stutas'=>[0, '=', 'or']]
 						$_val = $_val[0];
-						/*
-						if($is_named){
-							$this->params[':'.$_col] =$_val[0];
-							$_val =':'.$_col;
-						} else {
-							$this->params[] =$_val[0];
-							$_val ='?';
-						}*/
 					}
 				}														//['id'=>1, 'stutas'=>0]
 				if(strpos($_col, '.') !==false) list($_tab, $_col) =explode('.', $_col);
-				//if(is_string($_val)) $_val =$this->_value($_col, $_val);
-				/*if(is_string($_val) && $_val[0] =='`' && $_val[strlen($_val)-1] =='`'){
-					$_tab2 =$this->table;
-					$_val =substr($_val, 1, -1);
-					if(strpos($_val, '.') !==false) list($_tab2, $_val) =explode('.', $_val);
-					$_val ="`{$_tab2}`.`{$_val}`";
-				}*/
-				//$_val =$this->_db()->quote($_val);
+				$_opt =strtoupper($_opt);
 				switch($_opt){
 					case '+':
 					case '-':
@@ -401,12 +418,12 @@ class builder{
 						$_opt = "=`{$_tab}`.`{$_col}` {$_opt[0]}";
 						$_val =$this->_value($_col, $_val);
 						break;
-					case 'not':
+					//case 'not':
 					case 'NOT':
-					case 'not in':
+					//case 'not in':
 					case 'NOT IN':
 						$_opt ='NOT IN';
-					case 'in':
+					//case 'in':
 					case 'IN':
 						$__val =[];
 						foreach($_val as $_k =>$_v){
@@ -420,13 +437,13 @@ class builder{
 						}
 						$_val = " ('".implode("','", $__val)."')";
 						break;
-					case 'is':
+					//case 'is':
 					case 'IS':
 						$_opt ='IS';
 						$_val =strtoupper($_val);
 						break;
 					case 'LIKE':
-					case 'like':
+					//case 'like':
 					case '%':
 						$_opt ='LIKE';
 						if($is_named){
@@ -436,8 +453,6 @@ class builder{
 							$this->params[] ="%".$_val."%";
 							$_val ='?';
 						}
-						//$_val = "%".$_val."%";
-						//$_val =$this->_db()->quote($_val);
 						break;
 					default:
 						if(strpos($_val, '(') === false){
@@ -448,7 +463,6 @@ class builder{
 								$this->params[] =$_val;
 								$_val ='?';
 							}
-							//$_val =$this->_db()->quote($_val);
 						}
 						break;
 				}
@@ -463,15 +477,21 @@ class builder{
 		return $this;
 	}
 
-	private function _buildSELECT($table, $args){
-		$get = empty($args['select']) ?"`{$table}`.*" :$args['select'];
-		$sort = empty($args['sort']) ?'' :$args['sort'];
-		$where = empty($args['filter']) ?'WHERE 1' :' WHERE '.$args['filter'];
-		$limit = empty($args['limit']) ?'' :$args['limit'];
-		$join = empty($args['join']) ?'' :$args['join'];
+	private function _buildSELECT(){
+		$get = empty($this->args['select']) ?"`{$this->table}`.*" :$this->args['select'];
+		$sort = empty($this->args['sort']) ?'' :$this->args['sort'];
+		//$where = empty($this->args['filter']) ?'' :' WHERE '.$this->args['filter'];
+		if(!empty($this->args['filter'])){
+			$where =' WHERE ' .$this->args['filter'];
+			$this->params =array_merge($this->params, $this->where_params);
+			$this->args['filter'] ='';
+			$this->where_params =[];
+		} else $where ='';
+		$limit = empty($this->args['limit']) ?'' :$this->args['limit'];
+		$join = empty($this->args['join']) ?'' :$this->args['join'];
 		if(is_array($join)){
 			$join =[];
-			foreach($args['join'] as $_joins){
+			foreach($this->args['join'] as $_joins){
 				list($_join, $_get, $_where) =$_joins;
 				$join[] =$_join;
 				if(!empty($_get)) $get .=', '.$_get;
@@ -479,18 +499,29 @@ class builder{
 			}
 			$join =implode('', $join);
 		}
-		$group = empty($args['group']) ?'' :$args['group'];
-		return "SELECT {$get} FROM `{$table}`{$join}{$where}{$group}{$sort}{$limit}";
+		$group = empty($this->args['group']) ?'' :$this->args['group'];
+		return "SELECT {$get} FROM `{$this->table}`{$join}{$where}{$group}{$sort}{$limit}";
 	}
-	private function _buildUPDATE($table, $args){
-		$_where = empty($args['filter']) ?'' :' WHERE '.$args['filter'];
-		$_limit = empty($args['limit']) ?'' :$args['limit'];
-		return "UPDATE `{$table}` SET {$args['set']}{$_where}{$_limit}";
+	private function _buildUPDATE(){
+		if(!empty($this->args['filter'])){
+			$_where =' WHERE ' .$this->args['filter'];
+			$this->params =array_merge($this->params, $this->where_params);
+			$this->args['filter'] ='';
+			$this->where_params =[];
+		} else $_where ='';
+		//$_where = empty($args['filter']) ?'' :' WHERE '.$args['filter'];
+		$_limit = empty($this->args['limit']) ?'' :$this->args['limit'];
+		return "UPDATE `{$this->table}` SET {$this->args['set']}{$_where}{$_limit}";
 	}
-	private function _buildDELETE($table, $args){
-		$_where = empty($args['filter']) ?'' :' WHERE '.$args['filter'];
-		$_limit = empty($args['limit']) ?'' :$args['limit'];
-		return "DELETE FROM `{$table}`{$_where}{$_limit}";
+	private function _buildDELETE(){
+		if(!empty($this->args['filter'])){
+			$_where =' WHERE ' .$this->args['filter'];
+			$this->params =array_merge($this->params, $this->where_params);
+			$this->args['filter'] ='';
+			$this->where_params =[];
+		} else $_where ='';
+		$_limit = empty($this->args['limit']) ?'' :$this->args['limit'];
+		return "DELETE FROM `{$this->table}`{$_where}{$_limit}";
 	}
 
 }

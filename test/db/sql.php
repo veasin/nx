@@ -8,6 +8,7 @@ class sth{
 		echo json_encode($params);
 	}
 	public function rowCount(){return 0;}
+	public function fetchAll(){return [];}
 
 }
 class db extends sth{
@@ -46,32 +47,47 @@ EOT;
 $app =new app();
 $sql =$app->table('cds', 'id');
 
-echo '<br><br>call:', <<<'EOT'
+
+$sql->create([
+	['titel'=>1, 'interpret'=>2],
+	['titel'=>2, 'interpret'=>2],
+	['titel'=>3, 'interpret'=>2],
+]);
+
+
+
+echo '<br><br>>call:', <<<'EOT'
 $sql->read();
 EOT;
 $sql->read();
 
-echo '<br><br>call:', <<<'EOT'
+echo '<br><br>>call:', <<<'EOT'
 $sql->where(14)->update(['interpret'=>'vea']);
 EOT;
 $sql->where(14)->update(['interpret'=>'vea']);
 
 
-echo '<br><br>call:', <<<'EOT'
+echo '<br><br>>call:', <<<'EOT'
 $sql->where(15)->where(['id'=>16], 'or')->update(['interpret'=>'veas', 'titel'=>date('Y-m-d H:i:s')]);
 EOT;
 $var =$sql->where(15)->where(['id'=>16], 'or')->update(['interpret'=>'veas', 'titel'=>date('Y-m-d H:i:s')]);
 
-echo '<br><br>call:', <<<'EOT'
+echo '<br><br>>call:', <<<'EOT'
 $var =$sql->where(15)->where('id', 16, '=', 'or')->update(['interpret'=>'veas', 'titel'=>date('Y-m-d H:i:s')]);
 EOT;
 $var =$sql->where(15)->where('id', 16, '=', 'or')->update(['interpret'=>'veas', 'titel'=>date('Y-m-d H:i:s')]);
 
 
-echo '<br><br>call:', <<<'EOT'
+echo '<br><br>>call:', <<<'EOT'
 $sql->where('id', 13, '=')->read();
 EOT;
 $sql->where('id', 13, '=')->read();
+
+echo '<br><br>>call:', <<<'EOT'
+$sql->where(['id'=>17])->delete();
+EOT;
+$sql->where(['id'=>17])->delete();
+
 
 //$var =$sql->filter(['id'=>1])->readOne('titel');
 //var_dump($var);
