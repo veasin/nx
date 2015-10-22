@@ -33,13 +33,13 @@ class controller{
 			$_method =str_replace('\\', '_', $_trait);
 			if(method_exists($this, $_method)) $this->$_method();
 		}
-
-		$this->data =$this->response;
+		//load from app
+		$this->data =$this->app->response;
 
 		$this->exec(self::doBefore);
 		$this->exec($this->route[1], true);
 		$this->exec(self::doAfter);
-
+		//back to app
 		$this->app->response =$this->response;
 	}
 	public function __get($name){
