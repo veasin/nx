@@ -15,8 +15,9 @@ trait pdo{
 		\PDO::ATTR_EMULATE_PREPARES =>false,
 	];
 	protected function nx_db_pdo(){
+		$it =is_a($this, 'nx\mvc\model') ?$this->app :$this;
 		$this->buffer['db_pdo'] =[
-			'config' =>isset($this->setup['db.pdo']) ?$this->setup['db.pdo'] :[],
+			'config' =>isset($it->setup['db.pdo']) ?$it->setup['db.pdo'] :[],
 			'handle' =>[],
 		];
 	}
