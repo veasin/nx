@@ -21,9 +21,7 @@ trait table{
 	 * @return \nx\db\builder
 	 */
 	public function table($name, $primary = null, $config = 'default'){
-		return \nx\db\builder::factory($name, $primary, function () use ($config){
-			return $this->db($config);
-		});
+		return \nx\db\builder::factory($name, $primary, $config, $this);
 	}
 
 }

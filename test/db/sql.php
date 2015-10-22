@@ -3,26 +3,17 @@
 require '../../autoload.php';
 \nx\autoload::register();
 
-class sth{
-	public function execute($params){
-		echo json_encode($params);
-	}
-	public function rowCount(){return 0;}
-	public function fetchAll(){return [];}
-
-}
-class db extends sth{
-	public function prepare($sql){
-		echo '<br><br>', $sql, '<br>';
-		return new sth();
-	}
-}
 
 trait test_db{
-	public function db(){
-		return new db();
+	public function insert($sql, $params=[], $config='default'){
+		echo '<br><br>[',$config, ']', $sql, '<br>', json_encode($params);
 	}
-
+	public function select($sql, $params=[], $config='default'){
+		echo '<br><br>[',$config, ']', $sql, '<br>', json_encode($params);
+	}
+	public function execute($sql, $params=[], $config='default'){
+		echo '<br><br>[',$config, ']', $sql, '<br>', json_encode($params);
+	}
 }
 
 class app extends \nx\app{
@@ -62,6 +53,11 @@ EOT;
 $sql->read();
 
 echo '<br><br>>call:', <<<'EOT'
+$sql->create(['interpret'=>'veas', 'titel'=>date('Y-m-d H:i:s')]);
+EOT;
+$sql->create(['interpret'=>'veas', 'titel'=>date('Y-m-d H:i:s')]);
+
+echo '<br><br>>call:', <<<'EOT'
 $sql->where(14)->update(['interpret'=>'vea']);
 EOT;
 $sql->where(14)->update(['interpret'=>'vea']);
@@ -82,6 +78,16 @@ echo '<br><br>>call:', <<<'EOT'
 $sql->where('id', 13, '=')->read();
 EOT;
 $sql->where('id', 13, '=')->read();
+
+echo '<br><br>>call:', <<<'EOT'
+$sql->where('id', 13, '=')->read('titel', 'interpret');
+EOT;
+$sql->where('id', 13, '=')->read('titel', 'interpret');
+
+echo '<br><br>>call:', <<<'EOT'
+$sql->where('id', 13, '=')->read(['titel', 'interpret']);
+EOT;
+$sql->where('id', 13, '=')->join('book b', ['titel'])->read(['b.titel', 'interpret']);
 
 echo '<br><br>>call:', <<<'EOT'
 $sql->where(['id'=>17])->delete();

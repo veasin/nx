@@ -39,70 +39,28 @@ namespace nx\db;
  */
 class builder{
 	/**
-	 * @var callable
+	 * @var \nx\db\pdo
 	 */
-	private $_db_callback =null;
+	private $_model =null;
+	private $_config ='default';
+
 	public  $table = null;//表名
 	public  $primary = null;//主键
 
 	private $params =[];
 	private $args =[];
 
-	private $where ='';
 	private $where_params =[];
 
-	public static function factory($Table, $Primary = 'id', $DB =null){
-		return new static($Table, $Primary, $DB);
+	public static function factory($Table, $Primary = 'id', $config='default', $model =null){
+		return new static($Table, $Primary, $config, $model);
 	}
-	public function __construct($Table, $Primary = 'id', $DB=null){
+	public function __construct($Table, $Primary = 'id', $config='default', $model =null){
 		$this->table = $Table;
 		$this->primary = $Primary;
-		$this->_db_callback = $DB;
-	}
-	/**
-	 * @return \PDO
-	 */
-	private function db(){
-		$cb =$this->_db_callback;
-		return $cb();
-	}
 
-	/**
-	 * 直接插入方法
-	 * @param $sql
-	 * @param array $params
-	 * @return bool|int
-	 */
-	public function insert($sql, $params=[]){
-		if(!empty($params)){
-			$ok =$this->db()->exec($sql);
-		} else{
-			$_first =current($params);//单层转换为多层，使用循环处理
-			if(!is_array($_first)){
-				$_first =$params;
-				$params =[$params];
-			}
-			$is_named =!isset($_first[0]);
-
-			$ok =$this->_insert($sql, $params, $is_named);
-		}
-		if($ok) return $this->db()->lastInsertId();
-		return false;
-	}
-
-	private function _insert($sql, $params =[], $named =false){
-		$sth = $this->db()->prepare($sql);
-		$ok =false;
-		foreach($params as $_fields){
-			if($named){
-				$_var = [];
-				foreach($_fields as $_key => $_val){
-					$_var[':' . $_key] = $_val;
-				}
-			}else $_var = array_values($_fields);
-			$ok = $sth->execute($_var);
-		}
-		return $ok;
+		$this->_config =$config;
+		$this->_model =$model;
 	}
 
 	/**
@@ -124,8 +82,8 @@ class builder{
 			$fields =[$fields];
 		}
 		$_cols =array_keys($_first);
-		//$is_named =!isset($_first[0]);
-		$is_named =false;
+		$is_named =!isset($_first[0]);
+		//$is_named =false;
 
 		$col =[];
 		$prepare=[];
@@ -137,43 +95,29 @@ class builder{
 		$prepare =implode(", ", $prepare);
 		$sql ="INSERT INTO {$this->table} ($col) VALUES ($prepare)";
 
-		return $this->_insert($sql, $fields, $is_named);
-	}
-
-	/**
-	 * 解析赋值 "val", "`col`", "`tab.col`"
-	 * @param $field
-	 * @param $value
-	 * @param bool|false $is_named
-	 * @return string
-	 */
-	private function _value($field, $value, $is_named =false){
-		$value =(string)$value;		// =>string
-		$_len =strlen($value);
-		if($_len >0){
-			if($value[0] =='`' && $value[$_len-1] =='`'){
-				$_tab2 =$this->table;
-				$_val =substr($value, 1, -1);
-				if(strpos($value, '.') !==false) list($_tab2, $_val) =explode('.', $value, 2);
-				$_val ="`{$_tab2}`.`{$_val}`";
+		$params = [];
+		foreach($fields as $_k => $_v){
+			if(!$is_named){
+				$params[$_k] =array_values($_v);
 			} else {
-				if($is_named){
-					$_val = ':' . $field;
-					$this->params[$field] = $value;
-				} else {
-					$_val ='?';
-					$this->params[] =$value;
+				$_cols =[];
+				foreach($_v as $_c => $_val){
+					$_cols[':'.$_c] =$_val;
 				}
+				$params[$_k] =$_cols;
 			}
-		} else $_val="''";
-		return $_val;
+		}
+		$fields =$params;
+
+		$result =$this->_model->insertSQL($sql, $fields, $this->_config);
+		$this->params =[];
+		return $result;
 	}
 
 	/**
 	 * 更新记录
 	 * ->update(['name'=>'vea', 'login'=>[1, '+'], 'count'=>['num', 'COUNT'], 'nickname'=>'`user.name`'])
 	 * ->update('name', 'vea')
-	 * ->update('sql', [param1, param2])
 	 *
 	 * @param array $fields
 	 * @param bool|false $value
@@ -224,11 +168,10 @@ class builder{
 			$this->args['set'] = implode(', ', $_set);
 			$sql =$this->_buildUPDATE();
 		}
-		$sth = $this->db()->prepare($sql);
-		if($sth ===false) return false;
-		$ok =$sth->execute(!empty($this->params) ?$this->params :null);
+
+		$result = $this->_model->executeSQL($sql, $this->params, $this->_config);
 		$this->params =[];
-		return $ok ?$sth->rowCount() :$ok;
+		return $result;
 	}
 
 	/**
@@ -242,38 +185,23 @@ class builder{
 	 */
 	public function read($fields=[]){
 		$this->params =[];
-
+		$this->_withSELECT(func_get_args(), func_num_args());
 		$sql =$this->_buildSELECT();
-
-		$sth = $this->db()->prepare($sql);
-		if($sth ===false) return false;
-		$ok =$sth->execute(!empty($this->params) ?$this->params :null);
+		$result =$this->_model->selectSQL($sql, $this->params, $this->_config);
 		$this->params =[];
-		if($ok ===false) return false;
-		return $sth->fetchAll();
+		return $result;
 	}
+
 	/**
 	 * 删除记录
 	 * @return int|false		false 或删除的条目数
 	 */
-	public function delete($sql='' ,$params=[]){
+	public function delete(){
 		$this->params =[];
-		$is_named =false;
-		$sql ='';
-
-		if(func_num_args() ==2 && is_string($sql)){
-			$this->params =$params;
-			$is_named =!isset($params[0]);
-		}
-
-		if(empty($sql)){
-			$sql =$this->_buildDELETE();
-		}
-		$sth = $this->db()->prepare($sql);
-		if($sth ===false) return false;
-		$ok =$sth->execute(!empty($this->params) ?$this->params :null);
+		$sql =$this->_buildDELETE();
+		$result = $this->_model->executeSQL($sql, $this->params, $this->_config);
 		$this->params =[];
-		return $ok ?$sth->rowCount() :$ok;
+		return $result;
 	}
 
 	/**
@@ -285,54 +213,7 @@ class builder{
 	 * @return $this
 	 */
 	public function select($fields =[]){
-		$_tables =[];
-		if(func_num_args() <=1){
-			if (is_array($fields) && !empty($fields)){
-				if(is_array(current($fields))) $_tables =$fields;		//->select(['user'=>['id', 'name'], 'info'=>[]])
-				else $_tables[$this->table] =$fields;					//->select(['id', 'name'=>'user', 'info.name'])
-			} elseif(is_string($fields)){
-				if((strpos($fields, '`') !==false || strpos($fields, '(') !==false || strpos($fields, ',') !==false)){
-					$this->args['select'] =$fields;						//->select("COUNT(*) `COUNT`, `name`")
-					return $this;
-				} else $_tables[$this->table]=func_get_args();			//->select('id')
-			} else $_tables[$this->table]=['*'];							//->select(unknow)
-		} else $_tables[$this->table] =func_get_args();					//->select('id', 'name')
-
-		$_fs =[];
-		foreach($_tables as $_table =>$_fields){						//[tab1=>fields, tab2=>fields]
-			foreach($_fields as $_key =>$_field){						//$_fields =['tab.field', 'field']
-				$_tab =$_table;
-				if(is_numeric($_key)){
-					if(strpos($_field, '.') !==false) list($_tab, $_field) =explode('.', $_field); //['tab.field']
-					$_field =($_field =='*') ?$_field :"`{$_field}`";
-					$_fs[] ="`{$_tab}`.{$_field}";
-				} else{
-					if(is_array($_field)){								//$_fields =['count'=>['count', '*']]
-						if(isset($_field[2])) $_tab =$_field[2];
-						$_fs[] =isset($_field[1]) ?"{$_field[0]}(`{$_tab}`.`{$_field[1]}`) `{$_key}`" :"{$_field[0]}() `{$_key}`";
-					}else{												//$_fields =['tab.field'=>'field', 'COUNT(*)'=>'field']
-						if(strpos($_key, '(') !== false){
-							$_fs[] = "{$_key} `{$_field}`";
-						} else{
-							if(strpos($_key, '.') !== false) list($_tab, $_key) = explode('.', $_key);
-							$_fs[] = "`{$_tab}`.`{$_key}` `{$_field}`";
-						}
-					}
-				}
-			}
-		}
-		$this->args['select'] =implode(', ', $_fs);
-		return $this;
-	}
-	/**
-	 * 分页
-	 * @param int $Rows 查询返回行数
-	 * @param int  $Offset 查询起始行数
-	 * @return $this
-	 */
-	public function limit($Rows =false, $Offset = 0){
-		$this->args['limit'] = empty($Rows) ?''
-			:((func_num_args() == 1) ?" LIMIT {$Rows}" :" LIMIT {$Offset}, {$Rows}");
+		$this->_withSELECT(func_get_args(), func_num_args());
 		return $this;
 	}
 
@@ -347,6 +228,94 @@ class builder{
 	public function where($conds){
 		return $this->_withWHERE(func_get_args(), func_num_args());
 	}
+	/**
+	 * 继承 select, filter
+	 * join(\nx\db\sql, ['id'])->join('user', ['id'=>'user_id'])->join('user', ['user.id'=>'editor.user_id'])
+	 *
+	 * @param string|\nx\db\sql $Table //表名
+	 * @param null   $Conditions
+	 * @param string $Join
+	 * @return $this
+	 */
+	public function join($Table, $Conditions=null, $Join='LEFT'){
+		$_table = (is_object($Table)) ?$Table->table :$Table;
+		if(strpos($_table, ' ') !==false){
+			list($_table, $_as) =explode(' ', $_table);
+			$_as =" `{$_as}`";
+		} else $_as ='';
+		$s = " {$Join} JOIN `{$_table}`".$_as;
+		if(is_array($Conditions)){
+			$_c =[];
+			foreach($Conditions as $Row => $As){
+				$__table =$_table;
+				$__row =is_numeric($Row) ?$As :$Row;
+				if(strpos($Row, '.') !==false) list($__table, $__row) =explode('.',$Row);
+				$__table2 =$this->table;
+				$__as =$As;
+				if(strpos($As, '.') !==false) list($__table2, $__as) =explode('.',$As);
+				$_c[] = "`{$__table}`.`{$__row}` = `{$__table2}`.`{$__as}`";
+			}
+			$s .= " ON (".implode(' AND ', $_c).")";
+		}
+		elseif(is_string($Conditions)) $s .= $Conditions;
+
+		$_join =[$s, '', ''];
+		if(is_object($Table)){
+			$_join[1] =empty($Table->args['select']) ?'' :$Table->args['select'];
+			$_join[2] =empty($Table->args['filter']) ?'':$Table->args['filter'];
+		}
+		$this->args['join'][] = $_join;
+		return $this;
+	}
+	/**
+	 * ->sort()->sort(`create`, `desc`)->sort(['create'=>'desc', 'upload.last'->'asc'])
+	 *
+	 * @param bool $field
+	 * @param bool $asc
+	 * @return $this
+	 */
+	public function sort($field =false, $asc =true){
+		$_sorts =[];
+		if(is_array($field)) $_sorts =$field;
+		else $_sorts[($field ===false) ?$this->primary :$field] =$asc;
+
+		$_s =[];
+		foreach($_sorts as $_field =>$_asc){
+			$_tab =$this->table;
+			$_sort ='ASC';
+			if(strpos($_field, '.') !==false)  list($_tab, $_field) =explode('.', $_field);
+
+			if(is_bool($_asc)) $_sort =($_asc) ?'ASC' :'DESC';
+			elseif(is_string($_asc)){
+				$_sort =(strtolower($_asc[0]) =='a') ?'ASC' :'DESC';
+			}
+			$_s[] =$_field[0]=='`' ?"{$_field} {$_sort}" :"`{$_tab}`.`{$_field}` {$_sort}";
+		}
+		$this->args['sort'] = " ORDER BY ".implode(", ", $_s);
+		return $this;
+	}
+	/**
+	 * 分页
+	 * @param int $Rows 查询返回行数
+	 * @param int  $Offset 查询起始行数
+	 * @return $this
+	 */
+	public function limit($Rows =false, $Offset = 0){
+		$this->args['limit'] = empty($Rows) ?''
+			:((func_num_args() == 1) ?" LIMIT {$Rows}" :" LIMIT {$Offset}, {$Rows}");
+		return $this;
+	}
+	/**
+	 * @param $field
+	 * @return $this
+	 */
+	public function group($field){
+		$_tab =$this->table;
+		if(strpos($field, '.') !==false) list($_tab, $field) =explode('.', $field);
+		$this->args['group'] =" GROUP BY `{$_tab}`.`{$field}`";
+		return $this;
+	}
+
 	/*--------------- build ----------------------------------------------------------*/
 	/**
 	 *
@@ -476,6 +445,56 @@ class builder{
 		}
 		return $this;
 	}
+	private function _withSELECT($args =[], $nums){
+		$_tables =[];
+
+		switch($nums){
+			case 0:
+				$_tables[$this->table]=['*'];								//->select()
+				break;
+			case 1:
+				$fields =$args[0];
+				if (is_array($fields) && !empty($fields)){
+					if(is_array(current($fields))) $_tables =$fields;		//->select(['user'=>['id', 'name'], 'info'=>[]])
+					else $_tables[$this->table] =$fields;					//->select(['id', 'name'=>'user', 'info.name'])
+				} elseif(is_string($fields)){
+					if((strpos($fields, '`') !==false || strpos($fields, '(') !==false || strpos($fields, ',') !==false)){
+						$this->args['select'] =$fields;						//->select("COUNT(*) `COUNT`, `name`")
+						return $this;
+					} else $_tables[$this->table]=$args;					//->select('id')
+				}
+				break;
+			default:
+				$_tables[$this->table] =$args;								//->select('id', 'name')
+				break;
+		}
+
+		$_fs =[];
+		foreach($_tables as $_table =>$_fields){						//[tab1=>fields, tab2=>fields]
+			foreach($_fields as $_key =>$_field){						//$_fields =['tab.field', 'field']
+				$_tab =$_table;
+				if(is_numeric($_key)){
+					if(strpos($_field, '.') !==false) list($_tab, $_field) =explode('.', $_field); //['tab.field']
+					$_field =($_field =='*') ?$_field :"`{$_field}`";
+					$_fs[] ="`{$_tab}`.{$_field}";
+				} else{
+					if(is_array($_field)){								//$_fields =['count'=>['count', '*']]
+						if(isset($_field[2])) $_tab =$_field[2];
+						$_fs[] =isset($_field[1]) ?"{$_field[0]}(`{$_tab}`.`{$_field[1]}`) `{$_key}`" :"{$_field[0]}() `{$_key}`";
+					}else{												//$_fields =['tab.field'=>'field', 'COUNT(*)'=>'field']
+						if(strpos($_key, '(') !== false){
+							$_fs[] = "{$_key} `{$_field}`";
+						} else{
+							if(strpos($_key, '.') !== false) list($_tab, $_key) = explode('.', $_key);
+							$_fs[] = "`{$_tab}`.`{$_key}` `{$_field}`";
+						}
+					}
+				}
+			}
+		}
+		$this->args['select'] =implode(', ', $_fs);
+		//return $this;
+	}
 
 	private function _buildSELECT(){
 		$get = empty($this->args['select']) ?"`{$this->table}`.*" :$this->args['select'];
@@ -523,5 +542,35 @@ class builder{
 		$_limit = empty($this->args['limit']) ?'' :$this->args['limit'];
 		return "DELETE FROM `{$this->table}`{$_where}{$_limit}";
 	}
+
+	/**
+	 * 解析赋值 "val", "`col`", "`tab.col`"
+	 * @param $field
+	 * @param $value
+	 * @param bool|false $is_named
+	 * @return string
+	 */
+	private function _value($field, $value, $is_named =false){
+		$value =(string)$value;		// =>string
+		$_len =strlen($value);
+		if($_len >0){
+			if($value[0] =='`' && $value[$_len-1] =='`'){
+				$_tab2 =$this->table;
+				$_val =substr($value, 1, -1);
+				if(strpos($value, '.') !==false) list($_tab2, $_val) =explode('.', $value, 2);
+				$_val ="`{$_tab2}`.`{$_val}`";
+			} else {
+				if($is_named){
+					$_val = ':' . $field;
+					$this->params[$field] = $value;
+				} else {
+					$_val ='?';
+					$this->params[] =$value;
+				}
+			}
+		} else $_val="''";
+		return $_val;
+	}
+	/*--------------- 别称 或快捷方法 ----------------------------------------------------------*/
 
 }
