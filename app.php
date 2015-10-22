@@ -69,6 +69,15 @@ class app{
 					:(isset($args[1])
 						?$args[1]
 						:null);
+			case 'db':
+			case 'insertSQL':
+			case 'selectSQL':
+			case 'executeSQL':
+				die('need [trait nx\db\pdo].');
+			case 'table':
+				die('need [trait nx\db\table].');
+			default:
+				die('nothing for ['.$name.'].');
 			default:
 				;
 		}

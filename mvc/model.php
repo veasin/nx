@@ -8,8 +8,10 @@ class model{
 	 */
 	public $app = null;
 	public $options = [];
-	private static $instance = [];
+	static private $instance = [];
 	public $_sql =[];
+
+	protected $buffer =[];
 	public function __construct($set = []){
 		$this->options = $set;
 		$this->app = \nx\app::$instance;
@@ -24,38 +26,22 @@ class model{
 	}
 
 	/**
-	 * @param string $name
-	 * @return \PDO
-	 */
-	protected function db($name ='default'){
-		return $this->app->db($name);
-	}
-
-	/**
 	 * @param array $set
-	 * @return self
+	 * @return static
 	 */
-	public static function i($set = []){
+	static public function instance($set = []){
 		$c = get_called_class();
 		if(empty(self::$instance[$c])) self::$instance[$c] = new $c($set);
 		return self::$instance[$c];
 	}
 	/**
 	 * @param array $set
-	 * @return self
+	 * @return static
 	 */
-	public static function instance($set = []){
-		return self::i($set);
+	static public function i($set = []){
+		return self::instance($set);
 	}
-	/**
-	 * @param $table
-	 * @param $pid
-	 * @return hSQL
-	 */
-	public function sql($table, $pid){
-		if(!isset($this->_sql[$table])) $this->_sql[$table] =\nx\helpers\sql::factory($table, $pid);
-		return $this->_sql[$table];
-	}
+
 	/**
 	 * [[key, val, oth],[key, val, oth]...]
 	 * (key, val)=>[key=>val],
@@ -89,5 +75,18 @@ class model{
 			}
 		}
 		return $r;
+	}
+	public function __call($name, $args){
+		switch($name){
+			case 'db':
+			case 'insertSQL':
+			case 'selectSQL':
+			case 'executeSQL':
+				die('need [trait nx\db\pdo].');
+			case 'table':
+				die('need [trait nx\db\table].');
+			default:
+				die('nothing for ['.$name.'].');
+		}
 	}
 }
