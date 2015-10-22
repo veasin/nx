@@ -7,13 +7,12 @@ class model{
 	 * @var \nx\app
 	 */
 	public $app = null;
-	public $options = [];
+	public $setup = [];
 	static private $instance = [];
-	public $_sql =[];
 
 	protected $buffer =[];
-	public function __construct($set = []){
-		$this->options = $set;
+	public function __construct($setup = []){
+		$this->setup = $setup;
 		$this->app = \nx\app::$instance;
 
 		//init use trait
@@ -33,13 +32,6 @@ class model{
 		$c = get_called_class();
 		if(empty(self::$instance[$c])) self::$instance[$c] = new $c($set);
 		return self::$instance[$c];
-	}
-	/**
-	 * @param array $set
-	 * @return static
-	 */
-	static public function i($set = []){
-		return self::instance($set);
 	}
 
 	/**
