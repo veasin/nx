@@ -1,6 +1,8 @@
 <?php
 namespace nx\mvc;
 
+use nx\request;
+
 class controller{
 	static public $instance =null;
 
@@ -17,6 +19,11 @@ class controller{
 	 * @var router
 	 */
 	public $route = [];
+	/**
+	 * @var request
+	 */
+	public $request;
+
 	/**
 	 * @var view
 	 */
@@ -35,6 +42,7 @@ class controller{
 		}
 		//load from app
 		$this->data =$this->app->response;
+		$this->request =$this->app->request;
 
 		$this->exec(self::doBefore);
 		$this->exec($this->route[1], true);

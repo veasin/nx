@@ -23,13 +23,14 @@ class app{
 
 		if($this->path=='') $this->path=dirname($_SERVER['SCRIPT_FILENAME']);
 
+		$this->request=new request();
+
 		//init use trait
 		foreach(class_uses($this) as $_trait){
 			$_method=str_replace('\\', '_', $_trait);
 			if(method_exists($this, $_method)) $this->$_method();
 		}
 
-		$this->request=new request();
 		//$this->response['app'] =get_class($this);
 	}
 	public function __destruct(){
