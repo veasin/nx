@@ -11,7 +11,7 @@ class app{
 	 * @var \nx\request
 	 */
 	public $request=null;
-	protected $buffer=[];
+	public $buffer=[];
 	protected $setup=[];
 	public $path='';
 	public function __construct($setup=[]){

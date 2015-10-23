@@ -1,8 +1,6 @@
 <?php
 namespace nx\mvc;
 
-use nx\request;
-
 class controller{
 	static public $instance =null;
 
@@ -15,14 +13,13 @@ class controller{
 	 */
 	public $app;
 	/**
-	 *
-	 * @var router
+	 * @var array
 	 */
 	public $route = [];
 	/**
-	 * @var request
+	 * @var \nx\request
 	 */
-	public $request;
+	//public $request;
 
 	/**
 	 * @var view
@@ -41,8 +38,8 @@ class controller{
 			if(method_exists($this, $_method)) $this->$_method();
 		}
 		//load from app
-		$this->data =$this->app->response;
-		$this->request =$this->app->request;
+		//$this->response =$this->app->response;
+		//$this->request =$this->app->request;
 
 		$this->exec(self::doBefore);
 		$this->exec($this->route[1], true);
@@ -52,10 +49,9 @@ class controller{
 	}
 	public function __get($name){
 		switch($name){
-			case 'response':
-				$this->$name =$this->app->response;
+			default:
+				$this->$name =$this->app->$name;
 				return $this->$name;
-				break;
 		}
 	}
 	public function __call($name, $args){

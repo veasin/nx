@@ -15,16 +15,17 @@ trait pdo{
 	];
 	protected function nx_db_pdo(){
 		$it=is_a($this, 'nx\mvc\model') ?$this->app :$this;
-		$this->buffer['db/pdo']=['config'=>isset($it->setup['db/pdo']) ?$it->setup['db/pdo'] :[], 'handle'=>[],];
+		$it->buffer['db/pdo']=['config'=>isset($it->setup['db/pdo']) ?$it->setup['db/pdo'] :[], 'handle'=>[],];
 	}
 	/**
 	 * @param string $name app->setup['db/pdo']
 	 * @return \PDO
 	 */
 	public function db($name='default'){
-		$db=&$this->buffer['db/pdo']['handle'];
+		$it=is_a($this, 'nx\mvc\model') ?$this->app :$this;
+		$db=&$it->buffer['db/pdo']['handle'];
 		if(!isset($db[$name])){
-			$cfg=&$this->buffer['db/pdo']['config'];
+			$cfg=&$it->buffer['db/pdo']['config'];
 			$config=false;
 			if(isset($cfg[$name])) $config=is_array($cfg[$name]) ?$cfg[$name] :$cfg[$cfg[$name]];
 			if(empty($config)) die('no db set.');

@@ -10,7 +10,7 @@ class model{
 	public $setup = [];
 	static private $instance = [];
 
-	protected $buffer =[];
+	public $buffer =[];
 	public function __construct($setup = []){
 		$this->setup = $setup;
 		$this->app = \nx\app::$instance;
