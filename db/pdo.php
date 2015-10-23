@@ -8,37 +8,31 @@ namespace nx\db;
  * @package nx\db
  */
 trait pdo{
-
-	private $_nx_db_pdo_options =[
-		\PDO::ATTR_DEFAULT_FETCH_MODE =>\PDO::FETCH_ASSOC,
-		\PDO::ATTR_STRINGIFY_FETCHES =>false,
-		\PDO::ATTR_EMULATE_PREPARES =>false,
+	private $_nx_db_pdo_options=[
+		\PDO::ATTR_DEFAULT_FETCH_MODE=>\PDO::FETCH_ASSOC,
+		\PDO::ATTR_STRINGIFY_FETCHES=>false,
+		\PDO::ATTR_EMULATE_PREPARES=>false,
 	];
 	protected function nx_db_pdo(){
-		$it =is_a($this, 'nx\mvc\model') ?$this->app :$this;
-		$this->buffer['db_pdo'] =[
-			'config' =>isset($it->setup['db.pdo']) ?$it->setup['db.pdo'] :[],
-			'handle' =>[],
-		];
+		$it=is_a($this, 'nx\mvc\model') ?$this->app :$this;
+		$this->buffer['db/pdo']=['config'=>isset($it->setup['db/pdo']) ?$it->setup['db/pdo'] :[], 'handle'=>[],];
 	}
-
 	/**
-	 * @param string $name app->setup['db.pdo']
+	 * @param string $name app->setup['db/pdo']
 	 * @return \PDO
 	 */
-	public function db($name ='default'){
-		$db =&$this->buffer['db_pdo']['handle'];
-		if(!isset($db[$name])) {
-			$cfg =&$this->buffer['db_pdo']['config'];
-			$config = false;
-			if (isset($cfg[$name])) $config = is_array($cfg[$name]) ? $cfg[$name] : $cfg[$cfg[$name]];
-			if (empty($config)) die('no db set.');
-			$options =isset($config['options']) ?$config['options']+$this->_nx_db_pdo_options :$this->_nx_db_pdo_options;
-			$db[$name] = new \PDO($config['dsn'], $config['username'], $config['password'], $options);
+	public function db($name='default'){
+		$db=&$this->buffer['db/pdo']['handle'];
+		if(!isset($db[$name])){
+			$cfg=&$this->buffer['db/pdo']['config'];
+			$config=false;
+			if(isset($cfg[$name])) $config=is_array($cfg[$name]) ?$cfg[$name] :$cfg[$cfg[$name]];
+			if(empty($config)) die('no db set.');
+			$options=isset($config['options']) ?$config['options']+$this->_nx_db_pdo_options :$this->_nx_db_pdo_options;
+			$db[$name]=new \PDO($config['dsn'], $config['username'], $config['password'], $options);
 		}
 		return $db[$name];
 	}
-
 	/**
 	 * 直接插入方法
 	 * ->insert('INSERT INTO cds (`interpret`, `titel`) VALUES (?, ?)', ['veas', 'new cd']);
@@ -48,16 +42,16 @@ trait pdo{
 	 */
 	public function insertSQL($sql, $params=[], $config='default'){
 		if(!empty($params)){
-			$ok =$this->db($config)->exec($sql);
-		} else{
-			$sth = $this->db($config)->prepare($sql);
-			$ok =false;
-			$_first =current($params);
+			$ok=$this->db($config)->exec($sql);
+		}else{
+			$sth=$this->db($config)->prepare($sql);
+			$ok=false;
+			$_first=current($params);
 			if(!is_array($_first)){
-				$ok = $sth->execute($params);
-			} else {
+				$ok=$sth->execute($params);
+			}else{
 				foreach($params as $_fields){
-					$ok = $sth->execute($_fields);
+					$ok=$sth->execute($_fields);
 				}
 			}
 		}
@@ -72,10 +66,10 @@ trait pdo{
 	 * @return array|bool
 	 */
 	public function selectSQL($sql, $params=[], $config='default'){
-		$sth = $this->db($config)->prepare($sql);
-		if($sth ===false) return false;
-		$ok =$sth->execute(!empty($params) ?$params :null);
-		if($ok ===false) return false;
+		$sth=$this->db($config)->prepare($sql);
+		if($sth===false) return false;
+		$ok=$sth->execute(!empty($params) ?$params :null);
+		if($ok===false) return false;
 		return $sth->fetchAll();
 	}
 	/**
@@ -88,10 +82,9 @@ trait pdo{
 	 * @return bool|int
 	 */
 	public function executeSQL($sql, $params=[], $config='default'){
-		$sth = $this->db($config)->prepare($sql);
-		if($sth ===false) return false;
-		$ok =$sth->execute(!empty($params) ?$params :null);
+		$sth=$this->db($config)->prepare($sql);
+		if($sth===false) return false;
+		$ok=$sth->execute(!empty($params) ?$params :null);
 		return $ok ?$sth->rowCount() :$ok;
 	}
-
 }
