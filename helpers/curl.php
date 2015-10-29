@@ -142,7 +142,14 @@ class curl{
 		$this->handle = curl_init();
 		if(!empty($this->headers)) $this->opts[CURLOPT_HTTPHEADER] = $this->headers;
 		@curl_setopt_array($this->handle, $this->opts);
+		\nx\app::$instance->log('curl->exec('.$this->opts[CURLOPT_URL].' , '.(
+			isset($this->opts[CURLOPT_POSTFIELDS])
+				?json_encode($this->opts[CURLOPT_POSTFIELDS], JSON_UNESCAPED_UNICODE)
+				:'[]'
+			).')');
+		$start =microtime(true);
 		$this->response = curl_exec($this->handle);
+		\nx\app::$instance->log(' - time:'.(microtime(true)-$start).'ms');
 		return $this;
 	}
 	/**

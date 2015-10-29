@@ -64,6 +64,8 @@ class controller{
 			case 'nofound':
 				header('HTTP/1.0 404 Not Found');
 				break;
+			default:
+				return call_user_func_array([$this->app, $name], $args);
 		}
 	}
 

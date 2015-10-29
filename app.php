@@ -34,6 +34,7 @@ class app{
 		//$this->response['app'] =get_class($this);
 	}
 	public function __destruct(){
+		$this->log("end.\n");
 		//header_remove('X-Powered-By');
 		echo $this->response;
 	}
@@ -48,7 +49,7 @@ class app{
 	public function __call($name, $args){
 		switch($name){
 			case 'log':
-				call_user_func_array('var_dump', $args);
+				//call_user_func_array('var_dump', $args);
 				break;
 			case 'router':
 				return $this->control(404);

@@ -11,7 +11,7 @@ trait header{
 	protected function nx_log_header(){
 		set_error_handler(function($errno, $errstr, $errfile, $errline, $err){
 			if(__FILE__ ==$errfile && E_RECOVERABLE_ERROR ==$errno){
-				$this->log($err['var'], true);
+				$this->log($err['var'], '{var}');
 				return true;
 			} else return false;
 		});

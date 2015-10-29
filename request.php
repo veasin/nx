@@ -6,12 +6,14 @@ class request extends o2{
 		$this['params'] =$data;
 		//var_dump($_SERVER, $_REQUEST, $_GET, $_POST, $_COOKIE, $_ENV);
 
-		//$this->method =$_SERVER
+		$this['method'] =strtolower($_SERVER['REQUEST_METHOD']);
+		$this['get'] =$_GET;
+		$this['post'] =$_POST;
 	}
 
 	public function method(){
-		if(isset($this['method'])) return $this['method'];
-		$this['method'] = strtolower($_SERVER['REQUEST_METHOD']);
+		//if(isset($this['method'])) return $this['method'];
+		//$this['method'] = strtolower($_SERVER['REQUEST_METHOD']);
 		return $this['method'];
 	}
 
@@ -33,6 +35,7 @@ class request extends o2{
 	}
 
 	public function arg($name = null, $def = null, $filter = null, $pattern=''){
+		!is_null($name) && \nx\app::$instance->log('request arg: '.$name);
 		if(!isset($this['args'])) $this['args'] =array_merge($this->get(), $this->post(), $this->input(), $this->params());
 		return is_null($name)
 			?$this['args']
@@ -55,6 +58,7 @@ class request extends o2{
 	}
 
 	public function input($name = null, $def = null, $filter = null, $pattern=''){
+		!is_null($name) && \nx\app::$instance->log('request input: '.$name);
 		$i =$this->inputAsVar();
 		return is_null($name)
 			?$i
@@ -63,6 +67,7 @@ class request extends o2{
 				:$def);
 	}
 	public function params($name = null, $def = null, $filter = null, $pattern=''){
+		!is_null($name) && \nx\app::$instance->log('request params: '.$name);
 		return is_null($name)
 			?$this['params']
 			:(isset($this['params'][$name])
@@ -70,17 +75,19 @@ class request extends o2{
 				:$def);
 	}
 	public function post($name = null, $def = null, $filter = null, $pattern=''){
+		!is_null($name) && \nx\app::$instance->log('request post: '.$name);
 		return is_null($name)
-			?$_POST
-			:(isset($_POST[$name])
-				?$this->_format_arg($_POST[$name], $def, $filter, $pattern)
+			?$this['post']
+			:(isset($this['post'][$name])
+				?$this->_format_arg($this['post'][$name], $def, $filter, $pattern)
 				:$def);
 	}
 	public function get($name = null, $def = null, $filter = null, $pattern=''){
+		!is_null($name) && \nx\app::$instance->log('request get: '.$name);
 		return is_null($name)
-			?$_GET
-			:(isset($_GET[$name])
-				?$this->_format_arg($_GET[$name], $def, $filter, $pattern)
+			?$this['get']
+			:(isset($this['get'][$name])
+				?$this->_format_arg($this['get'][$name], $def, $filter, $pattern)
 				:$def);
 	}
 
@@ -90,6 +97,11 @@ class request extends o2{
 			case 'int':
 			case 'integer':
 				return (int)$value;
+				break;
+			case 'f':
+			case 'float':
+				$_value =trim($value);
+				return preg_match('/^[.0-9]+$/', $_value) >0 ?$_value :$def;
 				break;
 			case 'n':
 			case 'num':

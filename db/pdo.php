@@ -31,8 +31,14 @@ trait pdo{
 			if(empty($config)) die('no db set.');
 			$options=isset($config['options']) ?$config['options']+$this->_nx_db_pdo_options :$this->_nx_db_pdo_options;
 			$db[$name]=new \PDO($config['dsn'], $config['username'], $config['password'], $options);
+			$this->log('pdo dsn:'.$config['dsn']);
 		}
 		return $db[$name];
+	}
+	private function db_false($db){
+		$err =$db->errorInfo();
+		$this->log(sprintf('pdo error: %s, %s, %s', $err[0], $err[1], $err[2]));
+		return false;
 	}
 	/**
 	 * 直接插入方法
@@ -42,10 +48,12 @@ trait pdo{
 	 * @return bool|int
 	 */
 	public function insertSQL($sql, $params=[], $config='default'){
-		if(!empty($params)){
-			$ok=$this->db($config)->exec($sql);
+		$this->log('sql: '.$sql.' '.json_encode($params, JSON_UNESCAPED_UNICODE));
+		$db =$this->db($config);
+		if(empty($params)){
+			$ok=$db->exec($sql);
 		}else{
-			$sth=$this->db($config)->prepare($sql);
+			$sth=$db->prepare($sql);
 			$ok=false;
 			$_first=current($params);
 			if(!is_array($_first)){
@@ -56,8 +64,8 @@ trait pdo{
 				}
 			}
 		}
-		if($ok) return $this->db()->lastInsertId();
-		return false;
+		if($ok) return $db->lastInsertId();
+		return $this->db_false($db);
 	}
 	/**
 	 * 查找记录
@@ -67,10 +75,12 @@ trait pdo{
 	 * @return array|bool
 	 */
 	public function selectSQL($sql, $params=[], $config='default'){
-		$sth=$this->db($config)->prepare($sql);
-		if($sth===false) return false;
+		$this->log('sql: '.$sql.' '.json_encode($params, JSON_UNESCAPED_UNICODE));
+		$db =$this->db($config);
+		$sth=$db->prepare($sql);
+		if($sth===false) return $this->db_false($db);
 		$ok=$sth->execute(!empty($params) ?$params :null);
-		if($ok===false) return false;
+		if($ok===false) return $this->db_false($db);
 		return $sth->fetchAll();
 	}
 	/**
@@ -83,9 +93,11 @@ trait pdo{
 	 * @return bool|int
 	 */
 	public function executeSQL($sql, $params=[], $config='default'){
-		$sth=$this->db($config)->prepare($sql);
-		if($sth===false) return false;
+		$this->log('sql: '.$sql.' '.json_encode($params, JSON_UNESCAPED_UNICODE));
+		$db =$this->db($config);
+		$sth=$db->prepare($sql);
+		if($sth===false) return $this->db_false($db);
 		$ok=$sth->execute(!empty($params) ?$params :null);
-		return $ok ?$sth->rowCount() :$ok;
+		return $ok ?$sth->rowCount() :$this->db_false($db);
 	}
 }

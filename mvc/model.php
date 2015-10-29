@@ -70,15 +70,8 @@ class model{
 	}
 	public function __call($name, $args){
 		switch($name){
-			case 'db':
-			case 'insertSQL':
-			case 'selectSQL':
-			case 'executeSQL':
-				die('need [trait nx\db\pdo].');
-			case 'table':
-				die('need [trait nx\db\table].');
 			default:
-				die('nothing for ['.$name.'].');
+				return call_user_func_array([$this->app, $name], $args);
 		}
 	}
 }
