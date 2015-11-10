@@ -1,12 +1,11 @@
 <?php
 namespace nx\response;
 
-trait view
-{
+trait view{
 	/**
 	 * @var \nx\mvc\view
 	 */
-	public $response = null;
+	//public $response = null;
 
 	protected function nx_response_view()
 	{

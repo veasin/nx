@@ -11,6 +11,7 @@ class model{
 	static private $instance = [];
 
 	public $buffer =[];
+	protected $lastError =[0, '一切如常'];
 	public function __construct($setup = []){
 		$this->setup = $setup;
 		$this->app = \nx\app::$instance;
@@ -20,11 +21,14 @@ class model{
 			$_method =str_replace('\\', '_', $_trait);
 			if(method_exists($this, $_method)) $this->$_method();
 		}
-
-		if(method_exists($this, '_init')) $this->_init();
+		/**
+		 * 如果本身存在init方法，那么就立刻执行
+		 */
+		if(method_exists($this, 'init')) $this->init();
 	}
 
 	/**
+	 * 实例化model并缓存
 	 * @param array $set
 	 * @return static
 	 */
@@ -32,6 +36,13 @@ class model{
 		$c = get_called_class();
 		if(empty(self::$instance[$c])) self::$instance[$c] = new $c($set);
 		return self::$instance[$c];
+	}
+	/**
+	 * 返回最后的错误信息，需要在model中提前指定
+	 * @return array
+	 */
+	public function lastError(){
+		return $this->lastError;
 	}
 
 	/**

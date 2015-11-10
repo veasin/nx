@@ -14,7 +14,12 @@ trait route{
 		if(empty($this->buffer['router/route']['rules'])) $this->control(404);
 
 		$method=strtolower($_SERVER['REQUEST_METHOD']);
-		$uri=isset($_SERVER['PATH_INFO']) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING'];
+		$uri=isset($_SERVER['PATH_INFO']) ?ltrim($_SERVER['PATH_INFO'], '/') :$_SERVER['QUERY_STRING'];
+		$_params =[];
+		if(strpos($uri, '?')!==false){
+			list($uri, $qs) =explode('?', $uri);
+			parse_str($qs, $_params);
+		}
 		$this->log('route uri: '.$uri);
 		foreach($this->buffer['router/route']['rules'] as $route){
 			$_match_method=($route[0]==$method || $route[0]=='*');
@@ -25,7 +30,7 @@ trait route{
 			$path=$route[1];
 			$un=isset($path[0]) && $path[0]=='!';
 			$i=$un ?1 :0;
-			$params=[];
+			$params=$_params;
 
 			if($path==$uri || $path==='*') $_match_path=true;
 			elseif($path=='404' || $path=='405'){

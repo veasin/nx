@@ -19,7 +19,11 @@ class controller{
 	/**
 	 * @var \nx\request
 	 */
-	//public $request;
+	public $request=null;
+	/**
+	 * @var \nx\o2
+	 */
+	public $response =null;
 
 	/**
 	 * @var view
@@ -38,8 +42,8 @@ class controller{
 			if(method_exists($this, $_method)) $this->$_method();
 		}
 		//load from app
-		//$this->response =$this->app->response;
-		//$this->request =$this->app->request;
+		if(is_null($this->response)) $this->response =$this->app->response;
+		if(is_null($this->request)) $this->request =$this->app->request;
 
 		$this->exec(self::doBefore);
 		$this->exec($this->route[1], true);
@@ -136,11 +140,11 @@ class controller{
 			if(isset($this->_status[$code])) $_data['msg'] = $this->app->i18n($this->_status[$code]);
 			if($code ==0){
 				if(func_num_args() >1) $_data['data'] =$data;
-				elseif(is_null($data)) $_data['data'] =$this->data->get();
+				elseif(is_null($data)) $_data['data'] =$this->response->get();
 			}
 			elseif(is_string($data)) $_data['msg'] = $data;
 		}
-		$this->data->set($_data);
+		$this->response->set($_data);
 		return false;
 	}
 }

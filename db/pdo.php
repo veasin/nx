@@ -54,7 +54,7 @@ trait pdo{
 			$ok=$db->exec($sql);
 		}else{
 			$sth=$db->prepare($sql);
-			$ok=false;
+			if(empty($sth)) return $this->db_false($db);
 			$_first=current($params);
 			if(!is_array($_first)){
 				$ok=$sth->execute($params);

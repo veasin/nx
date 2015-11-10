@@ -25,7 +25,7 @@ trait files{
 		if(!isset($buffer[$_ns])){
 			$config = [];
 			if(is_file($file =$this->path.'/config/'.$_ns.'.php')){
-				include $file;
+				$config =include($file);
 			}
 			$buffer[$_ns] =$config;
 		}

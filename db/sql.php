@@ -81,8 +81,8 @@ class sql{
 			$fields =[$fields];
 		}
 		$_cols =array_keys($_first);
-		$is_named =!isset($_first[0]);
-		//$is_named =false;
+		//$is_named =!isset($_first[0]);
+		$is_named =false;
 
 		$col =[];
 		$prepare=[];
@@ -93,7 +93,7 @@ class sql{
 		$col =implode(", ", $col);
 		$prepare =implode(", ", $prepare);
 		$sql ="INSERT INTO {$this->table} ($col) VALUES ($prepare)";
-
+		$this->args =[];
 		$params = [];
 		foreach($fields as $_k => $_v){
 			if(!$is_named){
@@ -177,19 +177,37 @@ class sql{
 	 * 返回所有记录
 	 * ->read('id', 'name')
 	 * ->read(['id', 'name'=>'user', 'info.name', 'count'=>['count', '*']])
-	 * ->read(['user'=>['id', 'name'], 'info'=>[]])
+	 * //->read(['user'=>['id', 'name'], 'info'=>[]]) 废弃
 	 *
 	 * @param array $fields
 	 * @return array
 	 */
 	public function read($fields=[]){
 		$this->params =[];
-		$this->_withSELECT(func_get_args(), func_num_args());
+		if(!empty($fields)) $this->_withSELECT(func_get_args(), func_num_args());
 		$sql =$this->_buildSELECT();
 		static::$history[] =$sql;
 		$result =$this->_model->selectSQL($sql, $this->params, $this->_config);
 		$this->params =[];
 		return $result;
+	}
+
+	public function first($field =false){
+		$this->params =[];
+		$this->limit(1);
+		if(!empty($field)) $this->select($field);
+		$sql =$this->_buildSELECT();
+		static::$history[] =$sql;
+		$result =$this->_model->selectSQL($sql, $this->params, $this->_config);
+		if($result ===false) return $result;
+		$this->params =[];
+		if(is_array($field) && count($field)==1){
+			list($_col, $_val) =each($field);
+			if($_col !==0) $field =$_col;
+		}
+		$first =current($result);
+		if($field!==false && isset($first[$field])) return $first[$field];
+		return $first;
 	}
 
 	/**
@@ -456,8 +474,9 @@ class sql{
 			case 1:
 				$fields =$args[0];
 				if (is_array($fields) && !empty($fields)){
-					if(is_array(current($fields))) $_tables =$fields;		//->select(['user'=>['id', 'name'], 'info'=>[]])
-					else $_tables[$this->table] =$fields;					//->select(['id', 'name'=>'user', 'info.name'])
+					//if(is_array(current($fields))) $_tables =$fields;		//->select(['user'=>['id', 'name'], 'info'=>[]])
+					//else
+					$_tables[$this->table] =$fields;					//->select(['id', 'name'=>'user', 'info.name'])
 				} elseif(is_string($fields)){
 					if((strpos($fields, '`') !==false || strpos($fields, '(') !==false || strpos($fields, ',') !==false)){
 						$this->args['select'] =$fields;						//->select("COUNT(*) `COUNT`, `name`")
@@ -481,7 +500,10 @@ class sql{
 				} else{
 					if(is_array($_field)){								//$_fields =['count'=>['count', '*']]
 						if(isset($_field[2])) $_tab =$_field[2];
-						$_fs[] =isset($_field[1]) ?"{$_field[0]}(`{$_tab}`.`{$_field[1]}`) `{$_key}`" :"{$_field[0]}() `{$_key}`";
+						if($_field[1] =='*'){
+							$_col ='*';
+						} else $_col ="`{$_tab}`.`{$_field[1]}`)";
+						$_fs[] =isset($_field[1]) ?"{$_field[0]}({$_col}) `{$_key}`" :"{$_field[0]}() `{$_key}`";
 					}else{												//$_fields =['tab.field'=>'field', 'COUNT(*)'=>'field']
 						if(strpos($_key, '(') !== false){
 							$_fs[] = "{$_key} `{$_field}`";
@@ -520,6 +542,7 @@ class sql{
 			$join =implode('', $join);
 		}
 		$group = empty($this->args['group']) ?'' :$this->args['group'];
+		$this->args=[];
 		return "SELECT {$get} FROM `{$this->table}`{$join}{$where}{$group}{$sort}{$limit}";
 	}
 	private function _buildUPDATE(){
@@ -531,7 +554,9 @@ class sql{
 		} else $_where ='';
 		//$_where = empty($args['filter']) ?'' :' WHERE '.$args['filter'];
 		$_limit = empty($this->args['limit']) ?'' :$this->args['limit'];
-		return "UPDATE `{$this->table}` SET {$this->args['set']}{$_where}{$_limit}";
+		$_set =$this->args['set'];
+		$this->args=[];
+		return "UPDATE `{$this->table}` SET {$_set}{$_where}{$_limit}";
 	}
 	private function _buildDELETE(){
 		if(!empty($this->args['filter'])){
@@ -541,6 +566,7 @@ class sql{
 			$this->where_params =[];
 		} else $_where ='';
 		$_limit = empty($this->args['limit']) ?'' :$this->args['limit'];
+		$this->args =[];
 		return "DELETE FROM `{$this->table}`{$_where}{$_limit}";
 	}
 
@@ -573,5 +599,61 @@ class sql{
 		return $_val;
 	}
 	/*--------------- 别称 或快捷方法 ----------------------------------------------------------*/
-
+	/**
+	 * 返回记录总数
+	 * @param string $field
+	 * @return int
+	 */
+	public function count($field='*'){
+		return (int)$this->first(['count'=>['count', $field]]);
+	}
+	/**
+	 * 排序
+	 *  0:$this->table.primary ASC
+	 *  1:string:$this->table.{1} ASC
+	 *  2:string,string:$this->table.{1} {2}
+	 *  3:string,string,string:{1}.{2} {3}
+	 *  1:array:
+	 *    [0=>[$k=>$v],1=>[$k=>$v],...]:$this->table.$k $v
+	 *    [$t=>[$k=>$v],$t=>[$k=>$v],...]:$t.$k $v
+	 * ?2：string,array:[0=>[$k=>$v],1=>[$k=>$v],...]:{1}.$k $v
+	 *
+	 * @param bool|false $field 省却为按照主键排序，
+	 * @param bool|true $asc
+	 * @return sql
+	 */
+	public function orderBy($field =false, $asc =true){
+		return $this->sort($field, $asc);
+	}
+	/**
+	 * 分页
+	 * @param int $Page 从第1页开始
+	 * @param int $Max 每页条数
+	 * @return sql
+	 */
+	public function page($Page = 1, $Max = 15){
+		$Rows = $Max;
+		$Offset = ($Page - 1)*$Max;
+		return $this->limit($Rows, $Offset);
+	}
+	/**
+	 * 过滤
+	 * @param unknown $Conds 过滤条件 (1), ('id', 1), ('id', 1, '>'), (['id', 1], ['id', 1, '>'], 'id >1', 'id'=>1, 'id'=>[1, '>'])
+	 *                                    1个参数
+	 *                                        非数组设置主键为此值
+	 *                                        数组按照key为字段名value为值依次过滤
+	 *                                    2个参数
+	 *                                        1为字段名 2为此字段值
+	 * @return sql
+	 */
+	public function filter($Conds){
+		return $this->_withWHERE(func_get_args(), func_num_args());
+	}
+	/**
+	 * @param string $Fields
+	 * @return sql
+	 */
+	public function groupBy($Fields){
+		return $this->group($Fields);
+	}
 }

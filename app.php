@@ -11,6 +11,10 @@ class app{
 	 * @var \nx\request
 	 */
 	public $request=null;
+	/**
+	 * @var \nx\o2
+	 */
+	public $response =null;
 	public $buffer=[];
 	protected $setup=[];
 	public $path='';
@@ -30,7 +34,7 @@ class app{
 			$_method=str_replace('\\', '_', $_trait);
 			if(method_exists($this, $_method)) $this->$_method();
 		}
-
+		if(is_null($this->response)) $this->response =new o2();
 		//$this->response['app'] =get_class($this);
 	}
 	public function __destruct(){
@@ -57,6 +61,9 @@ class app{
 			case 'control':
 				header('HTTP/1.0 404 Not Found');
 				die();
+				break;
+			case 'i18n':
+				return $args[0];
 				break;
 			case 'config':
 				return isset($this->config[$args[0]])
