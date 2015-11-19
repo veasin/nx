@@ -14,7 +14,7 @@ trait route{
 		if(empty($this->buffer['router/route']['rules'])) $this->control(404);
 
 		$method=strtolower($_SERVER['REQUEST_METHOD']);
-		$uri=isset($_SERVER['PATH_INFO']) ?ltrim($_SERVER['PATH_INFO'], '/') :$_SERVER['QUERY_STRING'];
+		$uri=(isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?ltrim($_SERVER['PATH_INFO'], '/') :$_SERVER['QUERY_STRING'];
 		$_params =[];
 		if(strpos($uri, '?')!==false){
 			list($uri, $qs) =explode('?', $uri);

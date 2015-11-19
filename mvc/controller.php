@@ -140,7 +140,7 @@ class controller{
 			if(isset($this->_status[$code])) $_data['msg'] = $this->app->i18n($this->_status[$code]);
 			if($code ==0){
 				if(func_num_args() >1) $_data['data'] =$data;
-				elseif(is_null($data)) $_data['data'] =$this->response->get();
+				elseif(is_null($data)) $_data['data'] =$this->response->data();
 			}
 			elseif(is_string($data)) $_data['msg'] = $data;
 		}

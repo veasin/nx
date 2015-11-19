@@ -10,7 +10,7 @@ trait view{
 	protected function nx_response_view()
 	{
 		$it =is_a($this, 'nx\mvc\controller') ?$this->app :$this;
-		$this->response = $this->view('', $it->response->get());
+		$this->response = $this->view('', $it->response->data());
 		//$this->response =new \nx\mvc\view([], (isset($this->app) ?$this->app->path :$this->path).'/views/');
 	}
 

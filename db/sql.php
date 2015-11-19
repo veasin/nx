@@ -201,9 +201,11 @@ class sql{
 		$result =$this->_model->selectSQL($sql, $this->params, $this->_config);
 		if($result ===false) return $result;
 		$this->params =[];
-		if(is_array($field) && count($field)==1){
-			list($_col, $_val) =each($field);
-			if($_col !==0) $field =$_col;
+		if(is_array($field)){
+			if(count($field)==1){
+				list($_col, $_val)=each($field);
+				if($_col!==0) $field=$_col;
+			} else $field =false;
 		}
 		$first =current($result);
 		if($field!==false && isset($first[$field])) return $first[$field];
@@ -500,8 +502,8 @@ class sql{
 				} else{
 					if(is_array($_field)){								//$_fields =['count'=>['count', '*']]
 						if(isset($_field[2])) $_tab =$_field[2];
-						if($_field[1] =='*'){
-							$_col ='*';
+						if($_field[1] =='*' || $_field[1][0] =='`'){
+							$_col =$_field[1];
 						} else $_col ="`{$_tab}`.`{$_field[1]}`)";
 						$_fs[] =isset($_field[1]) ?"{$_field[0]}({$_col}) `{$_key}`" :"{$_field[0]}() `{$_key}`";
 					}else{												//$_fields =['tab.field'=>'field', 'COUNT(*)'=>'field']

@@ -14,7 +14,7 @@ class o2 implements \ArrayAccess, \Countable, \IteratorAggregate{
 		$this->_hasSet =true;
 		return $this;
 	}
-	public function get(){return $this->data;}
+	public function data(){return $this->data;}
 	public function has($name = null){ return is_null($name) ?!empty($this->data) :isset($this->data[$name]); }
 	public function merge($data){ $this->data = array_merge($this->data, $data); }
 	public function clear(){$this->data = [];return $this;}

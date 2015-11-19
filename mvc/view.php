@@ -20,7 +20,10 @@ class view extends \nx\o2{
 	public function __toString(){ return $this->_hasSet ?$this->render() :''; }
 	public function setFile($file = ''){ $this->data['_file_'] = $file; }
 	public function render(){
-		if(!isset($this->data['_file_'])) return json_encode($this->data, JSON_UNESCAPED_UNICODE);
+		if(empty($this->data['_file_'])){
+			unset($this->data['_file_']);
+			return json_encode($this->data, JSON_UNESCAPED_UNICODE);
+		}
 		$_f = $this->data['_file_'];
 		try{
 			$f = $this->path.$_f.'.php';
