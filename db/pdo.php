@@ -22,7 +22,7 @@ trait pdo{
 	 * @return \PDO
 	 */
 	public function db($name='default'){
-		$it=is_a($this, 'nx\mvc\model') ?$this->app :$this;
+		$it=is_a($this, 'nx\app') ?$this :$this->app;
 		$db=&$it->buffer['db/pdo']['handle'];
 		if(!isset($db[$name])){
 			$cfg=&$it->buffer['db/pdo']['config'];
@@ -99,5 +99,21 @@ trait pdo{
 		if($sth===false) return $this->db_false($db);
 		$ok=$sth->execute(!empty($params) ?$params :null);
 		return $ok ?$sth->rowCount() :$this->db_false($db);
+	}
+	/**
+	 * 事务
+	 * @param callable $fun
+	 * @param string $config
+	 * @return $this
+	 */
+	public function transaction(callable $fun, $config='default'){
+		$this->log('transaction begin: '.json_encode($config, JSON_UNESCAPED_UNICODE));
+		$db =$this->db($config);
+		$db->beginTransaction();
+		$rollback =$fun($this);
+		if($rollback) $db->rollBack();
+		else $db->commit();
+		$this->log('transaction end.');
+		return $rollback;
 	}
 }
