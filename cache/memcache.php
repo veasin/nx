@@ -14,8 +14,8 @@ namespace nx\cache;
  */
 trait memcache{
 	protected function nx_cache_memcache(){
-		$it=is_a($this, 'nx\mvc\model') ?$this->app :$this;
-		$this->buffer['cache/memcache']=['config'=>isset($it->setup['cache/memcache']) ?$it->setup['cache/memcache'] :[], 'handle'=>[],];
+		$it=is_a($this, 'nx\app') ?$this :$this->app;
+		if(!isset($this->buffer['cache/memcache'])) $this->buffer['cache/memcache']=['config'=>isset($it->setup['cache/memcache']) ?$it->setup['cache/memcache'] :[], 'handle'=>[],];
 	}
 	public function cache($name='default'){
 		$cache=&$this->buffer['cache/memcache']['handle'];

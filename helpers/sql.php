@@ -1,5 +1,5 @@
 <?php
-namespace nx\db;
+namespace nx\helpers;
 
 /**
  *

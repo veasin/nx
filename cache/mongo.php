@@ -16,8 +16,8 @@ namespace nx\cache;
  */
 trait mongodb{
 	protected function nx_cache_mongodb(){
-		$it=is_a($this, 'nx\mvc\model') ?$this->app :$this;
-		$this->buffer['cache/mongodb']=['config'=>isset($it->setup['cache/mongodb']) ?$it->setup['cache/mongodb'] :[], 'handle'=>[],];
+		$it=is_a($this, 'nx\app') ?$this :$this->app;
+		if(!isset($this->buffer['cache/mongodb'])) $this->buffer['cache/mongodb']=['config'=>isset($it->setup['cache/mongodb']) ?$it->setup['cache/mongodb'] :[], 'handle'=>[],];
 	}
 	public function cache($name='default'){
 		$cache=&$this->buffer['cache/mongodb']['handle'];

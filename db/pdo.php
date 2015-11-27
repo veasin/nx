@@ -15,7 +15,7 @@ trait pdo{
 	];
 	protected function nx_db_pdo(){
 		$it=is_a($this, 'nx\app') ?$this :$this->app;
-		$it->buffer['db/pdo']=['config'=>isset($it->setup['db/pdo']) ?$it->setup['db/pdo'] :[], 'handle'=>[],];
+		if(!isset($it->buffer['db/pdo'])) $it->buffer['db/pdo']=['config'=>isset($it->setup['db/pdo']) ?$it->setup['db/pdo'] :[], 'handle'=>[],];
 	}
 	/**
 	 * @param string $name app->setup['db/pdo']

@@ -14,8 +14,8 @@ namespace nx\cache;
  */
 trait redis{
 	protected function nx_cache_redis(){
-		$it=is_a($this, 'nx\mvc\model') ?$this->app :$this;
-		$this->buffer['cache/redis']=['config'=>isset($it->setup['cache/redis']) ?$it->setup['cache/redis'] :[], 'handle'=>[],];
+		$it=is_a($this, 'nx\app') ?$this :$this->app;
+		if(!isset($this->buffer['cache/redis'])) $this->buffer['cache/redis']=['config'=>isset($it->setup['cache/redis']) ?$it->setup['cache/redis'] :[], 'handle'=>[],];
 	}
 	public function cache($name='default'){
 		$cache=&$this->buffer['cache/redis']['handle'];

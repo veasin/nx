@@ -8,13 +8,17 @@ namespace nx\log;
  */
 trait header{
 	static private $_nx_log_num=0;
+	static private $hasRegister =false;
 	protected function nx_log_header(){
-		set_error_handler(function($errno, $errstr, $errfile, $errline, $err){
-			if(__FILE__ ==$errfile && E_RECOVERABLE_ERROR ==$errno){
-				$this->log($err['var'], '{var}');
-				return true;
-			} else return false;
-		});
+		if(!static::$hasRegister){
+			set_error_handler(function ($errno, $errstr, $errfile, $errline, $err){
+				if(__FILE__==$errfile && E_RECOVERABLE_ERROR==$errno){
+					$this->log($err['var'], '{var}');
+					return true;
+				}else return false;
+			});
+			static::$hasRegister =true;
+		}
 	}
 	public function log($var, $mustEncode =false){
 		//var_dump(static::$_nx_log_num, $var, $mustEncode);
