@@ -4,18 +4,18 @@
 #feature
 - [x] trait,trait,trait!!!
 - [x] 支持命名空间
-- [ ] 支持composer
-- [ ] 尽可能支持psr
+- [x] 支持composer
+- [x] 尽可能支持psr
   - [ ] psr0
   - [ ] psr1
   - [ ] psr2
   - [ ] psr3
   - [ ] psr4
-- [ ] 尽可能兼容next
-- [ ] 支持调度 使用route并闭包
-  - [ ] 同时多route匹配
-  - [ ] 改造route数组为对象
-  - [ ] 修改调度方式
+- [x] 尽可能兼容next
+- [x] 支持调度 使用route并闭包
+  - [x] 同时多route匹配
+  - [x] 改造route数组为对象
+  - [x] 修改调度方式
 - [ ] 路由缓存
 - [ ] 路由 build(基于工作路径和解析)
 - [ ] 支持php7，支持php新功能
