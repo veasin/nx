@@ -191,7 +191,14 @@ class sql{
 		$this->params =[];
 		return $result;
 	}
-
+	/**
+	 * 返回第一条数据，如结果为单列返回对应值而不是数组结构
+	 * ->first(['col1'])  => any;
+	 * ->first(['col1', 'col2'])  =>[col1=>any, col2=>any];
+	 * ->first(['count'=>['count', '*']])
+	 * @param bool|false $field
+	 * @return mixed
+	 */
 	public function first($field =false){
 		$this->params =[];
 		$this->limit(1);
@@ -199,16 +206,10 @@ class sql{
 		$sql =$this->_buildSELECT();
 		static::$history[] =$sql;
 		$result =$this->_model->selectSQL($sql, $this->params, $this->_config);
-		if($result ===false) return $result;
+		if($result ===false) return false;
 		$this->params =[];
-		if(is_array($field)){
-			if(count($field)==1){
-				list($_col, $_val)=each($field);
-				if($_col!==0) $field=$_col;
-			} else $field =false;
-		}
 		$first =current($result);
-		if($field!==false && isset($first[$field])) return $first[$field];
+		if(is_array($first) && count($first) ==1) return current($first);
 		return $first;
 	}
 
@@ -260,15 +261,16 @@ class sql{
 	 */
 	public function join($Table, $Conditions=null, $Join='LEFT'){
 		$_table = (is_object($Table)) ?$Table->table :$Table;
+		$_as ='';
 		if(strpos($_table, ' ') !==false){
 			list($_table, $_as) =explode(' ', $_table);
-			$_as =" `{$_as}`";
-		} else $_as ='';
-		$s = " {$Join} JOIN `{$_table}`".$_as;
+			$_asj =" `{$_as}`";
+		} else $_asj ='';
+		$s = " {$Join} JOIN `{$_table}`".$_asj;
 		if(is_array($Conditions)){
 			$_c =[];
 			foreach($Conditions as $Row => $As){
-				$__table =$_table;
+				$__table =(empty($_as)) ?$_table :$_as;
 				$__row =is_numeric($Row) ?$As :$Row;
 				if(strpos($Row, '.') !==false) list($__table, $__row) =explode('.',$Row);
 				$__table2 =$this->table;
@@ -382,6 +384,9 @@ class sql{
 				$_opt = '=';
 				$_link =$link;
 				$_tab =$this->table;
+				if(strpos($_tab, ' ') !==false){
+					list($_org_tab, $_tab) =explode(' ', $_tab);
+				}
 				if(is_array($_val)){
 					if(is_numeric($_col)){								//[['id', 1], ['stutas', 0]]
 						$_opt = (isset($_val[2])) ?$_val[2] :$_opt;		//[['id', 1, '>'], ['stutas', 0, '=']]
@@ -495,6 +500,9 @@ class sql{
 		foreach($_tables as $_table =>$_fields){						//[tab1=>fields, tab2=>fields]
 			foreach($_fields as $_key =>$_field){						//$_fields =['tab.field', 'field']
 				$_tab =$_table;
+				if(strpos($_tab, ' ') !==false){
+					list($_org_tab, $_tab) =explode(' ', $_tab);
+				}
 				if(is_numeric($_key)){
 					if(strpos($_field, '.') !==false) list($_tab, $_field) =explode('.', $_field); //['tab.field']
 					$_field =($_field =='*') ?$_field :"`{$_field}`";
@@ -504,7 +512,7 @@ class sql{
 						if(isset($_field[2])) $_tab =$_field[2];
 						if($_field[1] =='*' || $_field[1][0] =='`'){
 							$_col =$_field[1];
-						} else $_col ="`{$_tab}`.`{$_field[1]}`)";
+						} else $_col ="`{$_tab}`.`{$_field[1]}`";
 						$_fs[] =isset($_field[1]) ?"{$_field[0]}({$_col}) `{$_key}`" :"{$_field[0]}() `{$_key}`";
 					}else{												//$_fields =['tab.field'=>'field', 'COUNT(*)'=>'field']
 						if(strpos($_key, '(') !== false){
