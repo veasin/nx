@@ -8,12 +8,12 @@ namespace nx\router;
  */
 trait route{
 	protected function nx_router_route(){
-		if(!isset($this->buffer['router/route'])) $this->buffer['router/route']=isset($this->setup['router/route']) ?$this->setup['router/route'] :[];
+		if(!isset($this->buffer['router/route'])) $this->buffer['router/route']=isset($this->setup['router/route']) ?$this->setup['router/route'] :['rules'=>[]];
 	}
 	public function router(){
-		if(empty($this->buffer['router/route']['rules'])) $this->control(404);
+		if(empty($this->buffer['router/route']['rules'])) return $this->control(404);
 
-		$method=strtolower($_SERVER['REQUEST_METHOD']);
+		$method =$this->request->method();
 		$uri=(isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?ltrim($_SERVER['PATH_INFO'], '/') :$_SERVER['QUERY_STRING'];
 		$_params =[];
 		if(strpos($uri, '?')!==false){
