@@ -2,9 +2,11 @@
 namespace nx;
 
 class request extends o2{
+	private $is_cli =false;
 	public function __construct($data=[]){
+		$this->is_cli =PHP_SAPI=='cli';
 		$this['params'] =$data;//构建数据
-		$this['method'] =strtolower($_SERVER['REQUEST_METHOD']);
+		$this['method'] =$this->is_cli ?'cli' : strtolower($_SERVER['REQUEST_METHOD']);
 		$this['get'] =$_GET;
 		$this['post'] =$_POST;
 	}

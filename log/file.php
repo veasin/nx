@@ -43,8 +43,8 @@ trait file{
 			microtime(true),
 			time(),
 			__CLASS__,
-			$_SERVER['REQUEST_METHOD'],
-			$_SERVER['REQUEST_URI'],
+			isset($_SERVER['REQUEST_METHOD']) ?$_SERVER['REQUEST_METHOD'] :'unknow',
+			isset($_SERVER['REQUEST_URI']) ?$_SERVER['REQUEST_URI'] :'unknow',
 		], $template);
 
 		fwrite($this->buffer['log/file']['handle'], $line."\n");
