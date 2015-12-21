@@ -44,12 +44,11 @@ class controller{
 		//load from app
 		if(is_null($this->response)) $this->response =$this->app->response;
 		if(is_null($this->request)) $this->request =$this->app->request;
-
-		$this->exec(self::doBefore);
-		$this->exec($this->route[1], true);
-		$this->exec(self::doAfter);
+		//run
+		$r =$this->exec($this->route[1], true, true);
 		//back to app
 		$this->app->response =$this->response;
+		return $r;
 	}
 	public function __get($name){
 		switch($name){
@@ -72,23 +71,29 @@ class controller{
 				return call_user_func_array([$this->app, $name], $args);
 		}
 	}
-
 	/**
 	 * @param $name
 	 * @param bool|false $hook
+	 * @param bool|false $all
+	 * @return bool
 	 */
-	private function exec($name, $hook = false){
+	private function exec($name, $hook = false, $all =false){
 		if($hook){
 			$found =false;
-			foreach([static::doBefore, $this->method(), static::doExt, static::doAfter] as $_prex){
-				if(method_exists($this, $_fun =$_prex.$name)){
+			$methods =$all
+				?[static::doBefore, static::doBefore.$name, $this->method().$name, static::doExt.$name, static::doAfter.$name, static::doAfter]
+				:[static::doBefore, $this->method(), static::doExt, static::doAfter];
+			$r =false;
+			foreach($methods as $_fun){
+				if(method_exists($this, $_fun)){
 					$found =true;
 					$r =$this->$_fun($this->response, $this->app);
 					if($r ===false) break;
 				}
 			}
-			if($found ===false) $this->nofound($name);
-		}else if(method_exists($this, $name)) $this->$name($this->response, $this->app);
+			if($found ===false) return $this->nofound($name);
+			return $r;
+		}else if(method_exists($this, $name)) return $this->$name($this->response, $this->app);
 	}
 	/**
 	 * @param null $name
