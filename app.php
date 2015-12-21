@@ -80,8 +80,6 @@ class app{
 				die('need [trait nx\db\table].');
 			default:
 				die('nothing for ['.$name.'].');
-			default:
-				;
 		}
 	}
 	static public function factory($setup=[]){

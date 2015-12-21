@@ -11,7 +11,7 @@ class model{
 	static private $instance = [];
 
 	public $buffer =[];
-	protected $lastError =[0, '一切如常'];
+	protected $lastError =[1, '未知错误'];
 	public function __construct($setup = []){
 		$this->setup = $setup;
 		$this->app = \nx\app::$instance;
