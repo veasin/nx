@@ -514,14 +514,13 @@ class sql{
 						$_1_tab =$_tab;
 						if($_fun_count==1 && is_string($_arg)){
 							if(strpos($_arg, '.') !==false) list($_1_tab, $_arg) =explode('.', $_arg); //['tab.field']
-							$_arg =($_arg =='*') ?$_arg :"`{$_arg}`";
-							$_fun_args[] ="`{$_1_tab}`.{$_arg}";
+							$_arg =($_arg =='*') ?$_arg :"`{$_1_tab}`.`{$_arg}`";
 						} elseif( is_string($_arg) && ($_arg[0] =='`' || $_arg =='*')){
 							$_arg =trim($_arg, '`');
 							if(strpos($_arg, '.') !==false) list($_1_tab, $_arg) =explode('.', $_arg); //['tab.field']
-							$_arg =($_arg =='*') ?$_arg :"`{$_arg}`";
-							$_fun_args[] ="`{$_1_tab}`.{$_arg}";
-						} else $_fun_args[] =$_arg;
+							$_arg =($_arg =='*') ?$_arg :"`{$_1_tab}`.`{$_arg}`";
+						}
+						$_fun_args[] =$_arg;
 					}
 					$_fun_arg =implode(', ', $_fun_args);
 					$_fs[] ="{$_fun}({$_fun_arg}){$_new_name}";
@@ -531,27 +530,6 @@ class sql{
 						$_fs[] =$_field.$_new_name;
 					} else $_fs[] ="`{$_tab}`.`{$_field}`{$_new_name}";
 				}
-				/*
-				if(is_numeric($_key)){
-					if(strpos($_field, '.') !==false) list($_tab, $_field) =explode('.', $_field); //['tab.field']
-					$_field =($_field =='*') ?$_field :"`{$_field}`";
-					$_fs[] ="`{$_tab}`.{$_field}";
-				} else{
-					if(is_array($_field)){								//$_fields =['count'=>['count', '*']]
-						if(isset($_field[2])) $_tab =$_field[2];
-						if($_field[1] =='*' || $_field[1][0] =='`'){
-							$_col =$_field[1];
-						} else $_col ="`{$_tab}`.`{$_field[1]}`";
-						$_fs[] =isset($_field[1]) ?"{$_field[0]}({$_col}) `{$_key}`" :"{$_field[0]}() `{$_key}`";
-					}else{												//$_fields =['tab.field'=>'field', 'COUNT(*)'=>'field']
-						if(strpos($_key, '(') !== false){
-							$_fs[] = "{$_key} `{$_field}`";
-						} else{
-							if(strpos($_key, '.') !== false) list($_tab, $_key) = explode('.', $_key);
-							$_fs[] = "`{$_tab}`.`{$_field}` `{$_key}`"; //$_fields =['new_col_name'=>'col']
-						}
-					}
-				}*/
 			}
 		}
 		$this->args['select'] =implode(', ', $_fs);
