@@ -274,8 +274,19 @@ class curl{
 	 * 基本认证
 	 * @param $user
 	 * @param $password
+	 * @return curl
 	 */
 	public function authorization_basic($user, $password){
-		$this->httpHeader('Authorization: Basic '.base64_encode($user.':'.$password));
+		return $this->authorization('basic', base64_encode($user.':'.$password));
+	}
+	/**
+	 * 认证
+	 * @param string $type 类型
+	 * @param string $token
+	 * @return curl
+	 */
+	public function authorization($type, $token){
+		$type =ucfirst(strtolower($type));
+		return $this->httpHeader("Authorization: {$type} {$token}");
 	}
 }
