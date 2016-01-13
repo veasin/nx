@@ -512,13 +512,15 @@ class sql{
 					$_fun_count =count($_args);
 					foreach($_args as $_arg){
 						$_1_tab =$_tab;
-						if($_fun_count==1 && is_string($_arg)){
-							if(strpos($_arg, '.') !==false) list($_1_tab, $_arg) =explode('.', $_arg); //['tab.field']
-							$_arg =($_arg =='*') ?$_arg :"`{$_1_tab}`.`{$_arg}`";
-						} elseif( is_string($_arg) && ($_arg[0] =='`' || $_arg =='*')){
-							$_arg =trim($_arg, '`');
-							if(strpos($_arg, '.') !==false) list($_1_tab, $_arg) =explode('.', $_arg); //['tab.field']
-							$_arg =($_arg =='*') ?$_arg :"`{$_1_tab}`.`{$_arg}`";
+						if(is_string($_arg)){
+							if($_fun_count==1){
+								if(strpos($_arg, '.')!==false) list($_1_tab, $_arg)=explode('.', $_arg); //['tab.field']
+								$_arg=($_arg=='*') ?$_arg :"`{$_1_tab}`.`{$_arg}`";
+							}elseif(isset($_arg[0]) && ($_arg[0]=='`' || $_arg=='*')){
+								$_arg=trim($_arg, '`');
+								if(strpos($_arg, '.')!==false) list($_1_tab, $_arg)=explode('.', $_arg); //['tab.field']
+								$_arg=($_arg=='*') ?$_arg :"`{$_1_tab}`.`{$_arg}`";
+							}else $_arg='"'.$_arg.'"';
 						}
 						$_fun_args[] =$_arg;
 					}
