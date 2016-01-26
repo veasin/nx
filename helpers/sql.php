@@ -153,7 +153,8 @@ class sql{
 						case '*':
 						case '/':
 							$_val = $this->_value($_field, $_val, $is_named);
-							$_val = "`{$this->table}`.`{$_field}` {$_opt} '$_val'";
+							$_field ="{$this->table}`.`{$_field}";
+							$_val = "`{$_field}` {$_opt} $_val";
 							break;
 						default:// sql function
 							$_val = $this->_value($_field, $_val, $is_named);
@@ -284,7 +285,7 @@ class sql{
 
 		$_join =[$s, '', ''];
 		if(is_object($Table)){
-			$_join[1] =empty($Table->args['select']) ?'' :$Table->args['select'];
+			$_join[1] =empty($Table->args['select']) ?'' :$Table->args['select'];//todo fix bug * : `circles`.`*`
 			$_join[2] =empty($Table->args['filter']) ?'':$Table->args['filter'];
 		}
 		$this->args['join'][] = $_join;
@@ -674,5 +675,17 @@ class sql{
 	 */
 	public function groupBy($Fields){
 		return $this->group($Fields);
+	}
+	/**
+	 * 一次批量加入条件
+	 * @param array $more
+	 * @param string $link
+	 * @return $this
+	 */
+	public function whereMore($more=[], $link='AND'){
+		foreach($more as $_where){
+			$this->where($_where, $link);
+		}
+		return $this;
 	}
 }
