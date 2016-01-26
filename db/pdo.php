@@ -102,7 +102,7 @@ trait pdo{
 	}
 	/**
 	 * 事务
-	 * @param callable $fun
+	 * @param callable $fun arg[model:$this] return ===true is rollback
 	 * @param string $config
 	 * @return $this
 	 */
@@ -111,8 +111,10 @@ trait pdo{
 		$db =$this->db($config);
 		$db->beginTransaction();
 		$rollback =$fun($this);
-		if($rollback) $db->rollBack();
-		else $db->commit();
+		if($rollback===true){
+			$db->rollBack();
+			$rollback =false;
+		} else $db->commit();
 		$this->log('transaction end.');
 		return $rollback;
 	}
