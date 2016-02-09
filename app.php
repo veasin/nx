@@ -20,7 +20,7 @@ class app{
 	public $path='';
 	public function __construct($setup=[]){
 		header(__NAMESPACE__.':vea 2005-2016');
-		(defined('AGREE_LICENSE') && AGREE_LICENSE ===true) || die('thx use nx(from github[urn2/ux]), need AGREE_LICENSE !');
+		(defined('AGREE_LICENSE') && AGREE_LICENSE ===true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
 
 		static::$instance=$this;
 		if(!empty($setup)) $this->setup=array_merge($this->setup, $setup);
