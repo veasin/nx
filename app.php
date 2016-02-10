@@ -18,6 +18,7 @@ class app{
 	public $buffer=[];
 	protected $setup=[];
 	public $path='';
+	private $traits =[];
 	public function __construct($setup=[]){
 		header(__NAMESPACE__.':vea 2005-2016');
 		(defined('AGREE_LICENSE') && AGREE_LICENSE ===true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
@@ -30,12 +31,22 @@ class app{
 		$this->request=new request();
 
 		//init use trait
-		foreach(class_uses($this) as $_trait){
-			$_method=str_replace('\\', '_', $_trait);
-			if(method_exists($this, $_method)) $this->$_method();
-		}
+		$this->initTraits(array_map(function($_trait){
+			$_method =str_replace('\\', '_', $_trait);
+			return method_exists($this, $_method) ?$_method :false;
+		}, class_uses($this)));
+
 		if(is_null($this->response)) $this->response =new o2();
 		//$this->response['app'] =get_class($this);
+	}
+	private function initTraits($traits){
+		$this->buffer['traits'] =[];
+		foreach($traits as $_trait =>$_method){
+			$_depend =$_method ?$this->$_method() :false;
+			$this->traits[$_trait] =$_depend ? false :true;
+			if($_depend) $this->buffer['traits'][$_trait] =$_method;
+		}
+		if(!empty($this->buffer['traits'])) $this->initTraits($this->buffer['traits']);
 	}
 	public function __destruct(){
 		$this->log("end.\n");
