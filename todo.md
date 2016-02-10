@@ -1,0 +1,21 @@
+
+#待做
+- [ ] trait的依赖加载
+  - [ ] 多层依赖？
+  - [x] 依赖返回依赖内容
+  - [x] 记录已加载trait类型
+  - [ ] 二次或多次循环
+- [ ] request分类
+  - [ ] 标准php
+  - [ ] json
+  - [ ] REST
+  - [ ] 其他自定义
+- [ ] response分类
+  - [ ] 支持status(code & message)
+  - [ ] 支持redirect
+  - [ ] 支持attachment Content-Disposition 为 "attachment"
+  - [ ] 支持Content-Type
+  - [ ] 支持Last-Modified Etag
+  
+  
+ 
