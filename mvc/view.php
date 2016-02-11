@@ -1,7 +1,7 @@
 <?php
 namespace nx\mvc;
 
-class view extends \nx\o2{
+class view extends \nx\response{
 	static $_cls = __CLASS__;
 	static $_err = null;
 	protected $path ='';

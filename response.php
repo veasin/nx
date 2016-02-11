@@ -4,17 +4,17 @@ namespace nx;
 use nx\log\header;
 
 class response extends o2{
-	private $_http_status = [
+	public $status =[
 		200 => "OK",
 		301 => "Moved Permanently",
+		302 => "Found",
 		304 => "Not Modified",
 		401 => "Unauthorized",
 		403 => "Forbidden",
 		404 => "Not Found",
 	];
-	public function redirect($uri = '', $second = 3, $info = 'redirect[%s] now ...', $die=true){
-		if(empty($uri))
-			$uri = $_SERVER['REQUEST_URI'];
+	public function redirect($uri = '', $info = 'redirect[%s] now ...', $second = 0, $die=true){
+		if(empty($uri)) $uri = $_SERVER['REQUEST_URI'];
 		if($second == 0){
 			header('Location: ' . $uri);
 			if($die) die();
@@ -24,8 +24,8 @@ class response extends o2{
 		}
 	}
 	public function status($number, $info = '', $die =true){
-		$info = isset($this->_http_status[$number])
-			?$this->_http_status[$number]
+		$info = isset($this->status[$number])
+			?$this->status[$number]
 			:$info;
 		$status ='HTTP/1.1 ' . $number . ' ' . $info;
 		header($status);

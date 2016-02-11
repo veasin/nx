@@ -21,15 +21,9 @@ class controller{
 	 */
 	public $request=null;
 	/**
-	 * @var \nx\o2
+	 * @var \nx\response
 	 */
 	public $response =null;
-
-	/**
-	 * @var view
-	 */
-	public $data = null;
-	public $_status = [1 => 'error',];
 	public function __construct($route, $app){
 		$this->app = $app;
 		$this->route = $route;
@@ -60,12 +54,10 @@ class controller{
 	public function __call($name, $args){
 		switch($name){
 			case 'view':
-				$data =$args[1];
-				$data['_file_'] =$args[0];
-				return $data;
+				return $this->app->view($args[0], $args[1]);
 				break;
 			case 'nofound':
-				header('HTTP/1.0 404 Not Found');
+				$this->response->status(404);
 				break;
 			default:
 				return call_user_func_array([$this->app, $name], $args);
@@ -136,21 +128,7 @@ class controller{
 	 * @return bool
 	 */
 	public function status($code = 0, $data = null){
-		$_data =[];
-		if(!is_numeric($code)){
-			if(isset($code['data']) || isset($code['err'])) $_data =$code;
-			else $_data =['err'=>0, 'data'=>$code];
-		}else{
-			$_data['err'] = $code;
-			if(isset($this->_status[$code])) $_data['msg'] = $this->app->i18n($this->_status[$code]);
-			if($code ==0){
-				if(func_num_args() >1) $_data['data'] =$data;
-				elseif(is_null($data)) $_data['data'] =$this->response->data();
-			}
-			elseif(is_string($data)) $_data['msg'] = $data;
-		}
-		$this->response->set($_data);
-		return false;
+		return $this->response->status($code, $data);
 	}
 }
 
