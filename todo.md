@@ -10,12 +10,12 @@
   - [ ] json
   - [ ] REST
   - [ ] 其他自定义
-- [ ] response分类
-  - [ ] 支持status(code & message)
-  - [ ] 支持redirect
-  - [ ] 支持attachment Content-Disposition 为 "attachment"
-  - [ ] 支持Content-Type
-  - [ ] 支持Last-Modified Etag
+- [x] response分类
+  - [x] 支持status(code & message)
+  - [x] 支持redirect
+  - [x] 支持attachment Content-Disposition 为 "attachment"
+  - [x] 支持Content-Type
+  - [x] 支持Last-Modified Etag
   
   
  
