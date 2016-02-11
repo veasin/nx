@@ -65,10 +65,10 @@ class response extends o2{
 		header('Pragma: no-cache');
 		return $this;
 	}
-	public function lastModified($time=false, $noModifiedExit=true){
+	public function lastModified($time=false, $check304=false){
 		if(empty($time)) $time = time() - 60; // or filemtime($fn), etc
 		$timeC =gmdate('D, d M Y H:i:s', $time).' GMT';
-		if($noModifiedExit && isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $timeC ==$_SERVER['HTTP_IF_MODIFIED_SINCE']){
+		if($check304 && isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $timeC ==$_SERVER['HTTP_IF_MODIFIED_SINCE']){
 			$this->status(304);
 		}
 		header('Last-Modified: '.$timeC);
@@ -88,8 +88,8 @@ class response extends o2{
 			$this->status(404);
 		}
 	}
-	public function etag($etag, $noModifiedExit=true){
-		if($noModifiedExit && isset($_SERVER['HTTP_IF_NONE_MATCH']) && $etag==$_SERVER['HTTP_IF_NONE_MATCH']){
+	public function etag($etag, $check304=false){
+		if($check304 && isset($_SERVER['HTTP_IF_NONE_MATCH']) && $etag==$_SERVER['HTTP_IF_NONE_MATCH']){
 			$this->status(304);
 		}
 		header('ETag: '.$etag);
