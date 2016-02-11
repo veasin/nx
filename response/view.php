@@ -8,7 +8,7 @@ trait view{
 	//public $response = null;
 	protected function nx_response_view(){
 		$it=is_a($this, 'nx\app') ?$this :$this->app;
-		$this->response=$this->view('', $it->response->data());
+		$it->response=$this->view('', $it->response->data());
 		//$this->response =new \nx\mvc\view([], (isset($this->app) ?$this->app->path :$this->path).'/views/');
 	}
 	/**
