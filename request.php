@@ -20,9 +20,10 @@ class request extends o2{
 	}
 	/**
 	 * 返回当前请求头（有清理）
+	 * @param bool|true $clear
 	 * @return array|false
 	 */
-	public function headers(){
+	public function headers($clear=true){
 		if (!function_exists('getallheaders')){
 			function getallheaders(){
 				$headers = [];
@@ -33,9 +34,42 @@ class request extends o2{
 			}
 		}
 		$r =getallheaders();
-		$name =['Host', 'User-Agent', 'Authorization', 'Accept', 'Accept-Language', 'Accept-Encoding', 'Cookie', 'Connection', 'Content-Type', 'Content-Length', 'Cache-Control', 'Referer', 'X-FireLogger', 'X-FireLoggerAppstats', 'x-insight'];
-		foreach($name as $_n) unset($r[$_n]);
+		if($clear){
+			$name = ['Host',
+				'User-Agent',
+				'Authorization',
+				'Accept',
+				'Accept-Language',
+				'Accept-Encoding',
+				'Cookie',
+				'Connection',
+				'Content-Type',
+				'Content-Length',
+				'Cache-Control',
+				'Referer',
+				'X-FireLogger',
+				'X-FireLoggerAppstats',
+				'x-insight'];
+			foreach($name as $_n) unset($r[$_n]);
+		}
 		return $r;
+	}
+	/**
+	 * 读取当前请求中input中的参数，详见arg方法
+	 * @param null $name
+	 * @param null $def
+	 * @param null $filter
+	 * @param string $pattern
+	 * @return array|mixed|null|string
+	 */
+	public function header($name = null, $def = null, $filter = null, $pattern=''){
+		!is_null($name) && \nx\app::$instance->log('request header: '.$name);
+		if(!isset($this['header'])) $this['header'] =$this->headers();
+		return is_null($name)
+			?$this['header']
+			:(isset($this['header'][$name])
+				?$this->_format_arg($this['header'][$name], $def, $filter, $pattern)
+				:$def);
 	}
 	/**
 	 * 获取当前请求参数（所有方式）
@@ -58,17 +92,26 @@ class request extends o2{
 	 * 转化input中内容为对应的变量值
 	 * @return mixed
 	 */
-	private function inputAsVar(){
+	public function inputAsVar(){
 		if(isset($this['inputVar'])) return $this['inputVar'];
-		parse_str($this->readInput(), $vars);
+		parse_str($this->inputString(), $vars);
 		$this['inputVar'] =$vars;
+		return $this['inputVar'];
+	}
+	/**
+	 * 转化input中内容为对应的json对象
+	 * @return mixed
+	 */
+	public function inputAsJson(){
+		if(isset($this['inputJson'])) return $this['inputJson'];
+		$this['inputVar'] =json_decode($this->inputString(), true);
 		return $this['inputVar'];
 	}
 	/**
 	 * 读取input，用在扩充put delete等情况
 	 * @return mixed|string
 	 */
-	private function readInput(){
+	public function inputString(){
 		if(isset($this['input'])) return $this['input'];
 		$this['input'] =file_get_contents('php://input');
 		return $this['input'];
@@ -148,21 +191,20 @@ class request extends o2{
 	 */
 	private function _format_arg($value, $def=null, $filter=null, $pattern=''){
 		switch($filter){
+			case null:
+				return $value;
 			case 'i':
 			case 'int':
 			case 'integer':
 				return (int)$value;
-				break;
 			case 'f':
 			case 'float':
 				$_value =trim($value);
 				return preg_match('/^[.0-9]+$/', $_value) >0 ?$_value :$def;
-				break;
 			case 'n':
 			case 'num':
 				$_value =trim($value);
 				return preg_match('/^(\d+)$/', $_value) >0 ?$_value :$def;
-				break;
 			case 'a':
 			case 'arr':
 			case 'array':
@@ -181,7 +223,6 @@ class request extends o2{
 			case 'preg':
 				$_value =trim($value);
 				return preg_match($pattern, $_value) >0 ?$_value :$def;
-				break;
 			case 'b':
 			case 'bool':
 			case 'boolean':
@@ -193,9 +234,10 @@ class request extends o2{
 			case 'str':
 			case 'string':
 				$value =htmlspecialchars($value);
-			case null:
 				return $value;
-				break;
+			case 'base64':
+				$v =base64_decode($value, empty($pattern) ?false :true);
+				return $v ?$v :$def;
 			default:
 				if(is_array($filter)){
 					if(isset($filter[0])) $value =str_replace($filter, '', $value);
@@ -204,8 +246,18 @@ class request extends o2{
 					}
 				}
 				return $value;
-				break;
 		}
 
+	}
+	/**
+	 * 返回请求ip
+	 * @return mixed
+	 */
+	public function ip(){
+		if (!empty($_SERVER['HTTP_CLIENT_IP']))
+			return $_SERVER['HTTP_CLIENT_IP'];
+		elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
+			return $_SERVER['HTTP_X_FORWARDED_FOR'];
+		return $_SERVER['REMOTE_ADDR'];
 	}
 }
