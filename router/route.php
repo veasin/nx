@@ -44,9 +44,10 @@ trait route{
 				$this->log(' - uri: '.$path.' ['.($_match_path ?'match':'no').']');
 				if(isset($params[0])) array_shift($params);
 				$this->request['params']=$params;
-				$is_controller=($route[2]===false);
-				$result=call_user_func_array($is_controller ?[$this, 'control'] :$route[2],
-					$is_controller ?[$route[3]] :[$this->request, $this->response, $this]);
+				if($route[2]===false){
+					if(isset($route[3][2])) $this->request['method'] =$route[3][2];
+					$result =call_user_func_array([$this, 'control'], [$route[3]]);
+				} else $result =call_user_func_array($route[2], [$this->request, $this->response, $this]);
 				if(!is_null($result)) return $result;
 			}
 		}
