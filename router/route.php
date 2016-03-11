@@ -52,19 +52,26 @@ trait route{
 			}
 		}
 	}
-	public function on($route, $callback, $control=[]){
-		$this->buffer['router/route']['rules'][]=['*', $route, $callback, $control];
+	public function on($route, $callback, $control=[], $method='*', $first=false){
+		$_callback =is_a($callback, 'Closure') ?$callback->bindTo($this) :$callback;
+		if($first) array_unshift($this->buffer['router/route']['rules'], [$method, $route, $_callback, $control]);
+		else $this->buffer['router/route']['rules'][]=[$method, $route, $_callback, $control];
+		return $this;
 	}
 	public function get($route, $callback, $control=[]){
 		$this->buffer['router/route']['rules'][]=['get', $route, $callback, $control];
+		return $this;
 	}
 	public function post($route, $callback, $control=[]){
 		$this->buffer['router/route']['rules'][]=['post', $route, $callback, $control];
+		return $this;
 	}
 	public function put($route, $callback, $control=[]){
 		$this->buffer['router/route']['rules'][]=['put', $route, $callback, $control];
+		return $this;
 	}
 	public function delete($route, $callback, $control=[]){
 		$this->buffer['router/route']['rules'][]=['delete', $route, $callback, $control];
+		return $this;
 	}
 }
