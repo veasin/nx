@@ -233,10 +233,10 @@ class request extends o2{
 			case 's':
 			case 'str':
 			case 'string':
-				$value =htmlspecialchars($value);
+				$value =(string)$value;
 				return $value;
 			case 'base64':
-				$v =base64_decode($value, empty($pattern) ?false :true);
+				$v =base64_decode($value, empty($pattern) ?null :true);
 				return $v ?$v :$def;
 			default:
 				if(is_array($filter)){
