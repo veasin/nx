@@ -143,6 +143,7 @@ class sql{
 		if(empty($sql)){
 			$_set = [];
 			foreach($_fields as $_field => $_value){
+				$dif =false;
 				if(!is_array($_value)){
 					$_val = $this->_value($_field, $_value, $is_named);
 				}else{
@@ -156,13 +157,21 @@ class sql{
 							$_field ="{$this->table}`.`{$_field}";
 							$_val = "`{$_field}` {$_opt} $_val";
 							break;
+						case 'case':
+						case 'CASE':
+							$dif ="`{$_field}` = CASE `{$_value[2]}`";
+							foreach($_val as $__id=>$__val){
+								$dif .=" WHEN {$__id} THEN {$__val}";
+							}
+							$dif.=" END";
+							break;
 						default:// sql function
 							$_val = $this->_value($_field, $_val, $is_named);
 							$_val = "{$_opt}({$_val})";
 							break;
 					}
 				}
-				$_set[] = "`{$_field}` ={$_val}";
+				$_set[] =($dif ===false) ?"`{$_field}` ={$_val}" :$dif;
 			}
 			if(empty($_set)) return false;
 			$this->args['set'] = implode(', ', $_set);
@@ -277,16 +286,21 @@ class sql{
 				$__table2 =$this->table;
 				$__as =$As;
 				if(strpos($As, '.') !==false) list($__table2, $__as) =explode('.',$As);
-				$_c[] = "`{$__table}`.`{$__row}` = `{$__table2}`.`{$__as}`";
+				if($As[0] =='='){
+					$_as2 ="'".substr($As, 1)."'";
+				} else $_as2 ="`{$__table2}`.`{$__as}`";
+
+				$_c[] = "`{$__table}`.`{$__row}` = {$_as2}";
 			}
 			$s .= " ON (".implode(' AND ', $_c).")";
 		}
 		elseif(is_string($Conditions)) $s .= $Conditions;
 
-		$_join =[$s, '', ''];
+		$_join =[$s, '', '', []];
 		if(is_object($Table)){
-			$_join[1] =empty($Table->args['select']) ?'' :$Table->args['select'];//todo fix bug * : `circles`.`*`
+			$_join[1] =empty($Table->args['select']) ?'' :$Table->args['select'];
 			$_join[2] =empty($Table->args['filter']) ?'':$Table->args['filter'];
+			$_join[3] =$Table->getWhereParams();
 		}
 		$this->args['join'][] = $_join;
 		return $this;
@@ -531,7 +545,10 @@ class sql{
 					if(strpos($_field, '.') !==false) list($_tab, $_field) =explode('.', $_field); //['tab.field']
 					if($_field[0]=='`' || strpos($_field, '(') !== false){
 						$_fs[] =$_field.$_new_name;
-					} else $_fs[] ="`{$_tab}`.`{$_field}`{$_new_name}";
+					} else {
+						if($_field !=='*') $_field ="`{$_field}`";
+						$_fs[] ="`{$_tab}`.{$_field}{$_new_name}";
+					}
 				}
 			}
 		}
@@ -554,10 +571,11 @@ class sql{
 		if(is_array($join)){
 			$join =[];
 			foreach($this->args['join'] as $_joins){
-				list($_join, $_get, $_where) =$_joins;
+				list($_join, $_get, $_where, $_params) =$_joins;
 				$join[] =$_join;
 				if(!empty($_get)) $get .=', '.$_get;
 				if(!empty($_where)) $where .=' AND '.$_where;
+				$this->params =array_merge($this->params, $_params);
 			}
 			$join =implode('', $join);
 		}
@@ -687,5 +705,8 @@ class sql{
 			$this->where($_where, $link);
 		}
 		return $this;
+	}
+	public function getWhereParams(){
+		return $this->where_params;
 	}
 }
