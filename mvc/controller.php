@@ -128,7 +128,7 @@ class controller{
 	 * @return bool
 	 */
 	public function status($code = 0, $data = null){
-		return $this->response->status($code, $data);
+		return $this->app->status($code, $data);
 	}
 }
 

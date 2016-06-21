@@ -45,40 +45,6 @@ class model{
 		return $this->lastError;
 	}
 
-	/**
-	 * [[key, val, oth],[key, val, oth]...]
-	 * (key, val)=>[key=>val],
-	 * (key, fun)=>[key=>fun(val)]
-	 * (key,false)=>[key=>[key, val, oth]],
-	 * (null, val)=>[val, val],
-	 * (null, fun)=>[fun(val)]
-	 * (null, false) =>$array
-	 * @param     $array
-	 * @param int $key
-	 * @param int $value
-	 * @return array
-	 */
-	public function _map($array, $key = 0, $value = 1){
-		if(!is_array($array)) return $array;
-		$r = [];
-		if(is_null($key)){
-			if($value ===false) return $array;
-			foreach($array as $_key => $_value){
-				$r[] =is_callable($value)
-						?$value($_value, $_key)
-						:$_value[$value];
-			}
-		}else{
-			foreach($array as $_key => $_value){
-				$r[$_value[$key]] =($value ===false)
-					?$_value
-					:(is_callable($value)
-						?$value($_value, $_key)
-						:$_value[$value]);
-			}
-		}
-		return $r;
-	}
 	public function __call($name, $args){
 		switch($name){
 			default:
