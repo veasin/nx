@@ -247,7 +247,7 @@ class curl{
 		$start =microtime(true);
 		$this->response = curl_exec($this->handle);
 		if($this->log>2) \nx\app::$instance->log(' - response:'.$this->RW());
-		if($this->log>1) \nx\app::$instance->log(sprintf(' - time: %0.3fms', microtime(true)-$start));
+		if($this->log>1) \nx\app::$instance->log(sprintf(' - time: %0.3fs', microtime(true)-$start));
 		return $this;
 	}
 	/**
