@@ -1,0 +1,21 @@
+{
+	"name": "urn2/nx",
+	"description": "A Trait Framework for PHP",
+	"homepage": "https://github.com/urn2/nx",
+	"type": "framework",
+	"authors": [
+		{
+			"name": "Vea",
+			"homepage": "http://www.f2016.cn",
+			"email":"vea@live.cn"
+		}
+	],
+	"require": {
+		"php":">=5.5",
+		"ext-zip": "*"
+	},
+	"minimum-stability": "stable",
+	"autoload": {
+		"psr-4": {"nx\\": "src/"}
+	}
+}
