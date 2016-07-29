@@ -227,7 +227,8 @@ class sql{
 	 * 删除记录
 	 * @return int|false		false 或删除的条目数
 	 */
-	public function delete(){
+	public function delete($where=false){
+		if(!empty($where)) $this->_withWHERE(func_get_args(), func_num_args());
 		$this->params =[];
 		$sql =$this->_buildDELETE();
 		static::$history[] =$sql;
@@ -430,7 +431,7 @@ class sql{
 						break;
 					//case 'not':
 					case 'NOT':
-					//case 'not in':
+						//case 'not in':
 					case 'NOT IN':
 						$_opt ='NOT IN';
 					//case 'in':
@@ -453,7 +454,7 @@ class sql{
 						$_val =strtoupper($_val);
 						break;
 					case 'LIKE':
-					//case 'like':
+						//case 'like':
 					case '%':
 						$_opt ='LIKE';
 						if($is_named){
