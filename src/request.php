@@ -182,6 +182,15 @@ class request extends o2{
 				:$def);
 	}
 	/**
+	 * 返回当前上传的文件，并验证是否可用
+	 * @param $arg
+	 * @return bool
+	 */
+	public function file($arg){
+		$f =&$_FILES[$arg];
+		return (isset($f['name']) && isset($f['type']) && isset($f['size']) && isset($f['tmp_name']) && isset($f['error']) && ($f['error'] == UPLOAD_ERR_OK) && is_file($f['tmp_name']) && is_uploaded_file($f['tmp_name']) && is_readable($f['tmp_name'])) ?$f :false;
+	}
+	/**
 	 * 格式化或过滤参数
 	 * @param $value
 	 * @param null $def
