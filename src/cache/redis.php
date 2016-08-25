@@ -15,16 +15,20 @@ namespace nx\cache;
 trait redis{
 	protected function nx_cache_redis(){
 		$it=is_a($this, 'nx\app') ?$this :$this->app;
-		if(!isset($this->buffer['cache/redis'])) $this->buffer['cache/redis']=['config'=>isset($it->setup['cache/redis']) ?$it->setup['cache/redis'] :[], 'handle'=>[],];
+		if(!isset($it->buffer['cache/redis'])) $it->buffer['cache/redis']=['config'=>isset($it->setup['cache/redis']) ?$it->setup['cache/redis'] :[], 'handle'=>[],];
 	}
 	public function cache($name='default'){
-		$cache=&$this->buffer['cache/redis']['handle'];
+		$it=is_a($this, 'nx\app') ?$this :$this->app;
+		$cache=&$it->buffer['cache/redis']['handle'];
 		if(!isset($cache[$name])){
-			$cfg=&$this->buffer['cache/redis']['config'];
+			$cfg=&$it->buffer['cache/redis']['config'];
 			$config=false;
 			if(isset($cfg[$name])) $config=is_array($cfg[$name]) ?$cfg[$name] :$cfg[$cfg[$name]];
 			$cache[$name]=new \redis();
-			if(empty($config)) $cache[$name]->connect($config['host'], isset($config['host']) ?$config['host'] :11211, isset($config['timeout']) ?$config['timeout'] :1);
+			if(!empty($config)){
+				$cache[$name]->connect($config['host'], isset($config['port']) ?$config['port'] :6379, isset($config['timeout']) ?$config['timeout'] :1);
+				if(isset($config['auth'])) $cache[$name]->auth($config['auth']);
+			}
 		}
 		return $cache[$name];
 	}
