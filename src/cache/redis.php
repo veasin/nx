@@ -28,6 +28,7 @@ trait redis{
 			if(!empty($config)){
 				$cache[$name]->connect($config['host'], isset($config['port']) ?$config['port'] :6379, isset($config['timeout']) ?$config['timeout'] :1);
 				if(isset($config['auth'])) $cache[$name]->auth($config['auth']);
+				if(isset($config['select'])) $cache[$name]->select($config['select']);
 			}
 		}
 		return $cache[$name];
