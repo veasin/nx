@@ -46,9 +46,6 @@ class model{
 	}
 
 	public function __call($name, $args){
-		switch($name){
-			default:
-				return call_user_func_array([$this->app, $name], $args);
-		}
+		return call_user_func_array([$this->app, $name], $args);
 	}
 }

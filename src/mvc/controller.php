@@ -45,11 +45,8 @@ class controller{
 		return $r;
 	}
 	public function __get($name){
-		switch($name){
-			default:
-				$this->$name =$this->app->$name;
-				return $this->$name;
-		}
+		$this->$name =&$this->app->$name;
+		return $this->$name;
 	}
 	public function __call($name, $args){
 		switch($name){
@@ -73,8 +70,8 @@ class controller{
 		if($hook){
 			$found =false;
 			$methods =$all
-				?[static::doBefore, static::doBefore.$name, $this->method().$name, static::doExt.$name, static::doAfter.$name, static::doAfter]
-				:[static::doBefore, $this->method(), static::doExt, static::doAfter];
+				?[static::doBefore, static::doBefore.$name, $this->request->method().$name, static::doExt.$name, static::doAfter.$name, static::doAfter]
+				:[static::doBefore, $this->request->method(), static::doExt, static::doAfter];
 			$r =false;
 			foreach($methods as $_fun){
 				if(method_exists($this, $_fun)){
@@ -86,49 +83,6 @@ class controller{
 			if($found ===false) return $this->nofound($name);
 			return $r;
 		}else if(method_exists($this, $name)) return $this->$name($this->response, $this->app);
-	}
-	/**
-	 * @param null $name
-	 * @param null $def
-	 * @param null $filter
-	 * @param string $pattern
-	 * @return array|mixed|null|string
-	 */
-	public function arg($name = null, $def = null, $filter = null, $pattern=''){
-		return $this->app->request->arg($name, $def, $filter, $pattern);
-	}
-	/**
-	 * @param null $method is method
-	 * @return bool || method
-	 */
-	public function method($method = null){
-		return $this->app->request->method($method);
-	}
-
-	/**
-	 * @param $var
-	 * @return mixed
-	 */
-	public function log($var){
-		return $this->app->log($var);
-	}
-
-	/**
-	 * @param string $name
-	 * @param null $def
-	 * @return mixed
-	 */
-	public function config($name, $def=null){
-		return $this->app->config($name, $def);
-	}
-	/**
-	 * fn(code, msg), fn(code, data), fn(data), fn(code)
-	 * @param int  $code [data=>,err=>]
-	 * @param null $data || msg
-	 * @return bool
-	 */
-	public function status($code = 0, $data = null){
-		return $this->app->status($code, $data);
 	}
 }
 

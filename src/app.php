@@ -82,6 +82,11 @@ class app{
 					:(isset($args[1])
 						?$args[1]
 						:null);
+			case 'view':
+			case 'status':
+				if(is_callable([$this->response, $name])) $this->response->$name($args[0], $args[1]);
+				else die("need [trait response->{$name}]");
+				break;
 			case 'db':
 			case 'insertSQL':
 			case 'selectSQL':
