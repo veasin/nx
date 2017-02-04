@@ -16,7 +16,6 @@ class curl{
 		$this->url($url);
 		$this->method($method, $args);
 		$this->log =$log;
-		return $this;
 	}
 	public function __destruct(){
 		if(!is_null($this->handle)) curl_close($this->handle);
@@ -237,15 +236,20 @@ class curl{
 		}
 		$this->handle = curl_init();
 		if(!empty($this->headers)) $this->opts[CURLOPT_HTTPHEADER] = $this->headers;
+		if(strpos(strtolower($this->opts[CURLOPT_URL]), 'https:')===0){
+			$this->opts[CURLOPT_SSL_VERIFYPEER] =false;
+			$this->opts[CURLOPT_SSL_VERIFYHOST] =1;
+		}
 		@curl_setopt_array($this->handle, $this->opts);
 		if($this->log)
-		\nx\app::$instance->log('curl '.strtolower($this->method).': '.$this->opts[CURLOPT_URL].' '.(
-			isset($this->opts[CURLOPT_POSTFIELDS])
-				?json_encode($this->opts[CURLOPT_POSTFIELDS], JSON_UNESCAPED_UNICODE)
-				:'[]'
-			).'');
+			\nx\app::$instance->log('curl '.strtolower($this->method).': '.$this->opts[CURLOPT_URL].' '.(
+				isset($this->opts[CURLOPT_POSTFIELDS])
+					?json_encode($this->opts[CURLOPT_POSTFIELDS], JSON_UNESCAPED_UNICODE)
+					:'[]'
+				).'');
 		$start =microtime(true);
 		$this->response = curl_exec($this->handle);
+		if($this->log>3 && empty($this->response)) \nx\app::$instance->log(' - err:'.curl_error($this->handle));
 		if($this->log>2) \nx\app::$instance->log(' - response:'.$this->RW());
 		if($this->log>1) \nx\app::$instance->log(sprintf(' - time: %0.3fs', microtime(true)-$start));
 		return $this;
