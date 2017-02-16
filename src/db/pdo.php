@@ -15,7 +15,7 @@ trait pdo{
 	];
 	protected function nx_db_pdo(){
 		$it=is_a($this, 'nx\app') ?$this :$this->app;
-		if(!isset($it->buffer['db/pdo'])) $it->buffer['db/pdo']=['config'=>isset($it->setup['db/pdo']) ?$it->setup['db/pdo'] :[], 'handle'=>[],];
+		if(!array_key_exists('db/pdo', $it->buffer)) $it->buffer['db/pdo']=['config'=>isset($it->setup['db/pdo']) ?$it->setup['db/pdo'] :[], 'handle'=>[],'timeout'=>[]];
 	}
 	/**
 	 * @param string $name app->setup['db/pdo']
@@ -24,17 +24,23 @@ trait pdo{
 	public function db($name='default'){
 		$it=is_a($this, 'nx\app') ?$this :$this->app;
 		$db=&$it->buffer['db/pdo']['handle'];
-		if(!isset($db[$name])){
+		$timeout =&$it->buffer['db/pdo']['timeout'];
+		if(!array_key_exists($name, $db) || (array_key_exists($name, $timeout) && $timeout[$name] <time())){
 			$cfg=&$it->buffer['db/pdo']['config'];
-			$config=false;
-			if(isset($cfg[$name])) $config=is_array($cfg[$name]) ?$cfg[$name] :$cfg[$cfg[$name]];
+			$config=[];
+			if(array_key_exists($name, $cfg)) $config=is_array($cfg[$name]) ?$cfg[$name] :$cfg[$cfg[$name]];
 			if(empty($config)) die('no db set.');
-			$options=isset($config['options']) ?$config['options']+$this->_nx_db_pdo_options :$this->_nx_db_pdo_options;
+			$options=array_key_exists('options', $config) && is_array($config['options']) ?$config['options']+$this->_nx_db_pdo_options :$this->_nx_db_pdo_options;
+			if(array_key_exists('timeout', $config) && $config['timeout'] >0) $timeout[$name] =time() +$config['timeout'];
 			$db[$name]=new \PDO($config['dsn'], $config['username'], $config['password'], $options);
 			$this->log('pdo dsn:'.$config['dsn']);
 		}
 		return $db[$name];
 	}
+	/**
+	 * @param \PDO $db
+	 * @return bool
+	 */
 	private function db_false($db){
 		$err =$db->errorInfo();
 		$this->log(sprintf('pdo error: %s, %s, %s', $err[0], $err[1], $err[2]));
@@ -45,16 +51,18 @@ trait pdo{
 	 * ->insert('INSERT INTO cds (`interpret`, `titel`) VALUES (?, ?)', ['veas', 'new cd']);
 	 * @param $sql
 	 * @param array $params
-	 * @return bool|int
+	 * @param string $config
+	 * @return bool|string
 	 */
-	public function insertSQL($sql, $params=[], $config='default'){
+	public function insertSQL($sql, array $params=[], $config='default'){
 		$this->log('sql: '.$sql.' '.json_encode($params, JSON_UNESCAPED_UNICODE));
 		$db =$this->db($config);
-		if(empty($params)){
+		$ok =false;
+		if(0===count($params)){
 			$ok=$db->exec($sql);
 		}else{
 			$sth=$db->prepare($sql);
-			if(empty($sth)) return $this->db_false($db);
+			if(false===$sth) return $this->db_false($db);
 			$_first=current($params);
 			if(!is_array($_first)){
 				$ok=$sth->execute($params);
@@ -64,24 +72,23 @@ trait pdo{
 				}
 			}
 		}
-		if($ok) return $db->lastInsertId();
-		return $this->db_false($db);
+		return $ok ?$db->lastInsertId() :$this->db_false($db);
 	}
 	/**
 	 * 查找记录
 	 * ->select('SELECT `cds`.* FROM `cds` WHERE `cds`.`id` = ?', [13])
 	 * @param $sql
 	 * @param array $params
+	 * @param string $config
 	 * @return array|bool
 	 */
-	public function selectSQL($sql, $params=[], $config='default'){
+	public function selectSQL($sql, array $params=[], $config='default'){
 		$this->log('sql: '.$sql.' '.json_encode($params, JSON_UNESCAPED_UNICODE));
 		$db =$this->db($config);
 		$sth=$db->prepare($sql);
-		if($sth===false) return $this->db_false($db);
-		$ok=$sth->execute(!empty($params) ?$params :null);
-		if($ok===false) return $this->db_false($db);
-		return $sth->fetchAll();
+		if(false===$sth) return $this->db_false($db);
+		$ok=$sth->execute(count($params) ?$params :null);
+		return (false===$ok) ?$this->db_false($db) :$sth->fetchAll();
 	}
 	/**
 	 * 更新记录
@@ -90,14 +97,15 @@ trait pdo{
 	 *
 	 * @param $sql
 	 * @param array $params
+	 * @param string $config
 	 * @return bool|int
 	 */
-	public function executeSQL($sql, $params=[], $config='default'){
+	public function executeSQL($sql,array $params=[], $config='default'){
 		$this->log('sql: '.$sql.' '.json_encode($params, JSON_UNESCAPED_UNICODE));
 		$db =$this->db($config);
 		$sth=$db->prepare($sql);
-		if($sth===false) return $this->db_false($db);
-		$ok=$sth->execute(!empty($params) ?$params :null);
+		if(false===$sth) return $this->db_false($db);
+		$ok=$sth->execute(count($params) ?$params :null);
 		return $ok ?$sth->rowCount() :$this->db_false($db);
 	}
 	/**
