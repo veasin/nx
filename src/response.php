@@ -1,8 +1,6 @@
 <?php
 namespace nx;
 
-use nx\log\header;
-
 class response extends o2{
 	public $status =[
 		200 => "OK",
