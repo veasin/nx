@@ -1,5 +1,22 @@
 <?php
+include 'tpl.php';
 $base_dir =getcwd();
+$traits=[
+	'mvc'=>'\nx\control\mvc',
+	'ca'=>'\nx\router\ca',
+	'route'=>'\nx\router\route',
+	'files'=>'\nx\config\files',
+	'ini'=>'\nx\config\ini',
+	'memcache'=>'\nx\cache\memcache',
+	'redis'=>'\nx\cache\redis',
+	'mongo'=>'\nx\cache\mongo',
+	'dump'=>'\nx\log\dump',
+	'head'=>'\nx\log\header',
+	'file'=>'\nx\log\file',
+	'view'=>'\nx\response\view',
+	'web'=>'\nx\response\web',
+	'api'=>'\nx\response\api',
+];
 
 /*
       \e[0m 关闭所有属性
@@ -149,6 +166,8 @@ switch($argv[1]){
 				$views=[];
 
 				$_traits =explode(' ', $project['traits']);
+				//筛选出需要use
+				$uses=[];
 				foreach($_traits as $trait){
 					//l($trait, 'light_red');
 					switch($trait){
@@ -252,19 +271,26 @@ switch($argv[1]){
 						default:
 							break;
 					}
+					isset($traits[$trait]) and $uses[]=$traits[$trait];
 				}
 				l();
 				l('create files :');
 				l(' ./'.$project['name'].'/app.php', 'gray');
 				if(count($setup)>0) l(' ./'.$project['name'].'/setup.php', 'gray');
 				if(strlen($project['entry'])>0) l(' ./'.$project['entry'], 'gray');
+				$controls=[];
 				foreach($controllers as $controller){
+					$controls[]=['file'=>'./'.$project['name'].'/controllers/'.$controller.'.php', 'filename'=>$controller];
 					l(' ./'.$project['name'].'/controllers/'.$controller.'.php', 'gray');
 				}
+				$mods=[];
 				foreach($models as $model){
+					$mods[]=['file'=>'./'.$project['name'].'/models/'.$model.'.php', 'filename'=>$model];
 					l(' ./'.$project['name'].'/models/'.$model.'.php', 'gray');
 				}
+				$views2=[];
 				foreach($views as $view){
+					$views2[]=['file'=>'./'.$project['name'].'/views/'.$view.'.php', 'filename'=>$view];
 					l(' ./'.$project['name'].'/views/'.$view.'.php', 'gray');
 				}
 
@@ -273,6 +299,28 @@ switch($argv[1]){
 				if($create =='' || $create =='yes' || $create =='y'){
 					l();
 					l('todo: make file', 'green');
+					$project_path='./'.$project['name'].'/';
+					saveFile($project_path.'setup.php', $setup);
+					//有web入口
+					$tpl2=false;
+					if(!empty($project['entry']) && strrpos($project['entry'], '.php')){
+						saveFile('./'.$project['entry'], str_replace(['{name}'], [$project['name']], $web_tpl), false);
+						$tpl2=true;
+					}
+					if(count($uses)>0) $uses_str='use '.implode(",\n", $uses).';';
+					saveFile($project_path.'app.php', str_replace(['{name}', '{uses}'], [$project['name'], $uses_str], $tpl2 ? $app_tpl2 : $app_tpl), false);
+					//生成控制器
+					foreach($controls as $item){
+						saveFile($item['file'], str_replace(['{name}', '{control}'], [$project['name'], $item['filename']], $controller_tpl), false);
+					}
+					//生成models
+					foreach($mods as $item){
+						saveFile($item['file'], str_replace(['{name}', '{model}'], [$project['name'], $item['filename']], $model_tpl), false);
+					}
+					//生成views
+					foreach($views2 as $item){
+						saveFile($item['file'], $view_tpl, false);
+					}
 				} else {
 					l();
 					l('good bye !', 'light_red');
@@ -294,4 +342,10 @@ switch($argv[1]){
 		l("  select [project]");
 		break;
 }
+function saveFile($filename, $content, $isarr=true){
+	is_dir(dirname($filename)) or mkdir(dirname($filename), 0777, true);
+	if($isarr) $content ="<?PHP\n return " . var_export($content, True) . ";";
+	return file_put_contents($filename, $content);
+}
+
 
