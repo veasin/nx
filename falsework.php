@@ -1,6 +1,5 @@
 <?php
-include 'tpl.php';
-$base_dir =getcwd();
+$base_dir =getcwd().DIRECTORY_SEPARATOR;
 $traits=[
 	'mvc'=>'\nx\control\mvc',
 	'ca'=>'\nx\router\ca',
@@ -155,7 +154,12 @@ switch($argv[1]){
 				do{
 					$project['name'] =ask('project name :');
 				} while (strlen($project['name'])===0);
-				$project['entry'] =ask('create entry script ([ENTER]=PASS) :');
+				$project['entry'] =ask('create entry script ([ENTER]=./'.$project['name'].'.php) :', ''.$project['name'].'.php');
+				if(strlen($project['entry'])>0){
+					$project['composer'] =ask('use composer autoload ([ENTER]=no) [yes|y|no|n] ?', 'no');
+					$project['composer'] =($project['composer'] =='yes' || $project['composer'] =='y');
+				}
+
 				//$project['traits'] =ask('use traits (split by [SPACE]) :');
 				$project['traits'] =askTraits();
 
@@ -166,6 +170,7 @@ switch($argv[1]){
 				$views=[];
 
 				$_traits =explode(' ', $project['traits']);
+				$project['traits'] =[];
 				//筛选出需要use
 				$uses=[];
 				foreach($_traits as $trait){
@@ -271,13 +276,17 @@ switch($argv[1]){
 						default:
 							break;
 					}
-					isset($traits[$trait]) and $uses[]=$traits[$trait];
+					isset($traits[$trait]) && $project['traits'][]=$traits[$trait];
 				}
 				l();
 				l('create files :');
 				l(' ./'.$project['name'].'/app.php', 'gray');
 				if(count($setup)>0) l(' ./'.$project['name'].'/setup.php', 'gray');
-				if(strlen($project['entry'])>0) l(' ./'.$project['entry'], 'gray');
+				if(strlen($project['entry'])>0){
+					if(substr($project['entry'], -4)==='.php') l(' ./'.$project['entry'], 'gray');
+					elseif(substr($project['entry'], -1)==='/') l(' ./'.$project['entry'].$project['name'].'.php', 'gray');
+					else l(' ./'.$project['entry'].'.php', 'gray');
+				} else l(' ./'.$project['name'].'.php', 'gray');
 				$controls=[];
 				foreach($controllers as $controller){
 					$controls[]=['file'=>'./'.$project['name'].'/controllers/'.$controller.'.php', 'filename'=>$controller];
@@ -298,29 +307,21 @@ switch($argv[1]){
 				$create =ask('are u sure ([ENTER]=yes) [yes|y|no|n] ?');
 				if($create =='' || $create =='yes' || $create =='y'){
 					l();
-					l('todo: make file', 'green');
-					$project_path='./'.$project['name'].'/';
-					saveFile($project_path.'setup.php', $setup);
-					//有web入口
-					$tpl2=false;
-					if(!empty($project['entry']) && strrpos($project['entry'], '.php')){
-						saveFile('./'.$project['entry'], str_replace(['{name}'], [$project['name']], $web_tpl), false);
-						$tpl2=true;
+					//l('make file:', 'green');
+					saveProject($project, $setup);
+					foreach($controllers as $controller){
+						saveController($controller, $project);
 					}
-					if(count($uses)>0) $uses_str='use '.implode(",\n", $uses).';';
-					saveFile($project_path.'app.php', str_replace(['{name}', '{uses}'], [$project['name'], $uses_str], $tpl2 ? $app_tpl2 : $app_tpl), false);
-					//生成控制器
-					foreach($controls as $item){
-						saveFile($item['file'], str_replace(['{name}', '{control}'], [$project['name'], $item['filename']], $controller_tpl), false);
+					foreach($models as $model){
+						saveModel($model, $project);
 					}
-					//生成models
-					foreach($mods as $item){
-						saveFile($item['file'], str_replace(['{name}', '{model}'], [$project['name'], $item['filename']], $model_tpl), false);
+					foreach($views as $view){
+						saveView($view, $project);
 					}
-					//生成views
-					foreach($views2 as $item){
-						saveFile($item['file'], $view_tpl, false);
-					}
+					l();
+					l('all done. good bye !', 'green');
+					l();
+					exit();
 				} else {
 					l();
 					l('good bye !', 'light_red');
@@ -333,8 +334,6 @@ switch($argv[1]){
 		}
 
 
-	case 'select':
-		break;
 	default:
 		l("不支持的命令，支持的命令如下：");
 		l();
@@ -342,10 +341,106 @@ switch($argv[1]){
 		l("  select [project]");
 		break;
 }
-function saveFile($filename, $content, $isarr=true){
-	is_dir(dirname($filename)) or mkdir(dirname($filename), 0777, true);
-	if($isarr) $content ="<?PHP\n return " . var_export($content, True) . ";";
-	return file_put_contents($filename, $content);
+function makeDir($filename){
+	global $base_dir;
+	$filename =$base_dir.$filename;
+	is_dir(dirname($filename)) || mkdir(dirname($filename), 0777, true);
+}
+function saveFile($filename, $content, $replace =[]){
+	global $base_dir;
+	makeDir($filename);
+	if(!empty($replace)) $content =str_replace(array_keys($replace), array_values($replace), $content);
+	c($filename, 'gray');
+	$ok =file_put_contents($base_dir.$filename, $content);
+	l($ok ?'done' :'faild', $ok ?'green':'red');
+	return $ok;
+}
+function relativePath($from, $to){
+	$arr1 = explode(DIRECTORY_SEPARATOR, realpath($from));
+	$arr2 = explode(DIRECTORY_SEPARATOR, realpath($to));
+	$intersection = array_intersect_assoc($arr1, $arr2);
+	$depth =count($intersection);
+	return implode('/', array_merge(array_fill(0, count($arr1)-$depth, '..'), array_slice($arr2, $depth)));
 }
 
+function saveProject($project, $setup){
+	$path='./'.$project['name'].'/';
+	//app
+	$app_tpl="<?php\nnamespace {name};\n\nclass app extends \\nx\\app{\n	{uses}\n	public \$path =__DIR__;\n}";
+	saveFile($path.'app.php', $app_tpl, [
+		'{name}'=>$project['name'],
+		'{uses}'=>(count($project['traits'])>0) ?"use ".implode(",\n\t\t", $project['traits']).';' :'',
+	]);
+	//setup
+	$r =var_export($setup, True);
+	$find =array(" => ", "
+    ", "),", "array (", "\n         ", "\n        ", "],\n      ]");
+	$replace =array("=>", "", "],", "[", "", "", "]]");
+	$r =str_replace($find, $replace, $r);
+	$r =preg_replace('/=>\s+\[/m', '=>[', $r);
+	$r =preg_replace('/\[\s+\]/m', '[]', $r);
+	$r =preg_replace('/\d+=>/m', '', $r);
+	$r[strlen($r)-1] =']';
+	saveFile($path.'setup.php', "<?php\nreturn {$r};");
+	//entry
+	$file =$project['name'].'.php';
+	if(strlen($project['entry'])>0){
+		if(substr($project['entry'], -4) ==='.php'){
+			$file =$project['entry'];
+		}elseif(substr($project['entry'], -1) ==='/'){
+			$file =$project['entry'].$project['name'].'.php';
+		}else{
+			$file =$project['entry'].'.php';
+		}
+	}
+	$entry_tpl=<<<PHP
+<?php
+define('AGREE_LICENSE', true);//同意框架协议
+error_reporting(E_ALL);//错误报告
+date_default_timezone_set('Asia/Shanghai');//设定默认时区
 
+{loader}
+
+\$setup =include("{appdir}/setup.php");//加载配置
+\{name}\app::factory(\$setup)->run();//生成app并执行
+PHP;
+
+	$nxload =<<<PHP
+require '{nxdir}/autoload.php';//框架自动加载路径，可使用composer替换
+\\nx\autoload::register([
+	'{name}'=>['{appdir}'],//声明命名空间为当前目录
+]);//自动加载注册，可在其中指定命名空间第一段指向目录
+PHP;
+	$composer=<<<PHP
+\$loader = require '{crdir}/autoload.php';
+\$loader->addPsr4('{name}\\\\', '{appdir}');
+PHP;
+
+	$entry_tpl =str_replace('{loader}', $project['composer'] ?$composer :$nxload, $entry_tpl);
+
+	makeDir('./'.$file);
+	saveFile('./'.$file, $entry_tpl, [
+		'{name}'=>$project['name'],
+		'{appdir}'=>relativePath(dirname($file), $path),
+		'{nxdir}'=>relativePath(dirname($file), dirname($_SERVER['PHP_SELF'])),
+		'{crdir}'=>relativePath(dirname($file), dirname(dirname(dirname($_SERVER['PHP_SELF'])))),
+	]);
+}
+function saveController($controller, $project){
+	$tpl="<?php\nnamespace {name}\\controllers;\n\nclass {control} extends \\nx\\mvc\\controller{\n	public function onIndex(){\n		echo 'default index';\n	}\n}";
+	saveFile('./'.$project['name'].'/controllers/'.$controller.'.php', $tpl, [
+		'{name}'=>$project['name'],
+		'{control}'=>$controller,
+	]);
+}
+function saveModel($model, $project){
+	$tpl="<?php\nnamespace {name}\\models;\n\nclass {model} extends \\nx\\mvc\\model{\n	use \\nx\\db\\pdo, \\nx\\db\\table;\n\n	public function isOk(){\n		return 'ok';\n	}\n}";
+	saveFile('./'.$project['name'].'/models/'.$model.'.php', $tpl, [
+		'{name}'=>$project['name'],
+		'{model}'=>$model,
+	]);
+}
+function saveView($view, $project){
+	$tpl="<!doctype html>\n<html lang=\"zh_cn\">\n<head>\n	<meta charset=\"UTF-8\">\n	<title>View</title>\n</head>\n<body>\n	view template ~\n</body>\n</html>";
+	saveFile('./'.$project['name'].'/views/'.$view.'.php', $tpl);
+}
