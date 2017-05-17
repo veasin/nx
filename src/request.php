@@ -20,10 +20,10 @@ class request extends o2{
 	}
 	/**
 	 * 返回当前请求头（有清理）
-	 * @param bool|true $clear
+	 * @param bool|false $clear
 	 * @return array|false
 	 */
-	public function headers($clear=true){
+	public function headers($clear=false){
 		if (!function_exists('getallheaders')){
 			function getallheaders(){
 				$headers = [];
@@ -62,9 +62,9 @@ class request extends o2{
 	 * @param string $pattern
 	 * @return array|mixed|null|string
 	 */
-	public function header($name = null, $def = null, $filter = null, $pattern=''){
+	public function header($name = null, $def = null, $filter = null, $pattern='', $clear=false){
 		!is_null($name) && \nx\app::$instance->log('request header: '.$name);
-		if(!isset($this['header'])) $this['header'] =$this->headers();
+		if(!isset($this['header'])) $this['header'] =$this->headers($clear);
 		return is_null($name)
 			?$this['header']
 			:(isset($this['header'][$name])
