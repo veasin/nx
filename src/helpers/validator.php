@@ -97,8 +97,19 @@ class validator{
 	 * @return $this
 	 */
 	public function add($name, ...$args){
-		if(!array_key_exists($name, $this->rules)) $this->rules[$name]=[];
-		$this->rules[$name][]=$args;
+		if(is_string($name)){
+			if(!array_key_exists($name, $this->rules)) $this->rules[$name]=[];
+			$this->rules[$name][]=$args;
+		}elseif(is_array($name)){
+			foreach($name as $_name=>$rule){
+				if(is_numeric($_name)){
+					$_name =array_shift($rule);
+				}
+				if(is_string($rule)) $rule =[$rule];
+				if(!array_key_exists($_name, $this->rules)) $this->rules[$_name]=[];
+				$this->rules[$_name][]=$rule;
+			}
+		}
 		return $this;
 	}
 	/**

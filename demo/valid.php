@@ -6,11 +6,10 @@
  * Time: 10:12
  */
 
-
-include "../src/autoload.php";
+include __DIR__."/../src/autoload.php";
 \nx\autoload::register([]);
 
-$data =[
+$data=[
 	'name'=>'vea',
 	'password'=>'xx1xxx',
 	'repassword'=>'xx1xxx',
@@ -26,16 +25,12 @@ $data =[
 	'ip'=>'192.168.31.102',
 ];
 
-
-$valid =new \nx\helpers\validator($data, ['name'=>'用户名', 'password'=>'密码']);
-$valid->add('name', $valid::not_empty);
-$valid->add('name', $valid::min_length, 3);
+$valid=new \nx\helpers\validator($data, ['name'=>'用户名', 'password'=>'密码']);
+$valid->add('name', $valid::not_empty)->add('name', $valid::min_length, 3);
 $valid->add('name', $valid::max_length, 6);
 $valid->add('name', $valid::length, 3);
-$valid->add('password', $valid::equal, 'xx1xxx');
-$valid->add('password', $valid::same, 'repassword');
-$valid->add('code', $valid::numeric);
-$valid->add('code', $valid::regex, '/^\d+$/');
+$valid->add('password', $valid::equal, 'xx1xxx')->add('password', $valid::same, 'repassword');
+$valid->add('code', $valid::numeric)->add('code', $valid::regex, '/^\d+$/');
 $valid->add('unknow', $valid::chinese);
 $valid->add('qq', $valid::qq);
 $valid->add('mail', $valid::email);
@@ -44,17 +39,13 @@ $valid->add('mobile', $valid::mobile);
 $valid->add('idcard', $valid::id_card);
 $valid->add('date', $valid::date);
 $valid->add('url', $valid::url);
-$valid->add('ip', $valid::ip);
-$valid->add('ip');
+$valid->add('ip', $valid::ip)->add('ip');
 $valid->add('content', $valid::not_empty, '');
 
+$valid->add(['name'=>$valid::not_empty, ['name', $valid::min_length, 3], 'password'=>[$valid::equal, 'xx1xxx']]);
 
-$ok =$valid->start();
-if($ok!==false){
-	var_dump($ok);
-} else {
-	var_dump($valid->lastError());
-}
+$data=$valid->start();
+var_dump($data!==false ?$data :$valid->lastError());
 
 
 
