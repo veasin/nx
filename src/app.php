@@ -24,7 +24,7 @@ class app{
 		header(__NAMESPACE__.':vea 2005-2017');
 		(defined('AGREE_LICENSE') && AGREE_LICENSE ===true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
 
-		$this->uid =str_pad(strrev(base_convert(mt_rand(0, 36**6-1),10, 36)), 6, '0', STR_PAD_RIGHT);
+		$this->uid =str_pad(strrev(base_convert(mt_rand(0, 36**3-1),10, 36).base_convert(mt_rand(0, 36**3-1),10, 36)), 6, '0', STR_PAD_RIGHT);
 
 		static::$instance=$this;
 		if(!empty($setup)) $this->setup=array_merge($this->setup, $setup);
