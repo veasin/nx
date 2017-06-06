@@ -12,16 +12,19 @@ class app{
 	 */
 	public $request=null;
 	/**
-	 * @var \nx\o2
+	 * @var \nx\response
 	 */
 	public $response =null;
 	public $buffer=[];
 	protected $setup=[];
 	public $path='';
 	private $traits =[];
+	public $uid =0;
 	public function __construct($setup=[]){
-		header(__NAMESPACE__.':vea 2005-2016');
+		header(__NAMESPACE__.':vea 2005-2017');
 		(defined('AGREE_LICENSE') && AGREE_LICENSE ===true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
+
+		$this->uid =str_pad(strrev(base_convert(mt_rand(0, 36**6-1),10, 36)), 6, '0', STR_PAD_RIGHT);
 
 		static::$instance=$this;
 		if(!empty($setup)) $this->setup=array_merge($this->setup, $setup);
@@ -36,7 +39,7 @@ class app{
 			return method_exists($this, $_method) ?$_method :false;
 		}, class_uses($this)));
 
-		if(is_null($this->response)) $this->response =new o2();
+		if(is_null($this->response)) $this->response =new response();
 		//$this->response['app'] =get_class($this);
 	}
 	private function initTraits($traits){
