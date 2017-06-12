@@ -76,13 +76,13 @@ class controller{
 			foreach($methods as $_fun){
 				if(method_exists($this, $_fun)){
 					$found =true;
-					$r =$this->$_fun($this->response, $this->app);
+					$r =call_user_func_array([$this,$_fun], $this->route[2]);
 					if($r ===false) break;
 				}
 			}
 			if($found ===false) return $this->nofound($name);
 			return $r;
-		}else if(method_exists($this, $name)) return $this->$name($this->response, $this->app);
+		}else if(method_exists($this, $name)) return call_user_func_array([$this,$name], $this->route[2]);
 	}
 }
 

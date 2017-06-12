@@ -17,4 +17,7 @@ class index extends controller{
 	public function onDemo(){
 		echo 'it\'s demo ~';
 	}
+	public function onRoute($a='',$b='',$c=''){
+		var_dump($a,$b, $c);
+	}
 }
