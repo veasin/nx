@@ -6,18 +6,23 @@ trait file{
 	protected function nx_log_file(){
 		$setup =isset($this->setup['log/file']) ?$this->setup['log/file'] :[];
 		$name =date(isset($setup['name']) ?$setup['name'] :'Y-m-d');
-		$line =isset($setup['line']) ?$setup['line'] :'{create} {var}';
+		$line =isset($setup['line']) ?$setup['line'] :'[{micro+}] {var}';
 		$path =isset($setup['path']) ?$setup['path'] :$this->path.'/logs/';
 		$file =$path.$name.'.log';
 		$this->buffer['log/file'] =[
 			'file' =>$file,
 			'line' =>$line,
 			'handle' =>@fopen($file, 'a'),
+			'start' =>time(),
+			'start-micro' =>microtime(true),
 		];
 
-		$this->log(' -- {datetime}:[{method}]{uri}', '{var}');
+		$this->log('{datetime}:[{method}]{uri}', '{var}');
 	}
-
+	/**
+	 * @param $var
+	 * @param bool $template
+	 */
 	public function log($var, $template =false){
 		if(empty($this->buffer['log/file']['handle'])) return ;
 
@@ -36,6 +41,7 @@ trait file{
 			'{app}',
 			'{method}',
 			'{uri}',
+			'{micro+}',
 		], [
 			$var,
 			date('H:i:s'),
@@ -45,7 +51,8 @@ trait file{
 			__CLASS__,
 			isset($_SERVER['REQUEST_METHOD']) ?$_SERVER['REQUEST_METHOD'] :'unknow',
 			isset($_SERVER['REQUEST_URI']) ?$_SERVER['REQUEST_URI'] :'unknow',
-		], $template);
+			sprintf("%06.2fms", (microtime(true) -$this->buffer['log/file']['start-micro'])*1000),
+		], "{$this->uid} ".$template);
 
 		fwrite($this->buffer['log/file']['handle'], $line."\n");
 	}
