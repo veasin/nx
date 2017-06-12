@@ -1,5 +1,5 @@
 # nx is **"a next-gen framework"**
-  php 5.5+ ?
+  php 7.0+
   
   使用php语言中的trait实现在代码编写时的加载扩充，而不是运行时的扩充
   
