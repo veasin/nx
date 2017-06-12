@@ -22,6 +22,7 @@ class request extends o2{
 	 * 返回当前请求头（有清理）
 	 * @param bool|false $clear
 	 * @return array|false
+	 * @deprecated 使用\nx\helpers\validator替代
 	 */
 	public function headers($clear=false){
 		if (!function_exists('getallheaders')){
@@ -61,6 +62,7 @@ class request extends o2{
 	 * @param null $filter
 	 * @param string $pattern
 	 * @return array|mixed|null|string
+	 * @deprecated 使用\nx\helpers\validator替代
 	 */
 	public function header($name = null, $def = null, $filter = null, $pattern='', $clear=false){
 		!is_null($name) && \nx\app::$instance->log('request header: '.$name);
@@ -78,6 +80,7 @@ class request extends o2{
 	 * @param null $filter 验证格式 i=int=integer存在转换整型,f=float存在转换为浮点,n=num正则验证数字,a=arr=array验证数组,prce=preg正在验证,b=bool=boolean存在转换为布尔,w=word单词去除标点,s=str=string转换为字符串
 	 * @param string $pattern 验证格式辅助
 	 * @return array|mixed|null|string
+	 * @deprecated 使用\nx\helpers\validator替代
 	 */
 	public function arg($name = null, $def = null, $filter = null, $pattern=''){
 		!is_null($name) && \nx\app::$instance->log('request arg: '.$name);
@@ -91,6 +94,7 @@ class request extends o2{
 	/**
 	 * 转化input中内容为对应的变量值
 	 * @return mixed
+	 * @deprecated 使用\nx\helpers\validator替代
 	 */
 	public function inputAsVar(){
 		if(isset($this['inputVar'])) return $this['inputVar'];
@@ -101,6 +105,7 @@ class request extends o2{
 	/**
 	 * 转化input中内容为对应的json对象
 	 * @return mixed
+	 * @deprecated 使用\nx\helpers\validator替代
 	 */
 	public function inputAsJson(){
 		if(isset($this['inputJson'])) return $this['inputJson'];
@@ -110,6 +115,7 @@ class request extends o2{
 	/**
 	 * 读取input，用在扩充put delete等情况
 	 * @return mixed|string
+	 * @deprecated 使用\nx\helpers\validator替代
 	 */
 	public function inputString(){
 		if(isset($this['input'])) return $this['input'];
@@ -123,6 +129,7 @@ class request extends o2{
 	 * @param null $filter
 	 * @param string $pattern
 	 * @return array|mixed|null|string
+	 * @deprecated 使用\nx\helpers\validator替代
 	 */
 	public function input($name = null, $def = null, $filter = null, $pattern=''){
 		!is_null($name) && \nx\app::$instance->log('request input: '.$name);
@@ -140,6 +147,7 @@ class request extends o2{
 	 * @param null $filter
 	 * @param string $pattern
 	 * @return array|mixed|null|string
+	 * @deprecated 方法参数替代
 	 */
 	public function params($name = null, $def = null, $filter = null, $pattern=''){
 		!is_null($name) && \nx\app::$instance->log('request params: '.$name);
@@ -156,6 +164,7 @@ class request extends o2{
 	 * @param null $filter
 	 * @param string $pattern
 	 * @return array|mixed|null|string
+	 * @deprecated 使用\nx\helpers\validator替代
 	 */
 	public function post($name = null, $def = null, $filter = null, $pattern=''){
 		!is_null($name) && \nx\app::$instance->log('request post: '.$name);
@@ -172,6 +181,7 @@ class request extends o2{
 	 * @param null $filter
 	 * @param string $pattern
 	 * @return array|mixed|null|string
+	 * @deprecated 使用\nx\helpers\validator替代
 	 */
 	public function get($name = null, $def = null, $filter = null, $pattern=''){
 		!is_null($name) && \nx\app::$instance->log('request get: '.$name);
@@ -197,6 +207,7 @@ class request extends o2{
 	 * @param null $filter
 	 * @param string $pattern
 	 * @return array|mixed|string
+	 * @deprecated 使用\nx\helpers\validator替代
 	 */
 	private function _format_arg($value, $def=null, $filter=null, $pattern=''){
 		switch($filter){
