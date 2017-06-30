@@ -49,8 +49,8 @@ trait file{
 			microtime(true),
 			time(),
 			__CLASS__,
-			isset($_SERVER['REQUEST_METHOD']) ?$_SERVER['REQUEST_METHOD'] :'unknow',
-			isset($_SERVER['REQUEST_URI']) ?$_SERVER['REQUEST_URI'] :'unknow',
+			$this->request['method'],
+			$this->request['uri'],
 			sprintf("%06.2fms", (microtime(true) -$this->buffer['log/file']['start-micro'])*1000),
 		], "{$this->uid} ".$template);
 

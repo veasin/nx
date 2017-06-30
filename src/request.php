@@ -5,10 +5,19 @@ class request extends o2{
 	private $is_cli =false;
 	public function __construct($data=[]){
 		$this->is_cli =PHP_SAPI=='cli';
-		$this['params'] =$data;//构建数据
-		$this['method'] =$this->is_cli ?'cli' : strtolower($_SERVER['REQUEST_METHOD']);
-		$this['get'] =$_GET;
-		$this['post'] =$_POST;
+		if($this->is_cli){
+			$argv =$_SERVER['argv'];
+			array_shift($argv);
+			$this['params'] =$argv;
+			$this['method'] ='cli';
+			$this['uri'] =implode(' ', $_SERVER['argv']);
+		} else {
+			$this['params'] =$data;//构建数据
+			$this['method'] =strtolower($_SERVER['REQUEST_METHOD']);
+			$this['uri'] =$_SERVER['REQUEST_URI'];
+			$this['get'] =$_GET;
+			$this['post'] =$_POST;
+		}
 	}
 	/**
 	 * 返回当前请求的method或验证method是否正确
