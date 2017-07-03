@@ -211,7 +211,7 @@ class validator{
 					if(null===$result[$name] || preg_match('/^0\d{2,3}[-]?\d{7,8}$/', $result[$name])===0) return $this->error($name, $valid);
 					break;
 				case self::mobile:
-					if(null===$result[$name] || preg_match('/^[(\d+)|0]?(13\d{9})|(15\d{9})|(18\d{9})|(17\d{9})$/', $result[$name])===0) return $this->error($name, $valid);
+					if(null===$result[$name] || preg_match('/^[(\d+)|0]?([13|14|15|17|18]\d{9})$/', $result[$name])===0) return $this->error($name, $valid);
 					break;
 				case self::id_card:
 					if(null===$result[$name] || preg_match('/^\d{6}((1[89])|(2\d))\d{2}((0\d)|(1[0-2]))((3[01])|([0-2]\d))\d{3}(\d|X)$/i', $result[$name])===0) return $this->error($name, $valid);
