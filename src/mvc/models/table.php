@@ -9,7 +9,6 @@
 namespace nx\mvc\models;
 
 class table extends \nx\mvc\model{
-	use \nx\db\pdo, \nx\db\table;
 	/**
 	 * 绑定表名
 	 * @var string
@@ -26,6 +25,11 @@ class table extends \nx\mvc\model{
 	 */
 	public $update_field ='update_time';
 	/**
+	 * 创建时间戳字段
+	 * @var string
+	 */
+	public $create_field ='create_time';
+	/**
 	 * 返回一个table
 	 * @return \nx\helpers\sql
 	 */
@@ -38,6 +42,7 @@ class table extends \nx\mvc\model{
 	 * @return bool|int
 	 */
 	public function add($data){
+		if(!empty($this->create_field)) $data[$this->create_field] =time();
 		return $this->_table()->create($data);
 	}
 	/**
