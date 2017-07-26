@@ -40,7 +40,7 @@ trait route{
 						else break;
 					}
 				}
-				$this->request['params']=$params=$_params;
+				$this->request['params']=$params;//兼容
 				if(isset($route[3])) $params=array_merge($_params, $route[3]);//重新调整参数顺序，确保路由参数在前
 				$result=null;
 				if(is_array($route[2])){
