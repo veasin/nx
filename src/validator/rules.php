@@ -6,9 +6,9 @@
  * Time: 17:39
  */
 
-namespace nx\helpers;
+namespace nx\validator;
 
-class validator{
+class rules{
 	private static $msg_map=[
 		'not_empty'=>'%s 不能为空',
 		'length'=>'%s 长度不符',

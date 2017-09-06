@@ -1,5 +1,5 @@
 <?php
-namespace nx\helpers;
+namespace nx\network;
 
 class curl{
 	private $handle = null;

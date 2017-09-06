@@ -9,12 +9,12 @@ namespace nx\db;
 trait table{
 	/**
 	 * @param $name
-	 * @param null $primary
+	 * @param string $primary
 	 * @param string $config
-	 * @return \nx\helpers\sql
+	 * @return \nx\db\table\sql
 	 */
 	public function table($name, $primary='id', $config='default'){
-		return \nx\helpers\sql::factory($name, $primary, $config, $this);
+		return table\sql::factory($name, $primary, $config, $this);
 	}
 	/**
 	 * [[key, val, oth],[key, val, oth]...]

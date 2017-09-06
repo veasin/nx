@@ -1,9 +1,9 @@
 <?php
-namespace nx\tools;
+namespace nx\validator;
 
 /**
  * Class valid
- * @package nx\tools
+ * @package nx\validator
  */
 trait valid{
 	/**
@@ -11,9 +11,9 @@ trait valid{
 	 * @param string $from
 	 * @param array $name
 	 * @param array $msg
-	 * @return \nx\helpers\validator
+	 * @return \nx\validator\rules
 	 */
 	public function valid($from='POST', $name=[], $msg=[]){
-		return new \nx\helpers\validator($from, $name, $msg);
+		return new rules($from, $name, $msg);
 	}
 }

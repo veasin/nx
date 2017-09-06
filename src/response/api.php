@@ -7,17 +7,7 @@ trait api{
 	 */
 	protected function nx_response_api(){
 		$it = is_a($this, 'nx\app') ?$this :$this->app;
-		$it->response = new \nx\response();
 		$it->response->contentType('application/json', 'utf-8');
-	}
-	/**
-	 * @param string $uri
-	 * @param int $code
-	 * @return mixed
-	 */
-	public function redirect($uri = '', $code =302){
-		$it = is_a($this, 'nx\app') ?$this :$this->app;
-		return $it->response->status(302, '', false)->redirect($uri);
 	}
 	/**
 	 * fn(code, msg), fn(code, data), fn(data), fn(code)

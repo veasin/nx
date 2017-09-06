@@ -17,6 +17,12 @@ class index extends controller{
 	public function onDemo(){
 		echo 'it\'s demo ~';
 	}
+	public function onDemo2(){
+		//$this->response['ddd'] ='demo';
+		$code =$this->request->get('code', 404, 'int');
+		var_dump($code);
+		$this->response->status($code);
+	}
 	public function onRoute($a='',$b='',$c=''){
 		var_dump($a,$b, $c);
 	}

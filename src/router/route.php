@@ -52,6 +52,8 @@ trait route{
 				if(null !== $result) return $result;
 			}
 		}
+		$this->log('   no match: 404');
+		$this->response->status(404);
 	}
 	/**
 	 * 添加路由规则

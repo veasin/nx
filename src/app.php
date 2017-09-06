@@ -30,7 +30,7 @@ class app{
 	 * 应用设定
 	 * @var array
 	 */
-	protected $setup=[];
+	public $setup=[];
 	/**
 	 * 工作路径
 	 * @var string
@@ -58,13 +58,12 @@ class app{
 		static::$instance=$this;//静态实例
 		if(!empty($setup)) $this->setup=array_merge($this->setup, $setup);//合并配置文件
 		if($this->path == '') $this->path=dirname($_SERVER['SCRIPT_FILENAME']);//设定工作目录
-		$this->request=new request();//初始化请求
-		if(!$this->request['cli']) header(__NAMESPACE__.':vea 2005-2017');
+		$this->request=new request($this);//初始化请求
+		$this->response=new response($this);//初始化相应
 		$this->_initTraits(array_map(function($_trait){//初始化trait
 			$_method=str_replace('\\', '_', $_trait);
 			return method_exists($this, $_method) ?$_method :false;
 		}, class_uses($this)));
-		if(is_null($this->response)) $this->response=new response();
 	}
 	/**
 	 * @param array $traits 初始化trait，执行初始化方法
@@ -83,20 +82,6 @@ class app{
 	 */
 	public function __destruct(){
 		$this->log("end.\n");
-		echo $this->response;
-	}
-	/**
-	 * 魔术方法
-	 * @param $offset
-	 * @return mixed
-	 */
-	public function __get($offset){
-		switch($offset){
-			case 'response':
-				$this->$offset=new o2();
-				break;
-		}
-		return $this->$offset;
 	}
 	/**
 	 * 魔术方法

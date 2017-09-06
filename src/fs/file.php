@@ -1,5 +1,5 @@
 <?php
-namespace nx\helpers;
+namespace nx\fs;
 
 class file{
 	public static function makeDir($path, $mod =777){

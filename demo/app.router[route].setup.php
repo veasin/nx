@@ -14,13 +14,15 @@ class app extends \nx\app{
 	use \nx\router\route;
 	use \nx\control\mvc;
 	use \nx\log\file;
-	use \nx\response\web, //响应为网页方式
-\nx\response\view;//响应为模板输出
+	//use \nx\response\web, //响应为网页方式
+//\nx\response\view;//响应为模板输出
 }
 $app =app::factory([
 	'router/route'=>[//不同trait需要的配置是不同的
 		'rules'=>[
 			['*', '', ['index', 'route'], [1,2,3]],
+			['get', 'demo', ['index', 'demo']],
+			['get', 'demo2', ['index', 'demo2']],
 			['get', 'hello', function(){// xxxx.php/hello
 				echo 'hello ~~~~';
 			}],
