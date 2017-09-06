@@ -19,6 +19,7 @@ trait route{
 		$method=$this->request->method();
 		$uri=(isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?ltrim($_SERVER['PATH_INFO'], '/') :$_SERVER['QUERY_STRING'];
 		$this->log('route uri: '.$uri);
+		$no_match =true;
 		foreach($this->buffer['router/route']['rules'] as $route){
 			if(false === $route[2] && isset($route[3])) $route[2]=$route[3];//兼容旧版本逻辑
 			if(empty($route[2])) continue;//如果没定义处理方法，那么继续
@@ -31,6 +32,7 @@ trait route{
 			if($uri === $path || '*' === $path || '404' === $path || '405' === $path || 404 === $path || 405 === $path) $_match_path=true;
 			elseif(isset($path[$i]) && $path[$i] === '$') $_match_path=preg_match('#^'.substr($path, $i + 1).'$#', $uri, $params);
 			if($_match_path){//如果匹配规则
+				$no_match =false;
 				$this->log(' - uri: '.$path.' ['.($_match_path ?'match' :'no').']');
 				$_params=[];
 				if(count($params) > 0){//从路由中拿出参数并去掉命名
@@ -52,8 +54,10 @@ trait route{
 				if(null !== $result) return $result;
 			}
 		}
-		$this->log('   no match: 404');
-		$this->response->status(404);
+		if($no_match){
+			$this->log('   no match: 404');
+			$this->response->status(404);
+		}
 	}
 	/**
 	 * 添加路由规则
