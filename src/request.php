@@ -17,45 +17,59 @@ class request extends o2{
 			$this['uri']=$_SERVER['REQUEST_URI'];
 			$this['get']=$_GET;
 			$this['post']=$_POST;
-			if(!function_exists('getallheaders')){
-				$this['header']=[];
-				foreach($_SERVER as $name=>$value){
-					if('HTTP_' === substr($name, 0, 5)) $this['header'][str_replace(' ', '-', strtolower(str_replace('_', ' ', substr($name, 5))))]=$value;
-				}
-			}else{
-				$this['header']=[];
-				$headers=getallheaders();
-				foreach($headers as $key=>$value){
-					$this['header'][strtolower($key)]=$value;
-				}
-			}
-			$this->readInput();
 		}
 	}
-	private function readInput(){
-		$this['body']='';
-		$this['input']=[];
-		if('p' === $this['method'][0]){//'post', 'put', 'patch'
-			if('post' === $this['method']) $this['input']=$_POST;else{
-				$this['body']=file_get_contents('php://input');
-				switch($this['header']['Content-Type']){
-					case 'application/x-www-form-urlencoded':
-						parse_str($this['body'], $vars);
-						$this['input']=$vars;
-						break;
-					case 'application/json':
-						$this['input']=json_decode($this['body'], true);
-						break;
-					case 'application/xml':
-						$xml=simplexml_load_string($this['body']);
-						$this['input']=json_decode(json_encode($xml), true);
-						break;
-					case 'text/plain':
-					case 'text/html':
-						break;
+	public function &offsetGet($offset){
+		switch($offset){
+			case 'body':
+				if(!array_key_exists('body', $this->data)){
+					$this->data['body']=file_get_contents('php://input');
 				}
-			}
+				break;
+			case 'header':
+				if(!array_key_exists('header', $this->data)){
+					if(!function_exists('getallheaders')){
+						$this->data['header']=[];
+						foreach($_SERVER as $name=>$value){
+							if('HTTP_' === substr($name, 0, 5)) $this->data['header'][str_replace(' ', '-', strtolower(str_replace('_', ' ', substr($name, 5))))]=$value;
+						}
+					}else{
+						$this->data['header']=[];
+						$headers=getallheaders();
+						foreach($headers as $key=>$value){
+							$this->data['header'][strtolower($key)]=$value;
+						}
+					}
+				}
+				break;
+			case 'input':
+				$this->data['input']=[];
+				if('p' === $this['method'][0]){//'post', 'put', 'patch'
+					if('post' === $this['method'])
+						$this->data['input']=$_POST;
+					else{
+						$this->data['body']=file_get_contents('php://input');
+						switch($this['header']['Content-Type']){
+							case 'application/x-www-form-urlencoded':
+								parse_str($this->data['body'], $vars);
+								$this->data['input']=$vars;
+								break;
+							case 'application/json':
+								$this->data['input']=json_decode($this->data['body'], true);
+								break;
+							case 'application/xml':
+								$xml=simplexml_load_string($this->data['body']);
+								$this->data['input']=json_decode(json_encode($xml), true);
+								break;
+							case 'text/plain':
+							case 'text/html':
+								break;
+						}
+					}
+				}
+				break;
 		}
+		return $this->data[$offset];
 	}
 	/**
 	 * 返回当前请求的method或验证method是否正确
