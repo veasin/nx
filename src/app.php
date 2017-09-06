@@ -110,11 +110,7 @@ class app{
 				return isset($this->config[$args[0]]) ?$this->config[$args[0]] :(isset($args[1]) ?$args[1] :null);
 			case 'view':
 			case 'status':
-				if(is_callable([$this->response, $name])){
-					$this->response->$name($args[0], $args[1]);
-				}
-				else die("need [trait response->{$name}]");
-				break;
+				$this->response->status(...$args);
 			case 'db':
 			case 'insertSQL':
 			case 'selectSQL':

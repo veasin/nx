@@ -30,7 +30,7 @@ trait api{
 			}
 			elseif(is_string($data)) $_data['msg'] = $data;
 		}
-		$it->response->set($_data);
+		($it->response)($_data);
 		if($die) die();
 		return false;
 	}
