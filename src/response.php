@@ -81,15 +81,8 @@ class response extends o2{
 	private $status = 200;
 	public $headers = [__NAMESPACE__=>'vea 2005-2017'];
 	//private $protocol = 'HTTP/1.1';
-	/**
-	 * @var app
-	 */
-	private $app = null;
-	public function __construct($app){
-		$this->app =$app;
-	}
 	public function __destruct(){
-		if(!$this->app->request['cli']){
+		if((PHP_SAPI !== 'cli') && !headers_sent()){
 			$status=' '.$this->status.(isset($this->status_code[$this->status]) ?' '.$this->status_code[$this->status] :' N_X');
 			header($_SERVER["SERVER_PROTOCOL"].$status);//HTTP/1.1
 			header_remove('X-Powered-By');
