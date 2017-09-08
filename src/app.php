@@ -50,16 +50,18 @@ class app{
 	 * 构建app
 	 * app constructor.
 	 * @param array $setup 传入应用的配置 如数据库 路由 缓存等
+	 * @param \nx\request|null  $request
+	 * @param \nx\response|null $response
 	 */
-	public function __construct($setup=[]){
+	public function __construct($setup=[], \nx\request $request=null, \nx\response $response=null){
 		(defined('AGREE_LICENSE') && AGREE_LICENSE === true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
 		//实例id
 		$this->uid=str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
 		static::$instance=$this;//静态实例
 		if(!empty($setup)) $this->setup=array_merge($this->setup, $setup);//合并配置文件
 		if($this->path == '') $this->path=dirname($_SERVER['SCRIPT_FILENAME']);//设定工作目录
-		$this->request=new request($this);//初始化请求
-		$this->response=new response($this);//初始化相应
+		$this->request=$request ?? new request();//初始化请求
+		$this->response=$response ?? new response();//初始化相应
 		$this->_initTraits(array_map(function($_trait){//初始化trait
 			$_method=str_replace('\\', '_', $_trait);
 			return method_exists($this, $_method) ?$_method :false;
