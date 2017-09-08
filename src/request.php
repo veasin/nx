@@ -49,7 +49,7 @@ class request extends o2{
 						$this->data['input']=$_POST;
 					else{
 						$this->data['body']=file_get_contents('php://input');
-						switch($this['header']['Content-Type']){
+						switch($this->header('content-type')){//触发header更新
 							case 'application/x-www-form-urlencoded':
 								parse_str($this->data['body'], $vars);
 								$this->data['input']=$vars;
@@ -79,20 +79,80 @@ class request extends o2{
 	public function method($method=false){
 		return ($method) ?$this['method'] == strtolower($method) :$this['method'];
 	}
-	public function __call($from, $arguments){
-		$name=array_shift($arguments);
-		switch($from){
-			case 'header':
-				$name =strtolower($name);
-			case 'get':
-			case 'post':
-			case 'params':
-			case 'input':
-				!is_null($name) && \nx\app::$instance->log('request '.$from.': '.$name);
-				return $this->_filter($this[$from][$name] ?? null, ...$arguments);
-				break;
-		}
+	/**
+	 * 从文件头中取出
+	 * @param null   $name
+	 * @param null   $default
+	 * @param null   $filter
+	 * @param string $pattern
+	 * @return array|mixed|string
+	 */
+	public function header($name=null, $default=null, $filter=null, $pattern=''){
+		return $this->_call('header', strtolower($name), $default, $filter, $pattern);
 	}
+	/**
+	 * 从 $_GET 中取出
+	 * @param null   $name
+	 * @param null   $default
+	 * @param null   $filter
+	 * @param string $pattern
+	 * @return array|mixed|string
+	 */
+	public function get($name=null, $default=null, $filter=null, $pattern=''){
+		return $this->_call('get', $name, $default, $filter, $pattern);
+	}
+	/**
+	 * 从 $_POST 中取出
+	 * @param null   $name
+	 * @param null   $default
+	 * @param null   $filter
+	 * @param string $pattern
+	 * @return array|mixed|string
+	 */
+	public function post($name=null, $default=null, $filter=null, $pattern=''){
+		return $this->_call('post', $name, $default, $filter, $pattern);
+	}
+	/**
+	 * 从 网址url 中取出
+	 * @param null   $name
+	 * @param null   $default
+	 * @param null   $filter
+	 * @param string $pattern
+	 * @return array|mixed|string
+	 */
+	public function params($name=null, $default=null, $filter=null, $pattern=''){
+		return $this->_call('params', $name, $default, $filter, $pattern);
+	}
+	/**
+	 * 从 php://input 中取出
+	 * @param null   $name
+	 * @param null   $default
+	 * @param null   $filter
+	 * @param string $pattern
+	 * @return array|mixed|string
+	 */
+	public function input($name=null, $default=null, $filter=null, $pattern=''){
+		return $this->_call('input', $name, $default, $filter, $pattern);
+	}
+	private function _call($from, $name, ...$arguments){
+		!is_null($name) && \nx\app::$instance->log('request '.$from.': '.$name);
+		$data =&$this[$from];
+		return $this->_filter($data[$name] ?? null, ...$arguments);
+	}
+	//public function __call($from, ...$arguments){
+	//	$name=array_shift($arguments);
+	//	switch($from){
+	//		case 'header':
+	//			$name =strtolower($name);
+	//		case 'get':
+	//		case 'post':
+	//		case 'params':
+	//		case 'input':
+	//			!is_null($name) && \nx\app::$instance->log('request '.$from.': '.$name);
+	//			return $this->_filter($this[$from][$name] ?? null, ...$arguments);
+	//			break;
+	//	}
+	//}
 	/**
 	 * 返回当前上传的文件，并验证是否可用
 	 * @param $arg
