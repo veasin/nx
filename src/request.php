@@ -81,78 +81,64 @@ class request extends o2{
 	}
 	/**
 	 * 从文件头中取出
-	 * @param null   $name
+	 * @param        $name
 	 * @param null   $default
 	 * @param null   $filter
 	 * @param string $pattern
-	 * @return array|mixed|string
+	 * @return array|mixed|null|string
 	 */
-	public function header($name=null, $default=null, $filter=null, $pattern=''){
+	public function header($name, $default=null, $filter=null, $pattern=''){
 		return $this->_call('header', strtolower($name), $default, $filter, $pattern);
 	}
 	/**
 	 * 从 $_GET 中取出
-	 * @param null   $name
+	 * @param        $name
 	 * @param null   $default
 	 * @param null   $filter
 	 * @param string $pattern
-	 * @return array|mixed|string
+	 * @return array|mixed|null|string
 	 */
-	public function get($name=null, $default=null, $filter=null, $pattern=''){
+	public function get($name, $default=null, $filter=null, $pattern=''){
 		return $this->_call('get', $name, $default, $filter, $pattern);
 	}
 	/**
 	 * 从 $_POST 中取出
-	 * @param null   $name
+	 * @param        $name
 	 * @param null   $default
 	 * @param null   $filter
 	 * @param string $pattern
-	 * @return array|mixed|string
+	 * @return array|mixed|null|string
 	 */
-	public function post($name=null, $default=null, $filter=null, $pattern=''){
+	public function post($name, $default=null, $filter=null, $pattern=''){
 		return $this->_call('post', $name, $default, $filter, $pattern);
 	}
 	/**
 	 * 从 网址url 中取出
-	 * @param null   $name
+	 * @param        $name
 	 * @param null   $default
 	 * @param null   $filter
 	 * @param string $pattern
-	 * @return array|mixed|string
+	 * @return array|mixed|null|string
 	 */
-	public function params($name=null, $default=null, $filter=null, $pattern=''){
+	public function params($name, $default=null, $filter=null, $pattern=''){
 		return $this->_call('params', $name, $default, $filter, $pattern);
 	}
 	/**
 	 * 从 php://input 中取出
-	 * @param null   $name
+	 * @param        $name
 	 * @param null   $default
 	 * @param null   $filter
 	 * @param string $pattern
-	 * @return array|mixed|string
+	 * @return array|mixed|null|string
 	 */
-	public function input($name=null, $default=null, $filter=null, $pattern=''){
+	public function input($name, $default=null, $filter=null, $pattern=''){
 		return $this->_call('input', $name, $default, $filter, $pattern);
 	}
-	private function _call($from, $name, ...$arguments){
+	private function _call($from, $name, $default=null, ...$arguments){
 		!is_null($name) && \nx\app::$instance->log('request '.$from.': '.$name);
 		$data =&$this[$from];
-		return $this->_filter($data[$name] ?? null, ...$arguments);
+		return array_key_exists($name, $data) ?$this->_filter($data[$name], $default, ...$arguments) :$default;
 	}
-	//public function __call($from, ...$arguments){
-	//	$name=array_shift($arguments);
-	//	switch($from){
-	//		case 'header':
-	//			$name =strtolower($name);
-	//		case 'get':
-	//		case 'post':
-	//		case 'params':
-	//		case 'input':
-	//			!is_null($name) && \nx\app::$instance->log('request '.$from.': '.$name);
-	//			return $this->_filter($this[$from][$name] ?? null, ...$arguments);
-	//			break;
-	//	}
-	//}
 	/**
 	 * 返回当前上传的文件，并验证是否可用
 	 * @param $arg
