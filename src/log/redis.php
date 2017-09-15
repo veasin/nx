@@ -2,52 +2,60 @@
 namespace nx\log;
 
 trait redis{
-	public $redis=null;
-	public $prefix='';
 	protected function nx_log_redis(){
 		$it=is_a($this, 'nx\app') ?$this :$this->app;
-		if(!isset($it->buffer['log/redis'])) $it->buffer['log/redis']=['config'=>isset($it->setup['log/redis']) ?$it->setup['log/redis'] :[], 'handle'=>[],];
-		$this->redis=$this->connect('default');
-		$this->prefix=$it->buffer['log/redis']['config']['prefix']??'default';
-		$this->redis->sAdd('trait_redis_log_namespace', $this->prefix);
-		$setup =$it->buffer['log/redis']['config'];
-		$line =isset($setup['line']) ?$setup['line'] :'[{micro+}] {var}';
-		$this->buffer['log/redis'] =[
-			'line' =>$line,
-			'prefix'=>$this->prefix,
-			'start' =>time(),
-			'start-micro' =>microtime(true),
+		if(!isset($it->buffer['log/redis'])) $it->buffer['log/redis']=[
+			'config'=>isset($it->setup['log/redis']) ?$it->setup['log/redis'] :[],
+			'handle'=>null,
+			//'expire'=>0,
 		];
-		$this->log('{datetime}:[{method}]{uri}', '{var}');
-	}
-	/**
-	 * 连接redis
-	 * @param string $name
-	 * @return mixed
-	 */
-	public function connect($name='default'){
-		$it=is_a($this, 'nx\app') ?$this :$this->app;
-		$cache=&$it->buffer['log/redis']['handle'];
-		if(!isset($cache[$name])){
-			$cfg=&$it->buffer['log/redis']['config'];
-			$config=false;
-			if(isset($cfg[$name])) $config=is_array($cfg[$name]) ?$cfg[$name] :$cfg[$cfg[$name]];
-			$cache[$name]=new \redis();
-			if(!empty($config)){
-				$cache[$name]->connect($config['host'], isset($config['port']) ?$config['port'] :6379, isset($config['timeout']) ?$config['timeout'] :1);
-				if(isset($config['auth'])) $cache[$name]->auth($config['auth']);
-				if(isset($config['select'])) $cache[$name]->select($config['select']);
-			}
+		$buffer =&$it->buffer['log/redis'];
+		$setup =&$buffer['config'];
+		if(is_null($buffer['handle'])){
+			if(!array_key_exists('connect', $setup)) die('need ["log"]["connect"].');
+			$config =&$setup['connect'];
+			$redis =new \Redis();
+			$ok =$redis->connect($config['host'], isset($config['port']) ?$config['port'] :6379, isset($config['timeout']) ?$config['timeout'] :1);
+			if(false ===$ok) $buffer['handle'] =null;
+			if(isset($config['auth'])) $redis->auth($config['auth']);
+			if(isset($config['select'])) $redis->select($config['select']);
+			$buffer['handle'] =$redis;
 		}
-		return $cache[$name];
+		$buffer['line'] =$setup['line'] ?? '[{micro+}] {var}';
+		$buffer['start'] =time();
+		$buffer['start-micro'] =microtime(true);
+
+		$buffer['expire'] =$setup['expire'] ?? 60*60*24*3;
+
+		$buffer['prefix'] ='log_redis:'.get_class($it);
+		$namespace =$setup['namespace'] ?? 'log_redis:namespace';
+		$buffer['handle']->sAdd($namespace, $buffer['prefix']);
+		$buffer['handle']->expire($namespace, $buffer['expire']);
+
+		$date =date("Y-m-d");
+		$dateScore =strtotime($date);
+		$buffer['handle']->zAdd($buffer['prefix'], $dateScore, $date);
+		$buffer['handle']->zRemRangeByScore($buffer['prefix'], 0, $dateScore-$buffer['expire']);//移除过期日期
+		$buffer['handle']->expire($buffer['prefix'], $buffer['expire']);
+
+		$buffer['key'] =date('H:i:s').' ['.$it->request['method'].']'.$it->request['uri'];
+		$buffer['handle']->rPush($buffer['prefix'].':'.$date, $buffer['key']);
+		$buffer['handle']->expire($buffer['prefix'].':'.$date, $buffer['expire']);
+		$buffer['key'] =$buffer['prefix'].':'.$date.':'.$buffer['key'];
+
+		$buffer['handle']->rPush($buffer['key'], $it->request['method'].':'.$it->request['uri']);
+		$buffer['handle']->expire($buffer['key'], $buffer['expire']);
 	}
 	/**
 	 * @param $var
 	 * @param bool $template
 	 */
 	public function log($var, $template =false){
-		$template =$template ?$template :$this->buffer['log/redis']['line'];
-		//if($onlyvar) return fwrite($this->buffer['log/file']['handle'], $var."\n");
+		$it=is_a($this, 'nx\app') ?$this :$this->app;
+		$buffer =&$it->buffer['log/redis'];
+		if(is_null($buffer['handle'])) return ;
+
+		$template =$template ?$template :$buffer['line'];
 
 		if(!is_string($var)) $var =json_encode($var, JSON_UNESCAPED_UNICODE);
 
@@ -68,12 +76,11 @@ trait redis{
 			microtime(true),
 			time(),
 			__CLASS__,
-			$this->request['method'],
-			$this->request['uri'],
-			sprintf("%06.2fms", (microtime(true) -$this->buffer['log/redis']['start-micro'])*1000),
-		], "{$this->uid} ".$template);
-		$this->redis->sAdd($this->prefix, date("Y-m-d"));
-		$this->redis->sAdd($this->prefix.'.'.date("Y-m-d"), $this->uid);
-		$this->redis->sAdd($this->prefix.'.'.date("Y-m-d").'.'.$this->uid, $line);
+			$it->request['method'],
+			$it->request['uri'],
+			sprintf("%06.2fms", (microtime(true) -$it->buffer['log/redis']['start-micro'])*1000),
+		], $template);
+
+		$buffer['handle']->rPush($buffer['key'], $line);
 	}
 }
