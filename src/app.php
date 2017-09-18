@@ -112,7 +112,10 @@ class app{
 				return isset($this->config[$args[0]]) ?$this->config[$args[0]] :(isset($args[1]) ?$args[1] :null);
 			case 'view':
 			case 'status':
-				$this->response->status(...$args);
+				return $this->response->status(...$args);
+			case 'filter':
+				$this->log('filter:'.json_encode($args));
+				return $args[0] ?? $args[1];
 			case 'db':
 			case 'insertSQL':
 			case 'selectSQL':
