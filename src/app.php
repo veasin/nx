@@ -123,6 +123,9 @@ class app{
 				die('need [trait nx\db\pdo].');
 			case 'table':
 				die('need [trait nx\db\table].');
+			case 'request':
+			case 'response':
+				return ($this->$name)(...$args);
 			default:
 				die('nothing for ['.$name.'].');
 		}
