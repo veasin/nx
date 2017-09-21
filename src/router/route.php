@@ -19,7 +19,7 @@ trait route{
 		$method=$this->request->method();
 		$uri=(isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?ltrim($_SERVER['PATH_INFO'], '/') :$_SERVER['QUERY_STRING'];
 		$this->log('route uri: '.$uri);
-		$no_match =true;
+		$no_match=true;
 		foreach($this->buffer['router/route']['rules'] as $route){
 			if(false === $route[2] && isset($route[3])) $route[2]=$route[3];//兼容旧版本逻辑
 			if(empty($route[2])) continue;//如果没定义处理方法，那么继续
@@ -29,17 +29,21 @@ trait route{
 			$un=isset($path[0]) && $path[0] === '!';
 			$i=$un ?1 :0;
 			$params=[];
-			if($uri === $path || '*' === $path || '404' === $path || '405' === $path || 404 === $path || 405 === $path) $_match_path=true;
-			elseif(isset($path[$i]) && $path[$i] === '$') $_match_path=preg_match('#^'.substr($path, $i + 1).'$#', $uri, $params);
+			if('*' === $path || '404' === $path || '405' === $path || 404 === $path || 405 === $path) $_match_path=true;
+			elseif($uri === $path){
+				$_match_path=true;
+				$no_match=false;
+			}elseif(isset($path[$i]) && $path[$i] === '$'){
+				$_match_path=preg_match('#^'.substr($path, $i + 1).'$#', $uri, $params);
+				if(0 <$_match_path) $no_match=false;
+			}
 			if($_match_path){//如果匹配规则
-				$no_match =false;
 				$this->log(' - uri: '.$path.' ['.($_match_path ?'match' :'no').']');
 				$_params=[];
 				if(count($params) > 0){//从路由中拿出参数并去掉命名
 					ksort($params);
 					for($i=1, $max=count($params); $i < $max; $i++){
-						if(isset($params[$i])) $_params[]=$params[$i];
-						else break;
+						if(isset($params[$i])) $_params[]=$params[$i];else break;
 					}
 				}
 				$this->request['params']=$params;//兼容
@@ -49,8 +53,7 @@ trait route{
 					if(isset($route[2][2])) $this->request['method']=$route[2][2];
 					$route[2][2]=$params;
 					$result=call_user_func_array([$this, 'control'], [$route[2]]);
-				}
-				elseif(is_callable($route[2])) $result=call_user_func_array($route[2], $params);
+				}elseif(is_callable($route[2])) $result=call_user_func_array($route[2], $params);
 				if(null !== $result) return $result;
 			}
 		}
@@ -75,8 +78,7 @@ trait route{
 			$route,
 			$_control,
 			$params,
-		]);
-		else $this->buffer['router/route']['rules'][]=[$method, $route, $_control, $params];
+		]);else $this->buffer['router/route']['rules'][]=[$method, $route, $_control, $params];
 		return $this;
 	}
 	/**
