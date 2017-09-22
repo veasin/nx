@@ -106,10 +106,9 @@ class response extends o2{
 		else $this->headers[$key] = $value;
 		return $this;
 	}
-	public function status($code = 200, $info = null, $die = true){
+	public function status($code = 200, $info = null){
 		$this->status = $code;
 		is_string($info) && $this['__toString'] = $info;
-		if($die) die();
 		return $this;
 	}
 	public function redirect($uri = '', $info = '', $second = 0, $die = true){
