@@ -77,7 +77,7 @@ class controller{
 				if(method_exists($this, $_fun)){
 					$found =true;
 					$r =call_user_func_array([$this,$_fun], $this->route[2]);
-					if($r ===false) break;
+					if($r !==null) break;
 				}
 			}
 			if($found ===false) return $this->nofound($name);
