@@ -5,20 +5,20 @@
 namespace nx;
 
 class o2 implements \ArrayAccess, \Countable, \IteratorAggregate{
-	protected $data=[];
+	protected $data=null;
 	//IteratorAggregate
 	public function getIterator(){ return new \ArrayIterator($this->data); } //foreach($this as ..)
 	//Countable
 	public function count(){ return count($this->data); } //->count($this)
 	//ArrayAccess
 	public function offsetSet($offset, $value){ $this->data[$offset]=$value; }//$this['xx'] ='xx'
-	public function &offsetGet($offset){ return $this->data[$offset]; }                //=$this['zz']
+	public function &offsetGet($offset){ return $this->data[$offset] ?? null; }                //=$this['zz']
 	public function offsetExists($offset){ return isset($this->data[$offset]); }        //isset($this['xx']
 	public function offsetUnset($offset){ unset($this->data[$offset]); }                //unset($this['xx']
 	//php5.2+?
 	public function __toString(){
 		if(isset($this->data['__toString'])) return $this->data['__toString'];
-		return !empty($this->data) ?json_encode($this->data, JSON_UNESCAPED_UNICODE) :'';
+		return (null ===$this->data) ?'' :json_encode($this->data, JSON_UNESCAPED_UNICODE);
 	} //echo $this
 	//php5.3
 	public function __invoke(...$args){//php7
