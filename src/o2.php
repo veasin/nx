@@ -5,15 +5,15 @@
 namespace nx;
 
 class o2 implements \ArrayAccess, \Countable, \IteratorAggregate{
-	protected $data=null;
+	protected $data;
 	//IteratorAggregate
 	public function getIterator(){ return new \ArrayIterator($this->data); } //foreach($this as ..)
 	//Countable
 	public function count(){ return count($this->data); } //->count($this)
 	//ArrayAccess
-	public function offsetSet($offset, $value){ $this->data[$offset]=$value; }//$this['xx'] ='xx'
-	public function &offsetGet($offset){ return $this->data[$offset] ?? null; }                //=$this['zz']
-	public function offsetExists($offset){ return isset($this->data[$offset]); }        //isset($this['xx']
+	public function offsetSet($offset, $value){ $this->data[$offset]=$value; }   //$this['xx'] ='xx'
+	public function offsetGet($offset){ return $this->data[$offset];}           //=$this['zz']
+	public function offsetExists($offset){ return isset($this->data[$offset]); }       //isset($this['xx']
 	public function offsetUnset($offset){ unset($this->data[$offset]); }                //unset($this['xx']
 	//php5.2+?
 	public function __toString(){
