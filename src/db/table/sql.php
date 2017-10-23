@@ -92,7 +92,7 @@ class sql{
 		}
 		$col =implode(", ", $col);
 		$prepare =implode(", ", $prepare);
-		$sql ="INSERT INTO {$this->table} ($col) VALUES ($prepare)";
+		$sql ="INSERT INTO `{$this->table}` ($col) VALUES ($prepare)";
 		$this->args =[];
 		$params = [];
 		foreach($fields as $_k => $_v){
