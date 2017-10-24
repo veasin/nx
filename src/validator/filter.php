@@ -10,13 +10,13 @@ namespace nx\validator;
 trait filter{
 	/**
 	 * 格式化或过滤参数
-	 * @param        $value
-	 * @param null   $def
-	 * @param null   $filter
-	 * @param string $pattern
-	 * @return array|mixed|string
+	 * @param       $value
+	 * @param null  $def
+	 * @param null  $filter
+	 * @param array ...$pattern
+	 * @return array|mixed|null|string
 	 */
-	public function filter($value, $def=null, $filter=null, $pattern=''){
+	public function filter($value, $def=null, $filter=null, ...$pattern){
 		switch($filter){
 			case null:
 				return $value ?? $def;
@@ -41,14 +41,14 @@ trait filter{
 				if(!is_array($value)) return $def;
 				$r=[];
 				foreach($value as $_k=>$_v){
-					$_r=$this->_filter($_v, null, $pattern);
-					if(!is_null($_r)) $r[$_k]=$this->_filter($_v, null, $pattern);
+					$_r=$this->_filter($_v, null, ...$pattern);
+					if(!is_null($_r)) $r[$_k]=$this->_filter($_v, null, ...$pattern);
 				}
 				return $r;
 			case 'pcre':
 			case 'preg':
 				$_value=trim($value);
-				return preg_match($pattern, $_value) > 0 ?$_value :$def;
+				return preg_match($pattern[0], $_value) > 0 ?$_value :$def;
 			case 'b':
 			case 'bool':
 			case 'boolean':
@@ -62,7 +62,11 @@ trait filter{
 				$value=(string)$value;
 				return $value;
 			case 'base64':
-				$v=base64_decode($value, empty($pattern) ?null :true);
+				$v=base64_decode($value, empty($pattern) ?null :$pattern[0]);
+				return $v ?$v :$def;
+			case 'j':
+			case 'json':
+				$v=json_decode($value, ...(empty($pattern) ?[true] : $pattern));
 				return $v ?$v :$def;
 			default:
 				if(is_array($filter)){
