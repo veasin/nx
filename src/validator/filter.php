@@ -41,8 +41,8 @@ trait filter{
 				if(!is_array($value)) return $def;
 				$r=[];
 				foreach($value as $_k=>$_v){
-					$_r=$this->_filter($_v, null, ...$pattern);
-					if(!is_null($_r)) $r[$_k]=$this->_filter($_v, null, ...$pattern);
+					$_r=$this->filter($_v, null, ...$pattern);
+					if(!is_null($_r)) $r[$_k]=$this->filter($_v, null, ...$pattern);
 				}
 				return $r;
 			case 'pcre':

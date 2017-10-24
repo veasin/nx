@@ -84,55 +84,55 @@ class request extends o2{
 	 * @param        $name
 	 * @param null   $default
 	 * @param null   $filter
-	 * @param string $pattern
+	 * @param array  $pattern
 	 * @return array|mixed|null|string
 	 */
-	public function header($name, $default=null, $filter=null, $pattern=''){
-		return $this->_call('header', strtolower($name), $default, $filter, $pattern);
+	public function header($name, $default=null, $filter=null, ...$pattern){
+		return $this->_call('header', strtolower($name), $default, $filter, ...$pattern);
 	}
 	/**
 	 * 从 $_GET 中取出
 	 * @param        $name
 	 * @param null   $default
 	 * @param null   $filter
-	 * @param string $pattern
+	 * @param array  $pattern
 	 * @return array|mixed|null|string
 	 */
-	public function get($name, $default=null, $filter=null, $pattern=''){
-		return $this->_call('get', $name, $default, $filter, $pattern);
+	public function get($name, $default=null, $filter=null, ...$pattern){
+		return $this->_call('get', $name, $default, $filter, ...$pattern);
 	}
 	/**
 	 * 从 $_POST 中取出
 	 * @param        $name
 	 * @param null   $default
 	 * @param null   $filter
-	 * @param string $pattern
+	 * @param array  $pattern
 	 * @return array|mixed|null|string
 	 */
-	public function post($name, $default=null, $filter=null, $pattern=''){
-		return $this->_call('post', $name, $default, $filter, $pattern);
+	public function post($name, $default=null, $filter=null, ...$pattern){
+		return $this->_call('post', $name, $default, $filter, ...$pattern);
 	}
 	/**
 	 * 从 网址url 中取出
 	 * @param        $name
 	 * @param null   $default
 	 * @param null   $filter
-	 * @param string $pattern
+	 * @param array  $pattern
 	 * @return array|mixed|null|string
 	 */
-	public function params($name, $default=null, $filter=null, $pattern=''){
-		return $this->_call('params', $name, $default, $filter, $pattern);
+	public function params($name, $default=null, $filter=null, ...$pattern){
+		return $this->_call('params', $name, $default, $filter, ...$pattern);
 	}
 	/**
 	 * 从 php://input 中取出
 	 * @param        $name
 	 * @param null   $default
 	 * @param null   $filter
-	 * @param string $pattern
+	 * @param array  $pattern
 	 * @return array|mixed|null|string
 	 */
-	public function input($name, $default=null, $filter=null, $pattern=''){
-		return $this->_call('input', $name, $default, $filter, $pattern);
+	public function input($name, $default=null, $filter=null, ...$pattern){
+		return $this->_call('input', $name, $default, $filter, ...$pattern);
 	}
 	private function _call($from, $name, $default=null, ...$arguments){
 		$app =\nx\app::$instance;
