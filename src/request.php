@@ -44,7 +44,7 @@ class request extends o2{
 				break;
 			case 'input':
 				$this->data['input']=[];
-				if('p' === $this['method'][0]){//'post', 'put', 'patch'
+				if('p' === $this['method'][0] || 'd' === $this['method'][0]){//'post', 'put', 'patch' or 'delete'
 					if('post' === $this['method'])
 						$this->data['input']=$_POST;
 					else{
