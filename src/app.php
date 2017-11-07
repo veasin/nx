@@ -47,6 +47,11 @@ class app{
 	 */
 	public $uid='';
 	/**
+	 * config key 直接缓存结果
+	 * @var array
+	 */
+	protected $config=[];
+	/**
 	 * 构建app
 	 * app constructor.
 	 * @param array $setup 传入应用的配置 如数据库 路由 缓存等
