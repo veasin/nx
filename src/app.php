@@ -64,6 +64,7 @@ class app{
 		$this->uid=str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
 		static::$instance=$this;//静态实例
 		if(!empty($setup)) $this->setup=array_merge($this->setup, $setup);//合并配置文件
+		$this->config =$this->setup['config'] ?? [];
 		if($this->path == '') $this->path=dirname($_SERVER['SCRIPT_FILENAME']);//设定工作目录
 		$this->request=$request ?? new request();//初始化请求
 		$this->response=$response ?? new response();//初始化相应
