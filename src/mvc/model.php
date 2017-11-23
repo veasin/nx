@@ -42,13 +42,14 @@ class model{
 	 * @see return $this->lastError(1,''未知错误);
 	 * @param int    $code
 	 * @param string $message
+	 * @param bool   $return
 	 * @return array|bool
 	 */
-	public function lastError($code=0, $message=''){
+	public function lastError($code=0, $message='', $return=false){
 		if(func_num_args() >0){
 			$this->lastError =[$code, $message];
 			$this->log('model error: '.$code.' - '.$message);
-			return false;
+			return $return;
 		}
 		return $this->lastError;
 	}
