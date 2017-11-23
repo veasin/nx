@@ -38,10 +38,18 @@ class model{
 		return self::$instance[$c];
 	}
 	/**
-	 * 返回最后的错误信息，需要在model中提前指定
-	 * @return array
+	 * 无参数返回最后的错误信息，需要在model中提前指定，否则为设定最后错误编号和注释，同时会写入日志
+	 * @see return $this->lastError(1,''未知错误);
+	 * @param int    $code
+	 * @param string $message
+	 * @return array|bool
 	 */
-	public function lastError(){
+	public function lastError($code=0, $message=''){
+		if(func_num_args() >0){
+			$this->lastError =[$code, $message];
+			$this->log('model error: '.$code.' - '.$message);
+			return false;
+		}
 		return $this->lastError;
 	}
 
