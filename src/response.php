@@ -108,6 +108,7 @@ class response extends o2{
 	}
 	public function status($code = 200, $info = null){
 		$this->status = $code;
+		\nx\app::$instance->log('response status: '.$code);
 		is_string($info) && $this['__toString'] = $info;
 		return $this;
 	}
