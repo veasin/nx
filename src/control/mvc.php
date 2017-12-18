@@ -14,7 +14,8 @@ trait mvc{
 			$_controller =substr($class, 0, strrpos($class, '\\')).'\\'.$path.$route[0];
 			$exists =class_exists($_controller, true);
 			$this->log(' - '.$_controller.'['.($exists ?'found':'no').']');
-			return $exists? new $_controller($route, $this):new \nx\mvc\controller($route, $this);
+			$controller =$exists? new $_controller($route, $this):new \nx\mvc\controller($route, $this);
+			return $controller->exec($route[1], true, true);
 		} elseif(is_callable($route)) return call_user_func($route, $this->resquest, $this->response);
 	}
 }

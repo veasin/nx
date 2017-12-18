@@ -57,7 +57,7 @@ trait route{
 				if(null !== $result) return $result;
 			}
 		}
-		if($no_match){
+		if($no_match && null === $result){
 			$this->log('   no match: 404');
 			$this->response->status(404);
 		}

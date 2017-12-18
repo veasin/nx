@@ -25,7 +25,7 @@ class controller{
 	 */
 	public $response =null;
 	public function __construct($route, $app){
-		$this->app = $app;
+		$this->app = &$app;
 		$this->route = $route;
 
 		static::$instance =$this;
@@ -36,13 +36,8 @@ class controller{
 			if(method_exists($this, $_method)) $this->$_method();
 		}
 		//load from app
-		if(is_null($this->response)) $this->response =$this->app->response;
-		if(is_null($this->request)) $this->request =$this->app->request;
-		//run
-		$r =$this->exec($this->route[1], true, true);
-		//back to app
-		$this->app->response =$this->response;
-		return $r;
+		if(is_null($this->response)) $this->response =&$this->app->response;
+		if(is_null($this->request)) $this->request =&$this->app->request;
 	}
 	public function __get($name){
 		$this->$name =&$this->app->$name;
@@ -66,7 +61,7 @@ class controller{
 	 * @param bool|false $all
 	 * @return bool
 	 */
-	private function exec($name, $hook = false, $all =false){
+	public function exec($name, $hook = false, $all =false){
 		if($hook){
 			$found =false;
 			$methods =$all
