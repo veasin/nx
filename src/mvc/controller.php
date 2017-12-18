@@ -47,10 +47,8 @@ class controller{
 		switch($name){
 			case 'view':
 				return $this->app->view($args[0], $args[1]);
-				break;
 			case 'nofound':
-				$this->response->status(404);
-				break;
+				return $this->response->status(404);
 			default:
 				return call_user_func_array([$this->app, $name], $args);
 		}
