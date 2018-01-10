@@ -28,13 +28,14 @@ trait route{
 			$path=$route[1];
 			$un=isset($path[0]) && $path[0] === '!';//规则是否取反
 			$i=$un ?1 :0;
+			$match_prefix =['$'=>'$', '^'=>''];//设定正则路由识别标识 $ 完全匹配 ^ 只匹配开头
 			$params=[];
 			if('*' === $path || '404' === $path || '405' === $path || 404 === $path || 405 === $path) $match_route=true;
 			elseif($uri === $path){//如果网址和规则相同
 				$match_route=true;
 				$no_match=false;
-			}elseif(isset($path[$i]) && $path[$i] === '$'){//如果网址和规则匹配，默认只从头匹配
-				$match_route=preg_match('#^'.substr($path, $i + 1).'$#', $uri, $params);//漏洞太大……
+			}elseif(isset($path[$i]) && array_key_exists($path[$i], $match_prefix)){//如果网址和规则匹配，默认只从头匹配
+				$match_route=preg_match('#^'.substr($path, $i + 1).$match_prefix[$path[$i]].'#', $uri, $params);
 				if(0 <$match_route) $no_match=false;
 			}
 			if($match_route){//如果匹配规则成功
