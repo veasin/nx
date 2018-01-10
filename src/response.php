@@ -141,7 +141,7 @@ class response extends o2{
 		$this->headers['Last-Modified'] = $timeC;
 		return $this;
 	}
-	public function poweredBy($by = 'nx 2005-2017'){
+	public function poweredBy($by = 'nx 2005-2018'){
 		$this->headers['X-Powered-By'] = $by;
 		return $this;
 	}
