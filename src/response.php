@@ -79,7 +79,7 @@ class response extends o2{
 		'jpg' => 'image/jpeg',
 		'mpg' => 'audio/mpeg'];
 	private $status = 200;
-	public $headers = [__NAMESPACE__=>'vea 2005-2017'];
+	public $headers = [__NAMESPACE__=>'vea 2005-2018'];
 	//private $protocol = 'HTTP/1.1';
 	public function __destruct(){
 		if((PHP_SAPI !== 'cli') && !headers_sent()){
