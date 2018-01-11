@@ -16,6 +16,7 @@
   - [x] 支持attachment Content-Disposition 为 "attachment"
   - [x] 支持Content-Type
   - [x] 支持Last-Modified Etag
-  
+- [ ] 后续处理
+  - [ ] 错误状态(http status)的后续处理
   
  

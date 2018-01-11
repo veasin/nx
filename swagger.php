@@ -2,7 +2,7 @@
 /**
  * Class swagger
  *
- * echo (new parse2Swagger('bootstrap.php'));
+ * echo (new swagger('bootstrap.php'));
  *
  */
 
@@ -159,7 +159,7 @@ class swagger{
 				$set['consumes']=['application/x-www-form-urlencoded'];
 				break;
 		}
-		if(strpos($_path, '{uid}') !==false || strpos($_path, '{pid}') !==false || strpos($_path, '{admin_id}') !==false){
+		if(strpos($_path, '{uid}') !==false || strpos($_path, '{admin_id}') !==false){
 			$set['security']=[
 				[
 					"Token"=>['read:token'],
@@ -229,11 +229,14 @@ class swagger{
 	 */
 	static public function parseCode($code){
 		$params=[];
-		preg_match_all('#request->(?<method>get|post|input|arg|params|header)\([\'"](?<name>[^,]+)[\'"](,\s*(?<default>[^,;)]+))?(,\s*[\'"](?<filter>[^,;)]+)[\'"])?(,\s*[\'"](?<pattern>[^,;)]+)[\'"])?\)(;\h*//\h*(?<comment>.*))?#', $code, $params, PREG_SET_ORDER);
+		preg_match_all('#request->(?<method>get|post|input|arg|params|header)\([\'"](?<name>[^,]+)[\'"](,\s*(?<default>[^,;)]+))?(,\s*[\'"](?<filter>[^,;)]+)[\'"])?(,\s*[\'"](?<pattern>[^,;)]+)[\'"])?\)([,;]\h*//\h*(?<comment>.*))?#', $code, $params, PREG_SET_ORDER);
+		$num2=preg_match_all('#(swagger|S):(?<method>get|post|input|arg|params|header)\|(?<name>[^,\|\n]+)(,\s*(?<default>[^,;\|)]+))?(,\s*(?<filter>[^,;\|)]+))?(,\s*[\'"](?<pattern>[^,;\|)]+)[\'"])?\|?(?<comment>[^\n]*)?#', $code, $params2, PREG_SET_ORDER);
+		if($num2 >0) $params =array_merge($params, $params2);
+
 		$status=[];
-		preg_match_all('#this->[status|i18nStatus]+\((?<code>[1-9]+\d*)(,\s*[\'"](?<info>[^,;)]+)[\'"])?\)(;\s*//\h*(?<comment>.*))?#', $code, $status, PREG_SET_ORDER);
+		preg_match_all('#this->[status|i18nStatus]+\((?<code>[1-9]+\d*)(,\s*[\'"](?<info>[^,;)]+)[\'"])?\)([,;]\s*//\h*(?<comment>.*))?#', $code, $status, PREG_SET_ORDER);
 		$status2=[];
-		$num=preg_match_all('#this->response->status\(\s*(?<code>\d+)(,\s*[\'"](?<info>[^,;)]+)[\'"])?\)(;\s*//\h*(?<comment>.*))?#', $code, $status2, PREG_SET_ORDER);
+		$num=preg_match_all('#this->response->status\(\s*(?<code>\d+)(,\s*[\'"](?<info>[^,;)]+)[\'"])?\)([,;]\s*//\h*(?<comment>.*))?#', $code, $status2, PREG_SET_ORDER);
 		if($num >0) $status =array_merge($status, $status2);
 		return [$params, $status];
 	}
@@ -270,9 +273,12 @@ class swagger{
 					'description'=>'',
 					'required'=>true,
 					'type'=>'string',
-					'pattern'=>$path[1][$idx],
+					//'pattern'=>$path[1][$idx],
 				];
-				if(isset($r[$name]['pattern'])) $r[$name]['description'] ='格式#'.$path[1][$idx].'# '.$r[$name]['description'];
+				if(isset($path[1]) && isset($path[1][$idx])){
+					$r[$name]['pattern'] =$path[1][$idx];
+					if(isset($r[$name]['pattern'])) $r[$name]['description']='格式#'.$path[1][$idx].'# '.$r[$name]['description'];
+				}
 
 			}
 		}
@@ -382,16 +388,23 @@ class swagger{
 	 * @return array
 	 */
 	static public function parseRoute($route){
-		if('' === $route) return ['', []];
-		if($route[0] !== '$') return ["/".$route, []];
-		$route=substr($route, 1);
-		$num=preg_match_all('#\(\?[P]?(\<([\w\d]+)\>)?([^\)]+)\)#', $route, $params);
-		if($num > 0){
+		if('' === $route) return ['/', []];
+		//if('$' ===substr($route, -1, 1)) $route =substr($route, 0, strlen($route ) -1);
+
+		if($route[0] ==='$' || $route[0] ==='^'){//以$开头
+			$route=substr($route, 1);
+			$num=preg_match_all('#\(\?[P]?(\<([\w\d]+)\>)?([^\)]+)\)#', $route, $params);
+			if($num > 0){
+				array_shift($params);
+				array_shift($params);
+				$route=preg_replace('#\(\?[P]?(\<([\w\d]+)\>)?[^\)]+\)#', '{$2}', $route);
+			}
+			return ["/".$route, $params];
+		} elseif(preg_match_all('#\:([a-zA-Z0-9_]+)#',  $route, $params)>0){
 			array_shift($params);
-			array_shift($params);
-			$route=preg_replace('#\(\?[P]?(\<([\w\d]+)\>)?[^\)]+\)#', '{$2}', $route);
-		}
-		return ["/".$route, $params];
+			$route=preg_replace('#\:([a-zA-Z0-9_]+)#', '{$1}', $route);
+			return ["/".$route, $params];
+		} else return ["/".$route, []];
 	}
 	/**
 	 * 读取文件段落
