@@ -37,9 +37,12 @@ trait route{
 			}elseif(isset($path[$i]) && array_key_exists($path[$i], $match_prefix)){//如果网址和规则匹配，默认只从头匹配
 				$match_route=preg_match('#^'.substr($path, $i + 1).$match_prefix[$path[$i]].'#', $uri, $params);
 				if(0 <$match_route) $no_match=false;
-			}elseif(preg_match_all('#\:([a-zA-Z0-9_]+)#',  $path)>0){
+			}elseif(preg_match_all('#([d|w]?)\:([a-zA-Z0-9_]*)#',  $path)>0){
 				$end =substr($path, -1);
-				$pattern ='#^'.preg_replace('#\:([a-zA-Z0-9_]+)#', '(?P<$1>\w+)', $path).($end =='+' ?'#' :'$#');
+				$pattern ='#^'.preg_replace_callback('#([d|w]?)\:([a-zA-Z0-9_]*)#',function($matches){
+						$m =['d'=>'\d+', 'w'=>'\w+', ''=>'[^/]+'];
+						return '('.(''!=$matches[2] ?'?P<'.$matches[2].'>':'').$m[$matches[1]].')';
+					}, $path).($end =='+' ?'#' :'$#');
 				$match_route=preg_match($pattern, $uri, $params);
 				if(0 <$match_route) $no_match=false;
 			}
