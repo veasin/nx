@@ -20,10 +20,8 @@ class view extends \nx\response{
 	public function __toString(){ return $this->_hasSet ?$this->render() :''; }
 	public function setFile($file = ''){ $this->data['_file_'] = $file; }
 	public function render(){
-		if(empty($this->data['_file_'])){
-			unset($this->data['_file_']);
-			return json_encode($this->data, JSON_UNESCAPED_UNICODE);
-		}
+		if(!is_array($this->data)) return $this->data;
+		elseif(!array_key_exists('_file_', $this->data)) return json_encode($this->data, JSON_UNESCAPED_UNICODE);
 		$_f = $this->data['_file_'];
 		try{
 			$f = $this->path.$_f.'.php';
