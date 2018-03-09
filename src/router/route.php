@@ -67,10 +67,7 @@ trait route{
 				if(null !== $result) return $result;
 			}
 		}
-		if($no_match && null === $result){
-			$this->log(' - match: nothing(404)');
-			$this->response->status(404);
-		}
+		if($no_match) $this->log(' - match: nothing(404)');
 	}
 	/**
 	 * 添加路由规则
