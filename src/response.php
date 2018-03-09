@@ -78,11 +78,12 @@ class response extends o2{
 		'html' => 'text/html',
 		'jpg' => 'image/jpeg',
 		'mpg' => 'audio/mpeg'];
-	private $status = 200;
+	private $status = 404;
 	public $headers = [__NAMESPACE__=>'vea 2005-2018'];
 	//private $protocol = 'HTTP/1.1';
 	public function __destruct(){
 		if((PHP_SAPI !== 'cli') && !headers_sent()){
+			if(null !== $this->data && $this->status == 404) $this->status=200;
 			$status=' '.$this->status.(isset($this->status_code[$this->status]) ?' '.$this->status_code[$this->status] :' N_X');
 			header($_SERVER["SERVER_PROTOCOL"].$status);//HTTP/1.1
 			header_remove('X-Powered-By');
