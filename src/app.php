@@ -89,6 +89,7 @@ class app{
 	 * 结束脚本
 	 */
 	public function __destruct(){
+		$this->response =null;//先让response失效，优先输出
 		$this->log("end.\n");
 	}
 	/**

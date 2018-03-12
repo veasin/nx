@@ -82,8 +82,10 @@ class response extends o2{
 	public $headers = [__NAMESPACE__=>'vea 2005-2018'];
 	//private $protocol = 'HTTP/1.1';
 	public function __destruct(){
+		\nx\app::$instance->log('response:');
 		if((PHP_SAPI !== 'cli') && !headers_sent()){
 			if(null !== $this->data && $this->status == 404) $this->status=200;
+			\nx\app::$instance->log('    status: '.$this->status);
 			$status=' '.$this->status.(isset($this->status_code[$this->status]) ?' '.$this->status_code[$this->status] :' N_X');
 			header($_SERVER["SERVER_PROTOCOL"].$status);//HTTP/1.1
 			header_remove('X-Powered-By');
@@ -109,7 +111,6 @@ class response extends o2{
 	}
 	public function status($code = 200, $info = null){
 		$this->status = $code;
-		\nx\app::$instance->log('response status: '.$code);
 		is_string($info) && $this['__toString'] = $info;
 		return $this;
 	}
