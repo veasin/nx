@@ -32,6 +32,9 @@ trait filter{
 			case 'num':
 				$_value=trim($value);
 				return preg_match('/^(\d+)$/', $_value) > 0 ?$_value :$def;
+			case 'h':
+			case 'hex':
+				return !is_null($value) ?hexdec($value) :$def;
 			case 'a':
 			case 'arr':
 			case 'array':
