@@ -21,11 +21,6 @@ class request extends o2{
 	}
 	public function &offsetGet($offset){
 		switch($offset){
-			case 'body':
-				if(!array_key_exists('body', $this->data)){
-					$this->data['body']=file_get_contents('php://input');
-				}
-				break;
 			case 'header':
 				if(!array_key_exists('header', $this->data)){
 					if(!function_exists('getallheaders')){
@@ -42,31 +37,32 @@ class request extends o2{
 					}
 				}
 				break;
+			case 'body':
+				if(!array_key_exists('body', $this->data)) $this->data['body']=file_get_contents('php://input');
+				break;
 			case 'input':
 				if(!array_key_exists('input', $this->data)){
-					if('p' === $this['method'][0] || 'd' === $this['method'][0]){//'post', 'put', 'patch' or 'delete'
-						if('post' === $this['method']) $this->data['input']=$_POST;else{
-							$this->data['body']=file_get_contents('php://input');
-							$ct=$this->header('content-type');
-							if(false !== strpos($ct, ';')) list($ct, $c)=explode(';', $ct);
-							switch(strtolower(trim($ct))){//触发header更新
-								case 'application/x-www-form-urlencoded':
-									parse_str($this->data['body'], $vars);
-									$this->data['input']=$vars;
-									break;
-								case 'application/json':
-									$this->data['input']=json_decode($this->data['body'], true);
-									break;
-								case 'application/xml':
-									$xml=simplexml_load_string($this->data['body']);
-									$this->data['input']=json_decode(json_encode($xml), true);
-									break;
-								case 'text/plain':
-								case 'text/html':
-									break;
-							}
-						}
-					}else $this->data['input']=[];
+					if(!array_key_exists('body', $this->data)) $this->data['body']=file_get_contents('php://input');
+					$ct=$this->header('content-type');
+					if(false !== strpos($ct, ';')) list($ct, $c)=explode(';', $ct);
+					switch(strtolower(trim($ct))){//触发header更新
+						case 'application/x-www-form-urlencoded':
+							parse_str($this->data['body'], $vars);
+							$this->data['input']=$vars;
+							break;
+						case 'application/json':
+							$this->data['input']=json_decode($this->data['body'], true);
+							break;
+						case 'application/xml':
+							$xml=simplexml_load_string($this->data['body']);
+							$this->data['input']=json_decode(json_encode($xml), true);
+							break;
+						case 'text/plain':
+						case 'text/html':
+						default:
+							$this->data['input'] =[];
+							break;
+					}
 				}
 				break;
 		}
