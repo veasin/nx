@@ -2,42 +2,58 @@
 namespace nx\network;
 
 class curl{
+	const CONTENT_TYPE_TEXT ='text/plain';
+	const CONTENT_TYPE_HTML ='text/html';
+	const CONTENT_TYPE_FORM ='multipart/form-data';
+	const CONTENT_TYPE_JSON ='application/json';
+	const CONTENT_TYPE_URL ='application/x-www-form-urlencoded';
+
 	private $handle = null;
 	private $response = null;
 	public $opts = [];
 	private $headers=[];
+	//?a=b
+	private $query=[];
+	private $data=null;
 
-	private $log =0;
+	private $logLevel =0;
 	private $method ="GET";
-	public static function factory($url, $method = 'GET', $args = [], $log =0){
-		return new self($url, $method, $args, $log);
+	private $contentType =self::CONTENT_TYPE_URL;
+	public $status =0;
+
+	public static function factory($url, $method = 'GET', $body =null, $query=[], $log =0){
+		if(is_int($query)){
+			$log =$query;
+			$query =[];
+		}
+		return new self($url, $method, $body, $query, $log);
 	}
-	public function __construct($url, $method = 'GET', $args = [], $log =0){
+	public function __construct($url, $method = 'GET', $body = null, $query=[], $log =0){
 		$this->url($url);
-		$this->method($method, $args);
-		$this->log =$log;
+		$this->method($method, $body, $query);
+		$this->logLevel =$log;
 	}
 	public function __destruct(){
 		if(!is_null($this->handle)) curl_close($this->handle);
 	}
 	/**
 	 * 设定日志输出等级，默认不输出任何日志
-	 * @param int $log_level
+	 * @param int $logLevel
 	 * @return $this
 	 */
-	public function log($log_level=1){
-		$this->log =$log_level;
+	public function log($logLevel=1){
+		$this->logLevel =$logLevel;
 		return $this;
 	}
 	/**
 	 * 提交文件
-	 * @param $Filename
-	 * @param null $Minetype
-	 * @param null $Postname
+	 * @param $filename
+	 * @param null $mineType
+	 * @param null $postName
 	 * @return \CURLFile
 	 */
-	public function file($Filename, $Minetype = null, $Postname = null){
-		return curl_file_create($Filename, $Minetype, $Postname);
+	public function file($filename, $mineType = null, $postName = null){
+		return curl_file_create($filename, $mineType, $postName);
 	}
 	/**
 	 * 设定请求地址
@@ -50,28 +66,30 @@ class curl{
 	}
 	/**
 	 * 直接post方式请求
-	 * @param $Data
+	 * @param $data
 	 * @return $this
 	 */
-	public function post($Data){
-		$this->method('POST', $Data);
+	public function post($data =null){
+		$this->method('POST', $data);
 		return $this;
 	}
 	/**
 	 * 直接post方式请求，不使用array
-	 * @param $Data
+	 * @param $data
 	 * @return $this
+	 * @deprecated 2018-04-25
 	 */
-	public function postF($Data){
-		$this->method('POSTF', $Data);
+	public function postF($data = null){
+		$this->method('POSTF', $data);
 		return $this;
 	}
 	/**
 	 * 直接get方式请求
+	 * @param array $query
 	 * @return $this
 	 */
-	public function get(){
-		$this->method('GET');
+	public function get($query=[]){
+		$this->method('GET', null, $query);
 		return $this;
 	}
 	/**
@@ -80,52 +98,10 @@ class curl{
 	 * @param array $data
 	 * @return $this
 	 */
-	public function method($method = 'GET', $data = []){
+	public function method($method = 'GET', $data = null, $query =[]){
 		$this->method =strtoupper($method);
-		switch($this->method){
-			case 'GET':
-				$this->opts[CURLOPT_HTTPGET] = 1;
-				if(is_array($data) && !empty($data)) $this->opts[CURLOPT_URL] .=((isset($this->opts[CURLOPT_URL]) && strpos($this->opts[CURLOPT_URL], '?') !==false) ?'&' :'?') . http_build_query($data);
-				break;
-			case 'POST':
-				$this->opts[CURLOPT_POST] = 1;
-				if(is_array($data)) $data =http_build_query($data);
-				$this->opts[CURLOPT_POSTFIELDS] = $data;
-				unset($this->opts[CURLOPT_HTTPGET]);
-				break;
-			case 'POSTF':
-				$this->opts[CURLOPT_POST] = 1;
-				$this->opts[CURLOPT_POSTFIELDS] = $data;
-				unset($this->opts[CURLOPT_HTTPGET]);
-				break;
-			case 'PUT':
-			case 'DELETE':
-			case 'HEAD':
-			case 'OPTIONS':
-			default:
-				$this->opts[CURLOPT_CUSTOMREQUEST] = strtoupper($method);
-				if(is_array($data)){
-					$data =http_build_query($data);
-					//$this->opts[CURLOPT_URL] .=((isset($this->opts[CURLOPT_URL]) && strpos($this->opts[CURLOPT_URL], '?') !==false) ?'&' :'?') . $data;
-				}
-				$this->opts[CURLOPT_POSTFIELDS] = $data;
-				unset($this->opts[CURLOPT_HTTPGET]);
-				//if(is_array($data) && !empty($data)) $this->opts[CURLOPT_URL] .=((isset($this->opts[CURLOPT_URL]) && strpos($this->opts[CURLOPT_URL], '?') !==false) ?'&' :'?') . http_build_query($data);
-				break;
-		}
-		return $this;
-	}
-	/**
-	 * 添加请求头
-	 * @param $header
-	 * @return $this
-	 */
-	public function httpHeader($header){
-		if(is_string($header)){
-			$this->headers[] =$header;
-		} elseif(is_array($header)){
-			$this->headers =array_merge($this->headers, $header);
-		}
+		$this->data =$data;
+		$this->query =array_merge($this->query, $query);
 		return $this;
 	}
 	/**
@@ -140,6 +116,14 @@ class curl{
 		} elseif(is_array($has)){
 			$this->headers =array_merge($this->headers, $has);
 		}
+		return $this;
+	}
+	public function query($query=[]){
+		$this->query =array_merge($this->query, $query);
+		return $this;
+	}
+	public function contentType($contentType ='application/x-www-form-urlencoded'){
+		$this->contentType =$contentType;
 		return $this;
 	}
 	/**
@@ -234,24 +218,71 @@ class curl{
 			$this->opts[CURLOPT_BINARYTRANSFER] = 1;
 			$this->opts[CURLOPT_RETURNTRANSFER] = 1;
 		}
-		$this->handle = curl_init();
+		switch($this->method){
+			case 'GET':
+				$this->opts[CURLOPT_HTTPGET] = 1;
+				break;
+			case 'POST':
+				$this->opts[CURLOPT_POST] = 1;
+				//unset($this->opts[CURLOPT_HTTPGET]);
+				break;
+			case 'PUT':
+			case 'DELETE':
+			case 'HEAD':
+			case 'OPTIONS':
+			default:
+				$this->opts[CURLOPT_CUSTOMREQUEST] = strtoupper($this->method);
+				//unset($this->opts[CURLOPT_HTTPGET]);
+				break;
+		}
+		if(is_array($this->query) && !empty($this->query)) $this->opts[CURLOPT_URL] .=((isset($this->opts[CURLOPT_URL]) && strpos($this->opts[CURLOPT_URL], '?') !==false) ?'&' :'?') . http_build_query($this->query);
+		if(null !==$this->data){
+			switch($this->contentType){
+				case self::CONTENT_TYPE_TEXT:
+				case self::CONTENT_TYPE_HTML:
+					$this->opts[CURLOPT_POSTFIELDS] = $this->data;
+					break;
+				case self::CONTENT_TYPE_FORM:
+					$this->opts[CURLOPT_POSTFIELDS] = $this->data;
+					break;
+				case self::CONTENT_TYPE_JSON:
+					$this->opts[CURLOPT_POSTFIELDS] = json_encode($this->data, JSON_UNESCAPED_UNICODE);
+					break;
+				case self::CONTENT_TYPE_URL:
+				default:
+					$this->opts[CURLOPT_POSTFIELDS] = http_build_query($this->data);
+					break;
+			}
+			$this->headers[] ='Content-Type:'.$this->contentType;
+		}
 		if(!empty($this->headers)) $this->opts[CURLOPT_HTTPHEADER] = $this->headers;
 		if(strpos(strtolower($this->opts[CURLOPT_URL]), 'https:')===0){
 			$this->opts[CURLOPT_SSL_VERIFYPEER] =false;
 			$this->opts[CURLOPT_SSL_VERIFYHOST] =1;
 		}
+		$this->handle = curl_init();
 		@curl_setopt_array($this->handle, $this->opts);
-		if($this->log)
-			\nx\app::$instance->log('curl '.strtolower($this->method).': '.$this->opts[CURLOPT_URL].' '.(
-				isset($this->opts[CURLOPT_POSTFIELDS])
-					?json_encode($this->opts[CURLOPT_POSTFIELDS], JSON_UNESCAPED_UNICODE)
-					:'[]'
-				).'');
-		$start =microtime(true);
-		$this->response = curl_exec($this->handle);
-		if($this->log>3 && empty($this->response)) \nx\app::$instance->log(' - err:'.curl_error($this->handle));
-		if($this->log>2) \nx\app::$instance->log(' - response:'.$this->RW());
-		if($this->log>1) \nx\app::$instance->log(sprintf(' - time: %0.3fs', microtime(true)-$start));
+		if(0<$this->logLevel){
+			$app =\nx\app::$instance;
+			$app->log('curl: '.$this->opts[CURLOPT_URL]);
+			$app->log('    - method:'.$this->method);
+			if(isset($this->opts[CURLOPT_HTTPHEADER])) $app->log('    - header:'.json_encode($this->opts[CURLOPT_HTTPHEADER], JSON_UNESCAPED_UNICODE));
+			if(isset($this->opts[CURLOPT_POSTFIELDS])) $app->log('    - body:'.($this->opts[CURLOPT_POSTFIELDS] ?? ''));
+			$start =microtime(true);
+			$this->response = curl_exec($this->handle);
+			$this->status =$this->info(CURLINFO_HTTP_CODE);
+			if(1<$this->logLevel){
+				$app->log(sprintf('    - time: %0.3fs', microtime(true)-$start));
+				$app->log('    - response status:'.$this->status);
+				if(2<$this->logLevel){
+					if(3<$this->logLevel && empty($this->response)) $app->log('    - err:'.curl_error($this->handle));
+					$app->log('    - response body:'.$this->RW());
+				}
+			}
+		} else{
+			$this->response = curl_exec($this->handle);
+			$this->status =$this->info(CURLINFO_HTTP_CODE);
+		}
 		return $this;
 	}
 	/**
