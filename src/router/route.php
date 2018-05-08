@@ -17,7 +17,7 @@ trait route{
 	public function router(){
 		if(empty($this->buffer['router/route']['rules'])) return $this->control(404);//如果规则为空那么直接404
 		$method=$this->request->method();
-		$uri=(isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?ltrim($_SERVER['PATH_INFO'], '/') :$_SERVER['QUERY_STRING'];
+		$uri=ltrim((isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING'], '/');
 		$this->log('route uri: '.$uri);
 		$no_match=true;
 		foreach($this->buffer['router/route']['rules'] as $route){//0 method 1 route 2 control[controller, action, fake method] 3 args
