@@ -24,7 +24,7 @@ trait redis{
 			$cfg=&$it->buffer['cache/redis']['config'];
 			$config=false;
 			if(isset($cfg[$name])) $config=is_array($cfg[$name]) ?$cfg[$name] :$cfg[$cfg[$name]];
-			$cache[$name]=new \redis();
+			$cache[$name]=new \Redis();
 			if(!empty($config)){
 				$cache[$name]->connect($config['host'], isset($config['port']) ?$config['port'] :6379, isset($config['timeout']) ?$config['timeout'] :1);
 				if(isset($config['auth'])) $cache[$name]->auth($config['auth']);

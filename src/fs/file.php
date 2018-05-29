@@ -70,12 +70,12 @@ class file{
 	/**
 	 * DIRECTORY_SEPARATOR -> / !!!!!
 	 * Enter description here ...
-	 * @param unknown $Path
+	 * @param string $Path
 	 * @param string $Skeletonize
 	 * @param string $WithPath
 	 * @param string $Callback
 	 * @param string $CallbackArgs
-	 * @return NULL|multitype:string Ambigous <unknown, string>
+	 * @return NULL|array:string Ambigous <unknown, string>
 	 */
 	public static function scanPath($Path, $Skeletonize ='', $WithPath=false, $Callback =null, $CallbackArgs =null){
 		$_path =realpath($Path);
@@ -117,7 +117,7 @@ class file{
 			}
 		}
 		if (count($_files)){
-			$zip =new ZipArchive();
+			$zip =new \ZipArchive();
 			if ($zip->open($zip2, $NoOverwrite ?ZipArchive::OVERWRITE :ZipArchive::CREATE) != true){
 				return false;
 			}
@@ -131,7 +131,7 @@ class file{
 			return false;
 	}
 	public static function zipComment($zip2, $Comment=null){
-		$zip =new ZipArchive();
+		$zip =new \ZipArchive();
 		$res =$zip->open($zip2);
 		if ($res !==true) return $res;
 		if (is_null($Comment)) return $zip->getArchiveComment();
@@ -139,7 +139,7 @@ class file{
 		$zip->close();
 	}
 	public static function zipExtract($zip2, $Path){
-		$zip =new ZipArchive();
+		$zip =new \ZipArchive();
 		if ($zip->open($zip2) !== true) return false;
 		$ok =$zip->extractTo($Path);
 		$zip->close();

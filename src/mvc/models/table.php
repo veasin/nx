@@ -10,28 +10,24 @@ namespace nx\mvc\models;
 
 class table extends \nx\mvc\model{
 	/**
-	 * 绑定表名
-	 * @var string
+	 * @var string 绑定表名
 	 */
 	public $table_name ='';
 	/**
-	 * 绑定表主键
-	 * @var string
+	 * @var string 绑定表主键
 	 */
 	public $table_primary ='id';
 	/**
-	 * 更新时间戳字段
-	 * @var string
+	 * @var string 更新时间戳字段
 	 */
 	public $update_field ='update_time';
 	/**
-	 * 创建时间戳字段
-	 * @var string
+	 * @var string 创建时间戳字段
 	 */
 	public $create_field ='create_time';
 	/**
 	 * 返回一个table
-	 * @return \nx\helpers\sql
+	 * @return \nx\db\table\sql
 	 */
 	private function _table(){
 		return $this->table($this->table_name);

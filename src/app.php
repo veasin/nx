@@ -4,59 +4,65 @@ namespace nx;
 /**
  * Class app
  * @package nx
+ *
+ * @method log($any, $template =false) 输出日志
+ * @method main(array $route) 执行默认控制方法
+ * @method router() 执行路由方法
+ * @method string i18n() 返回对应语言文本
+ * @method array|string|null config(string $word, $params=null) 读取配置
+ * @method \nx\response\view view($file='', $data=[]) 返回模板试图
+ * @method filter($value, $def=null, $filter=null, ...$pattern) 根据filter来对$value进行过滤，默认返回$def
+ * @method \PDO db($name='default') 根据$app->setup['db/pdo'] 的配置创建pdo对象
+ * @method int|false insertSQL($sql, array $params=[], $config='default') 执行插入数据动作 ->insertSQL('INSERT INTO cds (`interpret`, `titel`) VALUES (?, ?)', ['veas', 'new cd']);
+ * @method array|false selectSQL($sql, array $params=[], $config='default') 执行查询数据方法 ->selectSQL('SELECT `cds`.* FROM `cds` WHERE `cds`.`id` = ?', [13])
+ * @method false|int executeSQL($sql,array $params=[], $config='default') 执行默认控制方法 ->executeSQL('UPDATE `cds` SET `interpret` =? WHERE `cds`.`id` = ?', ['vea', 14])
+ * @method \nx\db\table\sql table($name, $primary='id', $config='default') 返回一个sql对象
+ * @method request() 返回全部输入内容
+ * @method response(string $string) 设置默认输出方法
  */
 class app{
 	/**
-	 * 静态实例
-	 * @var /nx/app;
+	 * @var /nx/app 静态实例;
 	 */
 	static public $instance=null;
 	/**
-	 * 请求
-	 * @var \nx\request
+	 * @var \nx\request 请求对象
 	 */
 	public $request=null;
 	/**
-	 * 响应
-	 * @var \nx\response
+	 * @var \nx\response 响应对象
 	 */
 	public $response=null;
 	/**
-	 * 预定义缓存存储
-	 * @var array
+	 * @var array 预定义缓存存储
 	 */
 	public $buffer=[];
 	/**
-	 * 应用设定
-	 * @var array
+	 * @var array 应用设定
 	 */
 	public $setup=[];
 	/**
-	 * 工作路径
-	 * @var string
+	 * @var string 工作路径
 	 */
 	public $path='';
 	/**
-	 * 引入trait列表
-	 * @var array
+	 * @var array 引入trait列表
 	 */
 	private $traits=[];
 	/**
-	 * 唯一id
-	 * @var string
+	 * @var string 唯一id
 	 */
 	public $uid='';
 	/**
-	 * config key 直接缓存结果
-	 * @var array
+	 * @var array 直接缓存结果 config key
 	 */
 	protected $config=[];
 	/**
 	 * 构建app
 	 * app constructor.
 	 * @param array $setup 传入应用的配置 如数据库 路由 缓存等
-	 * @param \nx\request|null  $request
-	 * @param \nx\response|null $response
+	 * @param \nx\request|null  $request 可以注入请求对象覆盖默认
+	 * @param \nx\response|null $response 可以注入响应对象覆盖默认
 	 */
 	public function __construct($setup=[], \nx\request $request=null, \nx\response $response=null){
 		(defined('AGREE_LICENSE') && AGREE_LICENSE === true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
