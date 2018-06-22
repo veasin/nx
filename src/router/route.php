@@ -63,7 +63,10 @@ trait route{
 					$route[2][2]=$params;
 					$result=call_user_func_array([$this, 'control'], [$route[2]]);//0 controller 1 action 2 args
 					$this->request['method']=$method;//恢复method
-				}elseif(is_callable($route[2])) $result=call_user_func_array($route[2], $params);
+				}elseif(is_callable($route[2])){
+					if($route[2] instanceof \Closure) $route[2] =$route[2]->bindTo($this);
+					$result=call_user_func_array($route[2], $params);
+				}
 				if(null !== $result) return $result;
 			}
 		}
