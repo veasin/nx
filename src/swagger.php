@@ -5,6 +5,7 @@
  * echo (new swagger('bootstrap.php'));
  *
  */
+namespace nx;
 
 class swagger{
 	private static $status_code = [//请求已被接受，需要继续处理
@@ -77,10 +78,18 @@ class swagger{
 	private $info=[];
 	private $host='*';
 	private $base='';
-	public function __construct($bootstrap){
+	private $def =['base'=>'/'];//	 * @param string $base 接口访问地址(http方式)
+	private $custom =[];
+	/**
+	 * swagger constructor.
+	 * @param string $bootstrap 入口文件地址
+	 * @param array  $custom 自定义处理配置
+	 */
+	public function __construct($bootstrap, $custom=[]){
+		$this->custom =$custom +$this->def;
 		$this->bootsrap=$bootstrap;
-		$this->host =$_SERVER['HTTP_HOST'];
-		$this->base ='/'.$bootstrap;
+		$this->base =$this->custom['base'] ?? $this->def['base'];
+		$this->host =$this->custom['host'] ?? $_SERVER['HTTP_HOST'];
 		$this->parse();
 	}
 	/**
@@ -147,7 +156,7 @@ class swagger{
 			'tags'=>[$tag],
 			'summary'=>self::parseDocCommont($method->getDocComment()),
 			'description'=>'',
-			'produces'=>["application/json"],
+			'produces'=>["application/json", "text/plain"],
 			'parameters'=>[],//self::makePathParams($_route[1]),
 			'responses'=>[],
 			'security'=>[],
@@ -159,19 +168,15 @@ class swagger{
 				$set['consumes']=['application/x-www-form-urlencoded'];
 				break;
 		}
-		if(strpos($_path, '{uid}') !==false || strpos($_path, '{admin_id}') !==false){
-			$set['security']=[
-				[
-					"Token"=>['read:token'],
-				]
-			];
-
-		}
 		$code=self::readLine($method->getFileName(), $method->getStartLine(), $method->getEndLine());
 		$_code=self::parseCode($code);
 		$set['parameters']=self::makeRequireParams($_code[0], $rule[0], $_route[1]);
 		$set['responses']=self::makeStatus($_code[1]);
 		if(!array_key_exists($_path, $this->paths)) $this->paths[$_path]=[];
+
+		$customMethod =$this->custom['method'] ?? false;
+		if(is_callable($customMethod)) $set =call_user_func($customMethod, $set, $rule, $_path);
+
 		return [$_path, $rule[0], $set];
 	}
 	public function doc(){
@@ -180,7 +185,7 @@ class swagger{
 			'info'=>$this->info,
 			'host'=>$this->host,
 			'basePath'=>$this->base,
-			'schemes'=>['http'],
+			'schemes'=>['http', 'https'],
 			'tags'=>$this->tags,
 			'paths'=>$this->paths,
 			'responses'=>[
@@ -400,9 +405,10 @@ class swagger{
 				$route=preg_replace('#\(\?[P]?(\<([\w\d]+)\>)?[^\)]+\)#', '{$2}', $route);
 			}
 			return ["/".$route, $params];
-		} elseif(preg_match_all('#\:([a-zA-Z0-9_]+)#',  $route, $params)>0){
+		} elseif(preg_match_all('#([d|w]?)\:([a-zA-Z0-9_]+)#',  $route, $params)>0){
 			array_shift($params);
-			$route=preg_replace('#\:([a-zA-Z0-9_]+)#', '{$1}', $route);
+			array_shift($params);
+			$route=preg_replace('#([d|w]?)\:([a-zA-Z0-9_]+)#', '{$2}', $route);
 			return ["/".$route, $params];
 		} else return ["/".$route, []];
 	}
