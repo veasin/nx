@@ -118,7 +118,7 @@ class swagger{
 					$controller=$path.$route[0];
 					$exists=class_exists($controller, true);
 					if($exists){
-						if(!array_key_exists($controller, $rc)) $rc[$controller] =new ReflectionClass($controller);
+						if(!array_key_exists($controller, $rc)) $rc[$controller] =new \ReflectionClass($controller);
 						//if(!array_key_exists($controller, $before)){
 						//	$rr =$rule;
 						//	$rr[0]='*';
@@ -420,7 +420,7 @@ class swagger{
 	 * @return string
 	 */
 	static public function readLine($file, $start, $end){
-		$f=new SplFileObject($file, 'r');
+		$f=new \SplFileObject($file, 'r');
 		$f->seek($start);
 		$str=[];
 		for($i=0; $i < ($end - $start); $i++){
