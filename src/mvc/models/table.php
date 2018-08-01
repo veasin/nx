@@ -29,7 +29,7 @@ class table extends \nx\mvc\model{
 	 * 返回一个table
 	 * @return \nx\db\table\sql
 	 */
-	private function _table(){
+	public function _table(){
 		return $this->table($this->table_name);
 	}
 	/**
