@@ -332,12 +332,12 @@ class swagger{
 					case 'f':
 					case 'float':
 						$r[$param['name']]['type'] ='float';
-						$r[$param['name']]['pattern'] ='/^[.0-9]+$/';
+						$r[$param['name']]['pattern'] ='^[.0-9]+$';
 						break;
 					case 'n':
 					case 'num':
 						$r[$param['name']]['type'] ='int64';
-						$r[$param['name']]['pattern'] ='/^(\d+)$/';
+						$r[$param['name']]['pattern'] ='^\d+$';
 						break;
 					case 'a':
 					case 'arr':
