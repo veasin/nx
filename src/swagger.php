@@ -125,7 +125,7 @@ class swagger{
 						//	$rr[1]='';
 						//	$before[$controller] =$this->parseMethod($rc[$controller], 'before', $rr);
 						//}
-						$method =$this->parseMethod($rc[$controller], $rule[0].$route[1], $rule);
+						$method =$this->parseMethod($rc[$controller], ($route[2]??$rule[0]).$route[1], $rule);
 						if(false !==$method){
 							//$mset =$method[2];
 							//if($before[$controller] ?? false){
@@ -177,7 +177,9 @@ class swagger{
 		$customMethod =$this->custom['method'] ?? false;
 		if(is_callable($customMethod)) $set =call_user_func($customMethod, $set, $rule, $_path);
 
-		return [$_path, $rule[0], $set];
+		$overview =$this->custom['overview'] ?? false;
+		if(is_callable($overview)) $r =call_user_func($overview, $set, $rule, $_path);
+		return $r ?? [$_path, $rule[0], $set];
 	}
 	public function doc(){
 		return [
