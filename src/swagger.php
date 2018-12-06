@@ -178,8 +178,8 @@ class swagger{
 		if(is_callable($customMethod)) $set =call_user_func($customMethod, $set, $rule, $_path);
 
 		$overview =$this->custom['overview'] ?? false;
-		if(is_callable($overview)) $r =call_user_func($overview, $set, $rule, $_path);
-		return $r ?? [$_path, $rule[0], $set];
+		if(is_callable($overview)) $rr =call_user_func($overview, $set, $rule, $_path);
+		return $rr ?? [$_path, $rule[0], $set];
 	}
 	public function doc(){
 		return [
