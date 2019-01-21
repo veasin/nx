@@ -14,7 +14,8 @@ trait table{
 	 * @return \nx\db\sql
 	 */
 	public function table($name, $primary='id', $config='default'){
-		return \nx\db\sql::factory($name, $primary, $config, $this);
+		$db =$this->db($config);
+		return \nx\db\sql::factory($name, $primary, $db);
 	}
 	/**
 	 * [[key, val, oth],[key, val, oth]...]

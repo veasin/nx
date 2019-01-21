@@ -32,9 +32,11 @@ class index{
 
 		//$this->out['xx'] ='xx';
 
+		$user =$this->table('user');
+		$this->out['user'] =$user->read();
 
-		$db =$this->db();
-		$this->out['user'] =$db->select('select * from user1 limit 10');
+		//$db =$this->db();
+		//$this->out['user'] =$db->select('select * from user1 limit 10');
 
 		$r =null;
 		$this->out['xx'] = $r ?$r :'false';

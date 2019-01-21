@@ -8,6 +8,7 @@
 namespace demo;
 
 use nx\db\pdo;
+use nx\structure\db\table;
 use nx\structure\output\rest;
 
 define('AGREE_LICENSE', true);
@@ -20,7 +21,7 @@ $setup =include 'setup.php';
 
 $setup['router'][0] ='admin';
 class app extends \nx\app{
-	use \nx\structure\run\middleware, \nx\structure\control\controllers, \nx\structure\db\pdo, rest;
+	use \nx\structure\run\middleware, \nx\structure\control\controllers, \nx\structure\db\pdo, rest, table;
 }
 
 $app=new app($setup);

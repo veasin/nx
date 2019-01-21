@@ -36,12 +36,6 @@ namespace nx\db;
  * @package nx\db
  */
 class sql{
-	/**
-	 * @var \nx\mvc\model
-	 */
-	private $_model =null;
-	private $_config ='default';
-
 	public  $table = null;//表名
 	public  $primary = null;//主键
 
@@ -50,16 +44,19 @@ class sql{
 
 	private $where_params =[];
 	static public $history =[];
+	/**
+	 * @var \nx\db\pdo
+	 */
+	private $db =null;
 
-	static public function factory($Table, $Primary = 'id', $config='default', $model =null){
-		return new static($Table, $Primary, $config, $model);
+	static public function factory($Table, $Primary = 'id', $db=null){
+		return new static($Table, $Primary, $db);
 	}
-	public function __construct($Table, $Primary = 'id', $config='default', $model =null){
+	public function __construct($Table, $Primary = 'id', $db =null){
 		$this->table = $Table;
 		$this->primary = $Primary;
 
-		$this->_config =$config;
-		$this->_model =$model;
+		$this->db =$db;
 	}
 
 	/**
@@ -108,7 +105,7 @@ class sql{
 		}
 		$fields =$params;
 		static::$history[] =$sql;
-		$result =$this->_model->insertSQL($sql, $fields, $this->_config);
+		$result =$this->db->insert($sql, $fields);
 		$this->params =[];
 		return $result;
 	}
@@ -178,7 +175,7 @@ class sql{
 			$sql =$this->_buildUPDATE();
 		}
 		static::$history[] =$sql;
-		$result = $this->_model->executeSQL($sql, $this->params, $this->_config);
+		$result = $this->db->execute($sql, $this->params);
 		$this->params =[];
 		return $result;
 	}
@@ -197,7 +194,7 @@ class sql{
 		if(!empty($fields)) $this->_withSELECT(func_get_args(), func_num_args());
 		$sql =$this->_buildSELECT();
 		static::$history[] =$sql;
-		$result =$this->_model->selectSQL($sql, $this->params, $this->_config);
+		$result =$this->db->select($sql, $this->params);
 		$this->params =[];
 		return $result;
 	}
@@ -215,7 +212,7 @@ class sql{
 		if(!empty($field)) $this->select($field);
 		$sql =$this->_buildSELECT();
 		static::$history[] =$sql;
-		$result =$this->_model->selectSQL($sql, $this->params, $this->_config);
+		$result =$this->db->select($sql, $this->params);
 		if($result ===false) return false;
 		$this->params =[];
 		$first =current($result);
@@ -232,7 +229,7 @@ class sql{
 		$this->params =[];
 		$sql =$this->_buildDELETE();
 		static::$history[] =$sql;
-		$result = $this->_model->executeSQL($sql, $this->params, $this->_config);
+		$result = $this->db->execute($sql, $this->params);
 		$this->params =[];
 		return $result;
 	}
