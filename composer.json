@@ -1,21 +1,24 @@
 {
-	"name": "urn2/nx",
-	"description": "A Trait Framework for PHP",
-	"homepage": "https://github.com/urn2/nx",
-	"type": "framework",
-	"authors": [
-		{
-			"name": "Vea",
-			"homepage": "http://www.f2016.cn",
-			"email":"vea@live.cn"
-		}
-	],
-	"require": {
-		"php":">=7.0",
-		"ext-zip": "*"
-	},
-	"minimum-stability": "stable",
-	"autoload": {
-		"psr-4": {"nx\\": "src/"}
-	}
+  "name": "urn2/nx-psr",
+  "description": "A Trait Framework for PHP[psr]",
+  "homepage": "https://github.com/urn2/nx-psr",
+  "type": "framework",
+  "authors": [
+    {
+      "name": "Vea",
+      "homepage": "http://www.f2016.cn",
+      "email": "vea@live.cn"
+    }
+  ],
+  "minimum-stability": "stable",
+  "autoload": {
+    "psr-4": {
+      "nx\\": "nx/"
+    }
+  },
+  "require": {
+    "php": ">=7.1",
+    "psr/log": "^1.0",
+    "psr/container": "^1.0"
+  }
 }

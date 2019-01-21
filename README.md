@@ -1,33 +1,47 @@
-# nx is **"a next-gen framework"**
+# logo, logo, logo !!!
+```
+        ___  ___
+     __ \  \/  /
+    /  \ \  \ /
+   /  / \ \  \
+  /  /\  / \  \   php.nx.cn
+ /__/  \/__/\__\  vea, 2019
+```
+
+![nx-logo](./logo.png)
+
+# [nx](//php.nx.cn/) is **"a next-gen framework"**
   php 7.0+
   
-  使用php语言中的trait实现在代码编写时的加载扩充，而不是运行时的扩充
-  
-  小框架，可以随意扩充
+    small,fast,emmmm...
+ 
+## todo
+- [ ] support PSR
+  - [x] Psr-3	Logger Interface
+  - [x] Psr-4	Autoloading Standard
+  - [ ] Psr-6	Caching Interface
+  - [x] Psr-11	Container Interface
+  - [ ] Psr-16	Simple Cache
 
-#feature
-- [x] trait,trait,trait!!!
-- [x] 支持命名空间
-- [x] 支持composer
-- [x] 尽可能支持psr
-- [x] 尽可能兼容next
-- [x] 支持调度 使用route并闭包
-  - [x] 同时多route匹配
-  - [x] 改造route数组为对象
-  - [x] 修改调度方式
-- [x] 支持php7，支持php新功能
-- [x] 脚手架
-  - [x] 项目预制
-  - [ ] 编译（打包）
+  ### ?
+  - Psr-1	Basic Coding Standard
+  - Psr-2	Coding Style Guide
+  - [ ] Psr-7	HTTP Message Interface
+  - [ ] Psr-13	Hypermedia Links
+  - [ ] Psr-15	HTTP Handlers
+  - [ ] Psr-17	HTTP Factories
+  - [ ] Psr-18	HTTP Client
 
-#code
-```
-class app extends \nx\app{
-  use \nx\log\file,
-      \nx\control\mvc,
-      \nx\router\ca,
-      \nx\config\ini,
-      \nx\db\pdo;
-}
-app::factory()->run();
-```
+  ### DRAFT
+  - Psr-5	PHPDoc Standard
+  - Psr-12	Extended Coding Style Guide
+  - Psr-14	Event Manager
+  - Psr-19	PHPDoc tags
+
+  ### ABANDONED
+  - Psr-8	Huggable Interface
+  - Psr-9	Security Advisories
+  - Psr-10	Security Reporting Process
+
+  ### DEPRECATED
+  - Psr-0	Autoloading Standard

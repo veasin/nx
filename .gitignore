@@ -1,5 +1,11 @@
-/.idea/*
-.DS_Store
-.idea/
-vendor/
-composer.lock
+# Created by .ignore support plugin (hsz.mobi)
+### Example user template template
+### Example user template
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+/composer.lock
+/vendor/
