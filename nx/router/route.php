@@ -53,7 +53,7 @@ class route{
 		$this->app=\nx\app::$instance;
 		$this->rules=$setup['rules'] ?? [];
 		$this->actions=$setup['actions'] ?? [];
-		$this->uri=$setup['uri'] ?? trim((isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING'], '/');
+		$this->uri=$setup['uri'] ?? (isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING'];
 		$this->method=$setup['method'] ?? $this->app->in['method'] ?? 'unknown';
 	}
 	public function next(){

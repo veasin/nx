@@ -20,7 +20,7 @@ $setup =include 'setup.php';
 
 $setup['router'][0] ='admin';
 class app extends \nx\app{
-	use \nx\structure\run\middleware, \nx\structure\control\controllers, pdo, rest;
+	use \nx\structure\run\middleware, \nx\structure\control\controllers, \nx\structure\db\pdo, rest;
 }
 
 $app=new app($setup);

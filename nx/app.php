@@ -95,17 +95,27 @@ class app{
 		//创建日志对象
 		$this->logger=$overwrite['logger'] ?? new logger($this->container->get('logger') ?? []);
 		//创建路由
-		$this->router=$overwrite['router'] ?? $this->create($this->container->get('router'), 'router\route');
+		$this->router=$overwrite['router'] ?? $this->container->create('router');
 		//初始化traits
 		$this->_initTraits(array_map(function($_trait){//初始化trait
 			$_method=str_replace('\\', '_', $_trait);
 			return method_exists($this, $_method) ?$_method :false;
 		}, class_uses($this)));
 	}
-	private function create($config, $class, $default='default'){
-		$setup=$config[$config[0] ?? $default];
-		$new=$setup[0] ?? $class;
-		return new $new($setup[1] ?? []);
+	/**
+	 * ['default',
+	 *   'default'=>[\obj, a,b,c],
+	 *   'other'=>[\obj, []],
+	 * ]
+	 * @param array $config
+	 * @param string $default
+	 * @return mixed
+	 */
+	protected function create($config, $default='default'){
+		$setup=$config[$config[0] ?? $default] ??[];
+		$new =array_shift($setup);
+		if(null ===$new) return null;
+		return new $new(...($setup ?? []));
 	}
 	/**
 	 * @param array $traits 初始化trait，执行初始化方法
@@ -145,9 +155,6 @@ class app{
 				break;
 			case 'config':
 				return isset($this->config[$args[0]]) ?$this->config[$args[0]] :(isset($args[1]) ?$args[1] :null);
-			case 'view':
-			case 'status':
-				return $this->out->status(...$args);
 			case 'filter':
 				$this->log('filter:'.json_encode($args));
 				return $args[0] ?? $args[1];

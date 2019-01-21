@@ -8,7 +8,6 @@
 declare(strict_types=1);
 namespace nx;
 
-
 use \nx\structure\initialize;
 use \Psr\Container\ContainerInterface;
 
@@ -32,7 +31,6 @@ class container implements ContainerInterface{
 		}
 		$this->buffer=$this->get('container');
 	}
-
 	/**
 	 * 返回指定的container
 	 * $app->container($name)
@@ -52,6 +50,23 @@ class container implements ContainerInterface{
 	public function set(string $id, $value){
 		$this->data[$id]=$value;
 		return $this;
+	}
+	/**
+	 * 从容器中创建对象
+ 	 * $name=>['default',
+	 *   'default'=>[\obj, a,b,c],
+	 *   'other'=>[\obj, []],
+	 * ]
+	 * @param string $name
+	 * @param string $default
+	 * @return null
+	 */
+	public function create(string $name, $default='default'){
+		$config=$this->get($name) ?? [];
+		$setup=$config[$config[0] ?? $default] ?? [];
+		$new=array_shift($setup);
+		if(null === $new) return null;
+		return new $new(...($setup ?? []));
 	}
 	/**
 	 * 在容器中查找并返回实体标识符对应的对象。

@@ -15,7 +15,7 @@ class index{
 	public function error($next){
 		try{
 			$next();
-		}catch(\Exception $e){
+		}catch(\nx\exception $e){
 			switch($e->getCode()){
 				case 401:
 					$this->out->buffer['status'] =401;
@@ -26,18 +26,20 @@ class index{
 	}
 
 	public function demo1(){
-		(function(){
-			throw new \Exception('xxxx', 401);
-		})();
+		//(function(){
+		//	throw new \Exception('xxxx', 401);
+		//})();
 
-		$this->out['xx'] ='xx';
-		$this->status(201);
+		//$this->out['xx'] ='xx';
 
 
-		//$db =$this->db();
-		//var_dump($db);
-		//$r=$this->selectSQL('select * from user limit 10');
-		//var_dump($r);
+		$db =$this->db();
+		$this->out['user'] =$db->select('select * from user1 limit 10');
+
+		$r =null;
+		$this->out['xx'] = $r ?$r :'false';
+
+		$this->out['userx'] =null ?? [123];
 
 
 		//[$id, $iv, $encrypted_data]=$f(['from'=>'input', 'throw'=>401])->addRule('>', function($v, $check){

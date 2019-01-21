@@ -20,7 +20,7 @@ return [
 				//'debug'=>'debug.log',
 			]
 		]],
-		['\nx\logger\dump'],
+		//['\nx\logger\dump'],
 		//['\nx\log\console'],
 	],
 	'container'=>[
@@ -29,12 +29,13 @@ return [
 		]],
 	],
 	'db'=>['default',
-		'default'=>['\pdo', [
-			'dsn'=>'mysql:dbname=demo;host=127.0.0.1;charset=utf8mb4',
+		'default'=>['\nx\db\pdo', [
+			'dsn'=>'mysql:dbname=mysql;host=127.0.0.1;charset=utf8mb4',
 			'username'=>'root',
 			'password'=>'',
 			'options'=>[],
-		]]
+		]],
+		'pdo'=>['\pdo', 'mysql:dbname=mysql;host=127.0.0.1;charset=utf8mb4', 'root', '',[],],
 	],
 	'router'=>['default',
 		'default'=>['\nx\router\route', [
