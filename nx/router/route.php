@@ -88,12 +88,14 @@ class route{
 						if(array_key_exists($call, $this->actions)){
 							foreach($this->actions[$call] as $_call){
 								$this->calls[]=$_call;
-								yield [$_call[0], $_call[1]]=>array_key_exists(2, $_call) ?array_merge($_params, $_call[2] ?? []) :$_params;
+								$this->app->in['params'] =array_key_exists(2, $_call) ?array_merge($_params, $_call[2] ?? []) :$_params;
+								yield [$_call[0], $_call[1]]=>$this->app->in['params'];
 							}
 						}
 					}else{
 						$this->calls[]=$call;
-						yield [$call[0], $call[1]]=>array_key_exists(2, $call) ?array_merge($_params, $call[2] ?? []) :$_params;
+						$this->app->in['params'] =array_key_exists(2, $call) ?array_merge($_params, $call[2] ?? []) :$_params;
+						yield [$call[0], $call[1]]=>$this->app->in['params'];
 					}
 				}
 			}
