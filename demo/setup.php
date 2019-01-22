@@ -24,6 +24,13 @@ return [
 		//['\nx\log\console'],
 	],
 	'container'=>[
+		'build'=>['\nx\container\build', [
+			'pdo'=>['\pdo', 'mysql:dbname=mysql;host=127.0.0.1;charset=utf8mb4', 'root', ''],
+			'pdo2'=>'\pdo',
+			'pdo3'=>function(){},
+			//'pdo4'=>object(),
+
+		]],
 		'config'=>['\nx\container\config', [
 			//'path'=>'config',
 		]],
@@ -165,8 +172,11 @@ return [
 			],
 		]],
 		'admin'=>['\nx\router\route', [
-			'rules'=>[
+			'rules'=>[//admin/1/do/2
 				['*', '*',['index', 'error'], ['index', 'demo1']],
+				['*', '/admin/:id+',['index', 'error'], ['index', 'demo1']],
+				['*', '/admin/:id/do/:uid',['index', 'error'], ['index', 'demo1']],
+				['*', '/admin/:name/do/:uuid',['index', 'error'], ['index', 'demo1']],
 			],
 		]],
 	],

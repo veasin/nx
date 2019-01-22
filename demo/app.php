@@ -25,6 +25,14 @@ class app extends \nx\app{
 }
 
 $app=new app($setup);
+//$app->logger('file')->debug('any message.');
+
+
+//$pdo =$app->container->get('pdo');
+//var_dump($pdo);
+//
+//$pdo =$app->container('build')->get('pdo');
+//var_dump($pdo);
 
 //$app->config('xx.xx');
 //$app->get('xx.xx');

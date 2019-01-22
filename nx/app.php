@@ -19,6 +19,10 @@ namespace nx;
 /**
  * Class app [psr-11 DI]
  * @package nx
+ * @method \Psr\Container\ContainerInterface container($name) 返回指定容器
+ * @method mixed in($name=null, ...$name2=null) 返回输入内容
+ * @method mixed out($name=null, ...$name2=null) 返回输出内容
+ * @method \Psr\Log\LoggerInterface logger(string $name) 返回指定日志对象
  */
 class app{
 	/**
@@ -103,21 +107,6 @@ class app{
 		}, class_uses($this)));
 	}
 	/**
-	 * ['default',
-	 *   'default'=>[\obj, a,b,c],
-	 *   'other'=>[\obj, []],
-	 * ]
-	 * @param array $config
-	 * @param string $default
-	 * @return mixed
-	 */
-	protected function create($config, $default='default'){
-		$setup=$config[$config[0] ?? $default] ??[];
-		$new =array_shift($setup);
-		if(null ===$new) return null;
-		return new $new(...($setup ?? []));
-	}
-	/**
 	 * @param array $traits 初始化trait，执行初始化方法
 	 */
 	private function _initTraits($traits){
@@ -156,12 +145,8 @@ class app{
 			case 'config':
 				return isset($this->config[$args[0]]) ?$this->config[$args[0]] :(isset($args[1]) ?$args[1] :null);
 			case 'filter':
-				$this->log('filter:'.json_encode($args));
 				return $args[0] ?? $args[1];
 			case 'db':
-			case 'insertSQL':
-			case 'selectSQL':
-			case 'executeSQL':
 				die('need [trait nx\db\pdo].');
 			case 'table':
 				die('need [trait nx\db\table].');
@@ -202,113 +187,3 @@ class app{
 		return $this->control(...$route);
 	}
 }
-
-/*
-class ca extends app{
-	use config;
-}
-
-
-
-//setup.php
-$di =new DI();
-$di['config/file/1']=[function(...$args){
-	return new \nx\config\file(...$args);
-}, ['path'=>'/var/config']];
-return $di;
-
-//web/index.php
-$di =include 'setup.php';
-$app=new ca($di);
-
-
-
-//$app['config/file/1']=[function(...$args){
-//	return new \nx\config\file(...$args);
-//}, ['path'=>'/var/config']];
-
-$app->setConfig($app->di('config/file/1'));
-$app->setConfig($app->di->get('config/file/1'));
-$app->setConfig($app->get('config/file/1'));
-
-$app->setLogger($app->get('config/file/1'));
-$app->setLogger($app->get('config/file/1'));
-
-$app->run();
-
-$d =$app->config('dd', 'dd');
-
-
-
-//$a =$app->config('xxx', 'd');
-//$a =$app->get('xxx.d') ?? 'd';
-
-
-//$this->cache;
-
-
-//psr-16
-//$value =$this->cache->get('key');
-
-//psr-6 di
-//$item =$this->cache->get('key');
-//$item->getValue();
-
-//$app =new app();
-//$app->set('redis', function(){
-//	return new \Redis();
-//});
-//
-//$redis =$this->redis;
-//$redis =$this->get('redis');
-//$redis->set();
-
-
-//$app->set('log.file', function(){
-//	return new \nx\log\file;
-//});
-//$app->log->setLogger($app->get('log.file'));
-//$app->log->notice();
-//
-//
-//$log =$app->get('log');
-//$log->notice();
-//
-//
-//$this->table('', 'default');
-//
-//$app['db.config'] =[];
-//
-//$app->set('db.config', []);
-//$app->get('db.config');
-//
-//
-//$app->set('\controller\index', function(){
-//	return new \nx\table();
-//} ,'default');
-//
-//$app->set('table', function(){
-//	return new \nx\table();
-//} ,'default');
-//
-//$table =$app->get('table');
-//$table->find();
-//
-//
-//
-//
-//$app->log->setLogger();
-//$app->log->notice();
-
-//class log{
-//	function notice(){
-//		//fore()
-//		$this->logger->notice();
-//
-//	}
-//}
-
-*/
-
-
-

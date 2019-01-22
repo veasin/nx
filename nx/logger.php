@@ -27,22 +27,17 @@ class logger implements \Psr\Log\LoggerAwareInterface, \Psr\Log\LoggerInterface{
 	 * @return $this
 	 */
 	public function setLogger(\Psr\Log\LoggerInterface $logger){
-		//$this->initialize();
 		$this->clients[]=$logger;
 		return $this;
 	}
 	/**
 	 * 可任意级别记录日志。
-	 * @param        $var
-	 * @param string $template
-	 * @param string $level
-	 * @return \nx\logger\logger
+	 * @param string $name
+	 * @return \Psr\Log\LoggerInterface
 	 */
-	public function __invoke($var, $template='{var}', $level='info'){
-		//$this->initialize();
-		if(array_key_exists($var, $this->clients)){
-			return $this->clients[$var];
-		} else return $this->log($level, '{var}',['var'=>$var]);
+	public function __invoke(string $name):\Psr\Log\LoggerInterface{
+		if(!array_key_exists($name, $this->clients)) return $this;
+		return $this->clients[$name];
 	}
 	/**
 	 * 可任意级别记录日志。
@@ -52,7 +47,6 @@ class logger implements \Psr\Log\LoggerAwareInterface, \Psr\Log\LoggerInterface{
 	 * @return $this
 	 */
 	public function log($level, $message, array $context=[]){
-		//$this->initialize();
 		foreach($this->clients as $logger){
 			$logger->log($level, $message, $context);
 		}
