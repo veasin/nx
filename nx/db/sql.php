@@ -213,7 +213,7 @@ class sql{
 		$sql =$this->_buildSELECT();
 		static::$history[] =$sql;
 		$result =$this->db->select($sql, $this->params);
-		if($result ===false) return false;
+		if($result ===null) return false;
 		$this->params =[];
 		$first =current($result);
 		if(is_array($first) && count($first) ==1) return current($first);
