@@ -10,11 +10,11 @@ namespace nx\filter;
 /**
  * Class filter
  * @package nx\filter
-* @method filter_key header(string $key=null) 返回指定 header 或全部
-* @method filter_key body(string $key=null) 返回指定 body 或全部
-* @method filter_key query(string $key=null) 返回指定 query 或全部
-* @method filter_key uri(string $key=null) 返回指定 uri 或全部
-* @method filter_key cookie(string $key=null) 返回指定 cookie 或全部
+ * @method filter_key header(string $key=null) 返回指定 header 或全部
+ * @method filter_key body(string $key=null) 返回指定 body 或全部
+ * @method filter_key query(string $key=null) 返回指定 query 或全部
+ * @method filter_key uri(string $key=null) 返回指定 uri 或全部
+ * @method filter_key cookie(string $key=null) 返回指定 cookie 或全部
  */
 class filter implements \ArrayAccess{
 	private $data = [];
@@ -56,7 +56,7 @@ class filter implements \ArrayAccess{
 		if(!is_string($name)) return $name;
 		if(isset($this->sources[$name]) || array_key_exists($name, $this->sources)) return $this->sources[$name];
 		$data =&$this->request[$name];
-		return $this->sources[$name] = ($data ?? null);
+		return $this->sources[$name] = &$data ?? null;
 	}
 	/**
 	 * 添加自定义规则
@@ -129,7 +129,6 @@ class filter implements \ArrayAccess{
 		return $this->key($key, $from, ...$args);
 	}
 	public function check($value, ...$rules){
-//		$value = $this->data[$this->key] ?? null;
 		foreach($rules as $rule){
 			$value = $this->_check($value, $rule);
 		}
@@ -137,10 +136,11 @@ class filter implements \ArrayAccess{
 	}
 	private function throw($rule, $code){
 		$e = new \nx\exception($rule, $code);
-		$e->key = $this->key;
+		$e->error = $rule;
 		throw $e;
 	}
-	private function _check($value = null, ...$args){
+	private function _check($value = null, $args){
+		if(is_string($args)) $args =[$args];
 		$code = $args['throw'] ?? $this->setup['throw'] ?? 0;
 		$rule = array_shift($args);
 		switch($rule){
@@ -149,6 +149,7 @@ class filter implements \ArrayAccess{
 				if(is_null($value)) $this->throw($rule, $code);
 				break;
 		}
+		\nx\app::$instance->logger->debug('filter : [{key} = {value}] {rule} {arg0}', ['key'=>$this->key,'rule'=>$rule, 'value'=>$value ?? 'null', 'arg0'=>$args[0] ?? '']);
 		if(is_null($value)) return null;
 		switch($rule){
 			case 'i':
@@ -226,10 +227,10 @@ class filter implements \ArrayAccess{
 				if($value !== $args[1] ?? null) $this->throw($rule, $code);
 				break;
 			case '>':
-				if($value > $args[0] ?? null) $this->throw($rule, $code);
+				if($value <= $args[0] ?? 0) $this->throw($rule, $code);
 				break;
 			case '<':
-				if($value < $args[0] ?? null) $this->throw($rule, $code);
+				if($value >= $args[0] ?? 0) $this->throw($rule, $code);
 				break;
 			case 'chinese':
 				if(preg_match('/^[\x{3400}-\x{4db5}|\x{4e00}-\x{9fa5}|\x{f900}-\x{fa2c}]+$/iu', $value) === 0) $this->throw($rule, $code);
