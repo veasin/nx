@@ -25,7 +25,8 @@ trait rest{
 					}
 				}else header($header.': '.$value);
 			}
-			echo json_encode($out->get(), JSON_UNESCAPED_UNICODE);
+			$r =$out();
+			if(!is_null($r)) echo json_encode($r, JSON_UNESCAPED_UNICODE);
 		});
 	}
 }
