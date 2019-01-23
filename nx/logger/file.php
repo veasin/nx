@@ -45,8 +45,8 @@ class file extends dump implements \Psr\Log\LoggerInterface{
 	}
 	private function write($level, $string, $end="\n"){
 		$file =is_string($this->level[$level]) ?$this->level[$level] :$this->file;
-		if(!array_key_exists($file, $this->handles)) $this->handles[$file]=fopen($this->path.$file, 'a');
-		fwrite($this->handles[$file], $string.$end);
+		if(!array_key_exists($file, $this->handles)) $this->handles[$file]=@fopen($this->path.$file, 'a');
+		if($this->handles[$file]) fwrite($this->handles[$file], $string.$end);
 	}
 	/**
 	 * 可任意级别记录日志。
