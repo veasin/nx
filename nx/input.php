@@ -125,6 +125,11 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 			case 'file':
 			case 'cookie':
 				$data =&$this[$from];
+				if(null !==$key){
+					$logger=\nx\app::$instance->logger;
+					$logger->info('in : {from}[{key}]', ['key'=>$key, 'from'=>$from]);
+					$logger->debug('  : {value}', ['value'=>json_encode($data[$key] ?? null)]);
+				}
 				return null ===$key ?$data :$data[$key]??null;
 			case 'uri':
 				return null ===$key ?$this->data['uri'] :($this->data['params'][$key]??null);

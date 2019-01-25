@@ -54,7 +54,7 @@ class pdo{
 	 * @return null|int
 	 */
 	public function insert(string $sql, array $params=[]){
-		if($this->app) $this->app->logger->debug('sql: {sql} {params}', ['sql'=>$sql, 'params'=>json_encode($params, JSON_UNESCAPED_UNICODE)]);
+		if($this->app) $this->app->logger->info('sql: {sql} {params}', ['sql'=>$sql, 'params'=>json_encode($params, JSON_UNESCAPED_UNICODE)]);
 		$db=$this->db();
 		$ok=false;
 		if(0 === count($params)){
@@ -81,7 +81,7 @@ class pdo{
 	 * @return array|null
 	 */
 	public function select(string $sql, array $params=null){
-		if($this->app) $this->app->logger->debug('sql: {sql} {params}', ['sql'=>$sql, 'params'=>json_encode($params, JSON_UNESCAPED_UNICODE)]);
+		if($this->app) $this->app->logger->info('sql: {sql} {params}', ['sql'=>$sql, 'params'=>json_encode($params, JSON_UNESCAPED_UNICODE)]);
 		$db=$this->db();
 		$sth=$db->prepare($sql);
 		if(false === $sth) return $this->failed();
@@ -97,7 +97,7 @@ class pdo{
 	 * @return int|null
 	 */
 	public function execute(string $sql, array $params=null){
-		if($this->app) $this->app->logger->debug('sql: {sql} {params}', ['sql'=>$sql, 'params'=>json_encode($params, JSON_UNESCAPED_UNICODE)]);
+		if($this->app) $this->app->logger->info('sql: {sql} {params}', ['sql'=>$sql, 'params'=>json_encode($params, JSON_UNESCAPED_UNICODE)]);
 		$db=$this->db();
 		$sth=$db->prepare($sql);
 		if(false === $sth) return $this->failed();
@@ -110,7 +110,7 @@ class pdo{
 	 * @return null|mixed
 	 */
 	public function transaction(callable $fun){
-		if($this->app) $this->app->logger->debug('sql transaction begin:');
+		if($this->app) $this->app->logger->info('sql transaction begin:');
 		$db=$this->db();
 		$db->beginTransaction();
 		$rollback=$fun($this);
@@ -118,7 +118,7 @@ class pdo{
 			$db->rollBack();
 			$rollback=null;
 		}else $db->commit();
-		if($this->app) $this->app->logger->debug('sql transaction end.');
+		if($this->app) $this->app->logger->info('sql transaction end.');
 		return $rollback;
 	}
 }

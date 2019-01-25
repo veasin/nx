@@ -27,9 +27,9 @@ trait controllers{
 				if(!array_key_exists($_controller, $this->trait_controllers)){
 					$exists=class_exists($_controller, true);
 					$this->trait_controllers[$_controller] =$exists ?new $_controller($this) :null;
-					$this->logger->debug('control: {controller} {exist}', ['controller'=>$_controller, 'exist'=>$exists ?'true' :'false']);
+					$this->logger->info('control: {controller} {exist}', ['controller'=>$_controller, 'exist'=>$exists ?'true' :'false']);
 				}
-				$this->logger->debug('control call: ->{action}()', ['action'=>$call[1]]);
+				$this->logger->info('control call: ->{action}()', ['action'=>$call[1]]);
 				return isset($this->trait_controllers[$_controller]) ?call_user_func_array([$this->trait_controllers[$_controller], $call[1]], $args) :null;
 			}
 		}

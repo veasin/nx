@@ -75,6 +75,7 @@ class route{
 				$is_match=preg_match($pattern, $this->uri, $params);
 			}
 			if($is_match){//如果匹配规则成功
+				$this->app->logger->info('route match: {uri}', ['uri'=>$uri]);
 				$_params=[];
 				if(count($params) > 0){//从路由中拿出参数并去掉命名
 					ksort($params);

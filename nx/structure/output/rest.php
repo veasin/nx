@@ -12,6 +12,7 @@ trait rest{
 	protected function nx_structure_output_rest(){
 		$this->out->setRender(function(\nx\output $out){
 			$status =$out->buffer['status'] ?? 200;
+			$this->logger->info('rest response status : {status}', ['status'=>$status]);
 			header($_SERVER["SERVER_PROTOCOL"].' '.$status);//HTTP/1.1
 			header_remove('X-Powered-By');
 
