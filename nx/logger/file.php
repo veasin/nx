@@ -32,9 +32,9 @@ class file extends dump implements \Psr\Log\LoggerInterface{
 	private $uuid ='nx';
 	protected $defIndent ='{uuid} {micro+} ';
 	public function __construct($setup=[]){
-		$this->path=realpath($setup['path'] ?? \nx\app::$instance->path.'/logs/').DIRECTORY_SEPARATOR;
+		$this->path=realpath($setup['path'] ?? \nx\app::$instance->getPath('logs')).DIRECTORY_SEPARATOR;
 		$this->file=$setup['file'] ?? date('Ymd').'.log';
-		$this->uuid =$setup['uuid'] ??\nx\app::$instance->uuid;
+		$this->uuid =$setup['uuid'] ??\nx\app::$instance->getUUID();
 		if(array_key_exists('level', $setup)) $this->level=$setup['level'] + $this->level;
 		$this->start=microtime(true);
 		$this->log('',"{datetime}:[{method}]{uri}",  [

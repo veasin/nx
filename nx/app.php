@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace nx;
 
 /**
- * Class app [psr-11 DI]
+ * Class app
  * @package nx
  * @method \Psr\Container\ContainerInterface container($name) 返回指定容器
  * @method mixed in($name=null, ...$name2=null) 返回输入内容
@@ -50,30 +50,6 @@ class app{
 	 */
 	public $router=null;
 	/**
-	 * @var array 预定义缓存存储
-	 */
-	//protected $buffer=[];
-	/**
-	 * @var array 应用设定
-	 */
-	protected $setup=[];
-	/**
-	 * @var string 工作路径
-	 */
-	public $path=null;
-	/**
-	 * @var array 引入trait列表
-	 */
-	private $traits=[];
-	/**
-	 * @var string 唯一id
-	 */
-	public $uuid='nx';
-	/**
-	 * @var array 直接缓存结果 config key
-	 */
-	protected $config=[];
-	/**
 	 * 构建app
 	 * app constructor.
 	 * @param array $setup     传入应用的配置 如数据库 路由 缓存等
@@ -83,14 +59,7 @@ class app{
 		(defined('AGREE_LICENSE') && AGREE_LICENSE === true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
 		//静态实例
 		static::$instance=$this;
-		//实例id
-		$this->uuid=str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
-		//设定工作目录
-		$this->path=realpath($this->path ?? dirname($_SERVER['SCRIPT_FILENAME'])).'/';
-		//读取默认setup配置
-		//if(is_array($setup)) $setup =new container\arr(array_merge($this->setup, $setup));
 		//创建默认容器
-		//$this->container =$overwrite['container'] ?? new container\container(['setup'=>[$setup]]+($setup->get('ci')??[]));
 		$this->container=$overwrite['container'] ?? new container($setup);
 		//初始化请求
 		$this->in=$overwrite['in'] ?? new input();
@@ -101,22 +70,26 @@ class app{
 		//创建路由
 		$this->router=$overwrite['router'] ?? $this->container->create('router');
 		//初始化traits
-		$this->_initTraits(array_map(function($_trait){//初始化trait
+		foreach(class_uses($this) as $_trait){
 			$_method=str_replace('\\', '_', $_trait);
-			return method_exists($this, $_method) ?$_method :false;
-		}, class_uses($this)));
+			method_exists($this, $_method) && call_user_func([$this, $_method]);
+		}
 	}
 	/**
-	 * @param array $traits 初始化trait，执行初始化方法
+	 * @var string 唯一id
 	 */
-	private function _initTraits($traits){
-		$_traits=[];
-		foreach($traits as $_trait=>$_method){
-			$_depend=$_method ?$this->$_method() :false;
-			$this->traits[$_trait]=$_depend ?false :true;
-			if($_depend) $_traits[$_trait]=$_method;
-		}
-		if(!empty($_traits)) $this->_initTraits($_traits);
+	private $uuid=null;
+	public function getUUID(){
+		if(is_null($this->uuid)) $this->uuid=str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
+		return $this->uuid;
+	}
+	/**
+	 * @var string 唯一id
+	 */
+	private $real_path=null;
+	public function getPath(string $subPath=null){
+		if(is_null($this->real_path)) $this->real_path=realpath($this->path ?? dirname($_SERVER['SCRIPT_FILENAME'])).DIRECTORY_SEPARATOR;
+		return $this->real_path.($subPath ?? '');
 	}
 	/**
 	 * 结束脚本
