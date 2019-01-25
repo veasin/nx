@@ -14,7 +14,6 @@ namespace nx\structure\run;
 trait middleware{
 	public function run($router=null, ...$args){
 		$stack=[];
-		$result=null;
 		$router=$router ?? $this->router;
 		$g=$router->next();
 		$next=function(...$_args) use ($stack, &$next, $g, $args){
