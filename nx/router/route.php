@@ -57,6 +57,7 @@ class route{
 		$this->method=$setup['method'] ?? $this->app->in['method'] ?? 'unknown';
 	}
 	public function next(){
+		$this->app->logger->info('route rui: {uri}', ['uri'=>$this->uri]);
 		foreach($this->rules as $rule){//0 method 1 uri 2 action[controller, action, args] 3 action...
 			if(empty($rule[2])) continue;//如果没定义处理方法，那么继续
 			$method=array_shift($rule);

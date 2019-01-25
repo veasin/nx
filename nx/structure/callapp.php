@@ -24,7 +24,7 @@ namespace nx\structure;
  * @method true|array|int transaction(callable $fun) 返回事务
  * @method \object di($name, ...$args) 返回一个注入对象
  * @method in() 返回全部输入内容
- * @method out(string $string) 设置默认输出方法
+ * @method out(string $string=null) 设置默认输出方法
  * @method initTraits() 初始化引用的trait
  * @property \nx\input  $in  输入
  * @property \nx\output $out 输出
