@@ -77,12 +77,8 @@ class route{
 			}
 			if($is_match){//如果匹配规则成功
 				$this->app->logger->info('route match: {uri}', ['uri'=>$uri]);
-				$_params=[];
-				if(count($params) > 0){//从路由中拿出参数并去掉命名
-					ksort($params);
-					for($i=1, $max=count($params); $i < $max; $i++){
-						if(isset($params[$i])) $_params[]=$params[$i];else break;
-					}
+				for($i=0, $max=count($params); $i < $max; $i++){
+					unset($params[$i]);
 				}
 				$this->calls=[];
 				foreach($rule as $call){
@@ -90,14 +86,14 @@ class route{
 						if(array_key_exists($call, $this->actions)){
 							foreach($this->actions[$call] as $_call){
 								$this->calls[]=$_call;
-								$this->app->in['params'] =array_key_exists(2, $_call) ?array_merge($_params, $_call[2] ?? []) :$_params;
-								yield [$_call[0], $_call[1]]=>$this->app->in['params'];
+								$this->app->in['params'] =array_key_exists(2, $_call) ?array_merge($params, $_call[2] ?? []) :$params;
+								yield [$_call[0], $_call[1]];
 							}
 						}
 					}else{
 						$this->calls[]=$call;
-						$this->app->in['params'] =array_key_exists(2, $call) ?array_merge($_params, $call[2] ?? []) :$_params;
-						yield [$call[0], $call[1]]=>$this->app->in['params'];
+						$this->app->in['params'] =array_key_exists(2, $call) ?array_merge($params, $call[2] ?? []) :$params;
+						yield [$call[0], $call[1]];
 					}
 				}
 			}

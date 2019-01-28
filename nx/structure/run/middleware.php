@@ -13,16 +13,13 @@ namespace nx\structure\run;
  */
 trait middleware{
 	public function run($router=null, ...$args){
-		$stack=[];
 		$router=$router ?? $this->router;
 		$g=$router->next();
-		$next=function(...$_args) use ($stack, &$next, $g, $args){
+		$next=function(...$_args) use (&$next, $g, $args){
 			if($g->valid()){
-				$call=$g->key();
-				$call_args=$g->current();
-				$as=array_merge([$next], $_args, $call_args, $args);
+				$call=$g->current();
 				$g->next();
-				$result=$this->control($call, ...$as);
+				$result=$this->control($call, $next, ...$_args, ...$args);
 			}else $result=$args[0] ?? null;
 			return $result;
 		};
