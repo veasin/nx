@@ -13,7 +13,7 @@ class config implements \Psr\Container\ContainerInterface{
 	private $data=[];
 	private $cache=[];
 	public function __construct($setup=[]){
-		$this->path =$setup['path'] ?? \nx\app::$instance->path.'/config/';
+		$this->path =$setup['path'] ?? \nx\app::$instance->getPath('/config/');
 		$this->data =$setup['data'] ?? [];
 	}
 	/**
