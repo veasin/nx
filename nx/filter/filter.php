@@ -35,7 +35,7 @@ class filter implements \ArrayAccess{
 			'request'=>$setup['request'] ?? null,
 			'from'=>$setup['from'] ?? 'post',
 		];
-		$this->request =$setup['request'] ?? \nx\app::$instance->in;
+		$this->request =$setup['request'] ?? \nx\app::$instance->in ?? [];
 	}
 	/**
 	 * 添加数据来源
@@ -55,6 +55,7 @@ class filter implements \ArrayAccess{
 	private function getSource($name = 'default'){
 		if(!is_string($name)) return $name;
 		if(isset($this->sources[$name]) || array_key_exists($name, $this->sources)) return $this->sources[$name];
+		if($name =='uri') $name ='params';
 		$data =&$this->request[$name];
 		return $this->sources[$name] = &$data ?? null;
 	}
