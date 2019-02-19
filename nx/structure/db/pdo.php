@@ -19,7 +19,7 @@ trait pdo{
 	 * @return \PDO
 	 */
 	public function db($name='default'){
-		if(!array_key_exists($name, $this->pdo_dbs)) $this->pdo_dbs[$name]=$this->container->create('db');
+		if(!array_key_exists($name, $this->pdo_dbs)) $this->pdo_dbs[$name]=$this->container->create('db', $name);
 		return $this->pdo_dbs[$name];
 	}
 }

@@ -33,7 +33,6 @@ class pdo{
 	private function db(){
 		$now=time();
 		if(null === $this->PDO || ($this->timeout > 0 && $this->timeout < $now)){
-			//var_dump($this->setup);
 			$this->PDO=new \PDO($this->setup['dsn'], $this->setup['username'], $this->setup['password'], $this->setup['options']);
 			$this->timeout=($this->setup['timeout'] ?? 0 > 0) ?$now + $this->setup['timeout'] :0;
 		}
