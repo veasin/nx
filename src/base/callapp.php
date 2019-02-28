@@ -8,14 +8,11 @@
 namespace nx\base;
 
 /**
- * Trait call
- * @package origin\traits
+ * Trait callApp
+ * @package nx\base
  * @method log($any, $template=false) 输出日志
- * @method main(array $route) 执行默认控制方法
- * @method router() 执行路由方法
  * @method string i18n() 返回对应语言文本
  * @method array|string|null config(string $word, $params=null) 读取配置
- * @method \nx\response\view view($file='', $data=[]) 返回模板试图
  * @method filter($value, $def=null, $filter=null, ...$pattern) 根据filter来对$value进行过滤，默认返回$def
  * @method \PDO db($name='default') 根据$app->setup['db/pdo'] 的配置创建pdo对象
  * @method int|false insertSQL($sql, array $params=[], $config='default') 执行插入数据动作->insertSQL('INSERT INTO cds (`interpret`, `titel`) VALUES (?, ?)', ['veas', 'new cd']);
@@ -23,12 +20,16 @@ namespace nx\base;
  * @method false|int executeSQL($sql, array $params=[], $config='default') 执行默认控制方法->executeSQL('UPDATE `cds` SET `interpret` =? WHERE `cds`.`id` = ?', ['vea', 14])
  * @method \nx\db\table\sql table($name, $primary='id', $config='default') 返回一个sql对象
  * @method true|array|int transaction(callable $fun) 返回事务
- * @method \object di($name, ...$args) 返回一个注入对象
+ * @property \nx\request request 输入对象
+ * @property \nx\response response 输出对象
  * @method request() 返回全部输入内容
  * @method response(array|string $string) 设置默认输出方法
  * @method in() 返回全部输入内容
  * @method out(array|string $string) 设置默认输出方法
- * @method initTraits() 初始化引用的trait
+ * @property \nx\input in 输入对象
+ * @property \nx\output out 输出对象
+ * @method string getPath(string $subPath) 获取相对app的目录
+ * @method string getUUID() 获取唯一id
  */
 trait callApp{
 	/**
