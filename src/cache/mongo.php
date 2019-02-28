@@ -13,6 +13,7 @@ namespace nx\cache;
  *
  * Class mongodb
  * @package nx\cache
+ * @deprecated 2019-02-28
  */
 trait mongodb{
 	protected function nx_cache_mongodb(){

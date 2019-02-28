@@ -5,7 +5,7 @@
  * Date: 2018/12/18 018
  * Time: 13:44
  */
-namespace nx\mvc\traits;
+namespace nx\base;
 
 /**
  * Trait call
@@ -25,7 +25,9 @@ namespace nx\mvc\traits;
  * @method true|array|int transaction(callable $fun) 返回事务
  * @method \object di($name, ...$args) 返回一个注入对象
  * @method request() 返回全部输入内容
- * @method response(string $string) 设置默认输出方法
+ * @method response(array|string $string) 设置默认输出方法
+ * @method in() 返回全部输入内容
+ * @method out(array|string $string) 设置默认输出方法
  * @method initTraits() 初始化引用的trait
  */
 trait callApp{

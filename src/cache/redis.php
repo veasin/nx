@@ -11,6 +11,7 @@ namespace nx\cache;
  *
  * Class redis
  * @package nx\cache
+ * @deprecated 2019-02-28
  */
 trait redis{
 	protected function nx_cache_redis(){

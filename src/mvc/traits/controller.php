@@ -7,6 +7,8 @@
  */
 namespace nx\mvc\traits;
 
+use nx\base\callApp;
+
 trait controller{
 	use callApp;
 	static public $instance=null;
@@ -31,10 +33,10 @@ trait controller{
 		$this->route=$route;
 		static::$instance=$this;
 		//init use trait
-		$this->initTraits();
+		//$this->initTraits();
 		//load from app
-		if(is_null($this->response)) $this->response=&$this->app->response;
-		if(is_null($this->request)) $this->request=&$this->app->request;
+		//if(is_null($this->response)) $this->response=&$this->app->response;
+		//if(is_null($this->request)) $this->request=&$this->app->request;
 	}
 	/**
 	 * @param            $name

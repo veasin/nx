@@ -4,6 +4,7 @@ namespace nx\mvc;
 /**
  * Class model
  * @package nx\mvc
+ * @deprecated 2019-02-28
  *
  * @method log($any, $template =false) 输出日志
  * @method main(array $route) 执行默认控制方法

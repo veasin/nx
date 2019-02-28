@@ -1,6 +1,11 @@
 <?php
 namespace nx\mvc;
 
+/**
+ * Class view
+ * @package nx\mvc
+ * @deprecated 2019-02-28
+ */
 class view extends \nx\response{
 	static $_cls = __CLASS__;
 	static $_err = null;

@@ -2,6 +2,11 @@
 
 namespace nx;
 
+/**
+ * Class response
+ * @package nx
+ * @deprecated 2019-02-28
+ */
 class response extends o2{
 	private $status_code = [//请求已被接受，需要继续处理
 		100 => "Continue",

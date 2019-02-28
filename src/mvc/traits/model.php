@@ -8,11 +8,13 @@
 
 namespace nx\mvc\traits;
 
+use nx\base\callApp;
+
 trait model{
 	use callApp;
 	public function __construct(...$setup){
 		$this->app = \nx\app::$instance;
-		$this->initTraits();
+		//$this->initTraits();
 		//如果本身存在init方法，那么就立刻执行
 		if(method_exists($this, 'init')) $this->init(...$setup);
 	}

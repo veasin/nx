@@ -45,58 +45,72 @@ class app{
 	 * @var string 工作路径
 	 */
 	public $path='';
+	protected $traits=[];
 	/**
-	 * @var array 引入trait列表
+	 * @var \nx\input
 	 */
-	private $traits=[];
+	public $in =null;
 	/**
-	 * @var string 唯一id
+	 * @var \nx\output
 	 */
-	public $uid='';
-	/**
-	 * @var array 直接缓存结果 config key
-	 */
-	protected $config=[];
+	public $out =null;
 	/**
 	 * 构建app
 	 * app constructor.
 	 * @param array $setup 传入应用的配置 如数据库 路由 缓存等
-	 * @param \nx\request|null  $request 可以注入请求对象覆盖默认
-	 * @param \nx\response|null $response 可以注入响应对象覆盖默认
+	 * @param array $setup     传入应用的配置 如数据库 路由 缓存等
+	 * @param array $overwrite 可选重写对象
 	 */
-	public function __construct($setup=[], \nx\request $request=null, \nx\response $response=null){
+	public function __construct($setup=[], $overwrite=[]){
 		(defined('AGREE_LICENSE') && AGREE_LICENSE === true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
-		//实例id
-		$this->uid=str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
-		static::$instance=$this;//静态实例
-		if(!empty($setup)) $this->setup=array_merge($this->setup, $setup);//合并配置文件
-		$this->config =$this->setup['config'] ?? [];
-		if($this->path == '') $this->path=dirname($_SERVER['SCRIPT_FILENAME']);//设定工作目录
-		$this->request=$request ?? new request();//初始化请求
-		$this->response=$response ?? new response();//初始化相应
-		$this->_initTraits(array_map(function($_trait){//初始化trait
+		//静态实例
+		static::$instance=$this;
+		$this->setup =array_merge($this->setup ??[] , $setup ??[]);
+		$this->uuid=$setup['uuid'] ?? $this->uuid ?? str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
+		if($this->ver ?? 1.0 >1.5){
+			$this->in =$overwrite['in'] ?? new input();
+			$this->out =$overwrite['out'] ?? new output();
+		} else {
+			$this->request=$overwrite['request'] ?? new request([]);//初始化请求
+			$this->response=$overwrite['response'] ?? new response();//初始化相应
+			$this->in =&$this->request;
+			$this->out =&$this->response;
+		}
+		//初始化traits
+		foreach(class_uses($this) as $_trait){
 			$_method=str_replace('\\', '_', $_trait);
-			return method_exists($this, $_method) ?$_method :false;
-		}, class_uses($this)));
+			if(method_exists($this, $_method)){
+				$r =call_user_func([$this, $_method]);
+				if(is_iterable($r)){
+					$r->current();
+					$this->traits[] =$r;
+				}
+			}
+		}
 	}
 	/**
-	 * @param array $traits 初始化trait，执行初始化方法
+	 * @var string 唯一id
 	 */
-	private function _initTraits($traits){
-		$this->buffer['traits']=[];
-		foreach($traits as $_trait=>$_method){
-			$_depend=$_method ?$this->$_method() :false;
-			$this->traits[$_trait]=$_depend ?false :true;
-			if($_depend) $this->buffer['traits'][$_trait]=$_method;
-		}
-		if(!empty($this->buffer['traits'])) $this->_initTraits($this->buffer['traits']);
+	private $uuid=null;
+	public function getUUID(){
+		return $this->uuid;
+	}
+	/**
+	 * @var string 唯一id
+	 */
+	private $real_path=null;
+	public function getPath(string $subPath=null){
+		if(is_null($this->real_path)) $this->real_path=realpath($this->path ?? dirname($_SERVER['SCRIPT_FILENAME'])).DIRECTORY_SEPARATOR;
+		return $this->real_path.($subPath ?? '');
 	}
 	/**
 	 * 结束脚本
 	 */
 	public function __destruct(){
-		$this->response =null;//先让response失效，优先输出
-		$this->log("end.\n");
+		$this->out =null;//先让response失效，优先输出
+		foreach(array_reverse($this->traits) as $trait){
+			$trait->next();
+		}
 	}
 	/**
 	 * 魔术方法
@@ -115,8 +129,7 @@ class app{
 				return $this->control(404);
 				break;
 			case 'control':
-				if(!$this->request['cli']) header('HTTP/1.0 404 Not Found');
-				die();
+				return call_user_func_array($args[0] ?? [$this, 'main'], $args);
 				break;
 			case 'i18n':
 				return $args[0];
@@ -138,6 +151,8 @@ class app{
 				die('need [trait nx\db\table].');
 			case 'request':
 			case 'response':
+			case 'in':
+			case 'out':
 				return ($this->$name)(...$args);
 			default:
 				die('nothing for ['.$name.'].');
@@ -146,16 +161,17 @@ class app{
 	/**
 	 * 创建一个实例
 	 * @param array $setup
+	 * @param array $overwrite
 	 * @return static
 	 */
-	static public function factory($setup=[]){
-		return new static($setup);
+	static public function factory($setup=[], $overwrite=[]){
+		return new static($setup, $overwrite);
 	}
 	/**
 	 * 执行应用
 	 * @param array ...$route
 	 */
 	public function run(...$route){
-		return 0 === count($route) ?$this->router() :$this->control(...$route);
+		return $this->control(...$route);
 	}
 }

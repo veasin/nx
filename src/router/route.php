@@ -5,6 +5,7 @@ namespace nx\router;
  * Class route
  * @trait   app
  * @package nx\router
+ * @deprecated 2019-02-28
  */
 trait route{
 	protected function nx_router_route(){
@@ -14,7 +15,7 @@ trait route{
 	 * 默认路由方法 循环匹配路由
 	 * @return mixed
 	 */
-	public function router(){
+	protected function router(){
 		if(empty($this->buffer['router/route']['rules'])) return $this->control(404);//如果规则为空那么直接404
 		$method=$this->request->method();
 		$uri=trim((isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING'], '/');
@@ -71,6 +72,13 @@ trait route{
 			}
 		}
 		if($no_match) $this->log(' - match: nothing(404)');
+	}
+	/**
+	 * 执行应用
+	 * @param array ...$route
+	 */
+	public function run(...$route){
+		return 0 === count($route) ?$this->router() :$this->control(...$route);
 	}
 	/**
 	 * 添加路由规则

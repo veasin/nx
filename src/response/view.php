@@ -1,6 +1,11 @@
 <?php
 namespace nx\response;
 
+/**
+ * Trait view
+ * @package nx\response
+ * @deprecated 2019-02-28
+ */
 trait view{
 	/**
 	 * @var \nx\mvc\view
@@ -19,6 +24,6 @@ trait view{
 	 */
 	public function view($file='', $data=[]){
 		$it=is_a($this, 'nx\app') ?$this :$this->app;
-		return new \nx\mvc\view($file, $data, $it->path.'/views/');
+		return new \nx\mvc\view($file, $data, $it->getPath('./views/'));
 	}
 }

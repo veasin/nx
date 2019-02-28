@@ -1,6 +1,11 @@
 <?php
 namespace nx;
 
+/**
+ * Class request
+ * @package nx
+ * @deprecated 2019-02-28
+ */
 class request extends o2{
 	private $is_cli=false;
 	public function __construct($data=[]){

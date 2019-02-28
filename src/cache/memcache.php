@@ -11,6 +11,7 @@ namespace nx\cache;
  *
  * Class memcache
  * @package nx\cache
+ * @deprecated 2019-02-28
  */
 trait memcache{
 	protected function nx_cache_memcache(){

@@ -1,6 +1,11 @@
 <?php
 namespace nx\response;
 
+/**
+ * Trait api
+ * @package nx\response
+ * @deprecated 2019-02-28
+ */
 trait api{
 	/**
 	 *

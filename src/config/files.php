@@ -7,10 +7,14 @@ namespace nx\config;
  * @package nx\config
  */
 trait files{
+	/**
+	 * @var array 直接缓存结果 config key
+	 */
+	protected $config=[];
 	protected function nx_config_files(){
 		$it=is_a($this, 'nx\app') ?$this :$this->app;
 		$it->buffer['config/files']=$it->setup['config/files'] ?? [];
-		$it->buffer['config/files']['path']=$it->buffer['config/files']['path'] ?? $it->path.'/config/';
+		$it->buffer['config/files']['path']=$it->buffer['config/files']['path'] ?? $it->getPath('./config/');
 		$it->buffer['config/files']['cache']=$it->setup['config'] ?? [];
 	}
 	/**
