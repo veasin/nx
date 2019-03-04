@@ -31,11 +31,11 @@ trait uri{
 				$pattern='#^'.preg_replace_callback('#([d|w]?)\:([a-zA-Z0-9_]*)#', function($matches){
 						$m=['d'=>'\d+', 'w'=>'\w+', ''=>'[^/]+'];
 						return '('.('' != $matches[2] ?'?P<'.$matches[2].'>' :'').$m[$matches[1]].')';
-					}, $uri).($end == '+' ?'#' :'$#');
+					}, $_uri).($end == '+' ?'#' :'$#');
 				$is_match=preg_match($pattern, $uri, $params);
 			}
 			if($is_match){//如果匹配规则成功
-				$this->log("route match: {$uri}");
+				$this->log("route match: {$_uri}");
 				for($i=0, $max=count($params); $i < $max; $i++){
 					unset($params[$i]);
 				}

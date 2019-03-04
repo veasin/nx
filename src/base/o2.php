@@ -12,7 +12,7 @@ trait o2{
 	//IteratorAggregate
 	public function getIterator(){ return new \ArrayIterator($this->data); } //foreach($this as ..)
 	//Countable
-	public function count(){ return count($this->data); } //->count($this)
+	public function count(){ return count($this->data??[]); } //->count($this)
 	//ArrayAccess
 	public function offsetSet($offset, $value){ $this->data[$offset]=$value; }   //$this['xx'] ='xx'
 	public function offsetGet($offset){ return $this->data[$offset]; }           //=$this['zz']

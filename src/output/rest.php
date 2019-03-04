@@ -10,7 +10,7 @@ namespace nx\output;
 trait rest{
 	protected function nx_output_rest(){
 		$this->out->setRender(function(\nx\output $out){
-			$status =$out->buffer['status'] ?? 200;
+			$status =$out->buffer['status'] ?? (count($out) ?200 :404);
 			$this->log( 'rest response status : '.$status);
 			header($_SERVER["SERVER_PROTOCOL"].' '.$status);//HTTP/1.1
 			header_remove('X-Powered-By');
