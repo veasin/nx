@@ -23,7 +23,8 @@ trait rest{
 					foreach($value as $v){
 						header($header.': '.$v);
 					}
-				}else header($header.': '.$value);
+				}elseif(is_int($header)) header($value);
+				else header($header.': '.$value);
 			}
 			$r =$out();
 			if(!is_null($r)) echo json_encode($r, JSON_UNESCAPED_UNICODE);
