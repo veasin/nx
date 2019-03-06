@@ -127,7 +127,7 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 				$data =&$this[$from];
 				if(null !==$key){
 					$app=\nx\app::$instance;
-					$app->log("in : {$from}[{$key}]");
+					$app->log("       ->{$from}[{$key}]");
 					//$app->log('  : {value}', ['value'=>json_encode($data[$key] ?? null)]);
 				}
 				return null ===$key ?$data :$data[$key]??null;

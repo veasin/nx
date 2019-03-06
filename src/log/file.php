@@ -19,7 +19,7 @@ trait file{
 		$this->log('{datetime}:[{method}]{uri}', '{var}');
 
 		yield;
-		$this->log("end.\n", '{var}');
+		$this->log("end.\n");
 	}
 	/**
 	 * @param      $var

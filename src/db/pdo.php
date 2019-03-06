@@ -33,7 +33,7 @@ trait pdo{
 			$options=array_key_exists('options', $config) && is_array($config['options']) ?$config['options']+$this->_nx_db_pdo_options :$this->_nx_db_pdo_options;
 			if(array_key_exists('timeout', $config) && $config['timeout'] >0) $timeout[$name] =time() +$config['timeout'];
 			$db[$name]=new \PDO($config['dsn'], $config['username'], $config['password'], $options);
-			$this->log('pdo dsn:'.$config['dsn']);
+			$this->log('pdo: '.$config['dsn']);
 		}
 		return $db[$name];
 	}

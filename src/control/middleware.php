@@ -8,7 +8,7 @@
 namespace nx\control;
 
 trait middleware{
-	protected $trait_controllers=[];
+	protected $cacheControllers=[];
 	/**
 	 * @param callable|array|null $call
 	 * @param mixed               ...$args
@@ -21,17 +21,17 @@ trait middleware{
 			return call_user_func_array($call[1]->bindTo($call[0] ?? $this), $args);
 		}else{
 			if(isset($call[0]) && isset($call[1]) && is_string($call[0]) && is_string($call[1])){//['user','check'],
-				$class=get_class($this);
-				$r =strrpos($class, '\\');
-				$_controller=substr($class, 0, $r?$r:strlen($class)).'\controllers\\'.$call[0];
-				if(!array_key_exists($_controller, $this->trait_controllers)){
-					$exists=class_exists($_controller, true);
-					$this->trait_controllers[$_controller] =$exists ?new $_controller($this) :null;
-					$_exists =$exists ?'exist' :'no exist';
-					$this->log("control [{$_controller}] : {$_exists}");
+				$pos =strrpos(__CLASS__, '\\');
+				$name=substr(__CLASS__, 0, $pos?$pos:strlen(__CLASS__)).'\controllers\\'.$call[0];
+				if(!array_key_exists($name, $this->cacheControllers)) $this->cacheControllers[$name] =class_exists($name, true) ?new $name($this) :null;
+				if($this->cacheControllers[$name] ?? false){
+					$exists =method_exists($this->cacheControllers[$name], $call[1]);
+					$this->log("     {$name}->{$call[1]}()".($exists ?'' :' (✗)'));
+					return ($exists) ?call_user_func_array([$this->cacheControllers[$name], $call[1]], $args) :null;
+				} else {
+					$this->log("     {$name} (✗)");
+					return null;
 				}
-				$this->log("control call: ->{$call[1]}()");
-				return isset($this->trait_controllers[$_controller]) ?call_user_func_array([$this->trait_controllers[$_controller], $call[1]], $args) :null;
 			}
 		}
 	}
