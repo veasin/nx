@@ -161,6 +161,7 @@ trait filterThrow{
 						break;
 				}
 			}
+			if('uri'===$check['from']) $check['from'] ='params';
 			$source =(is_array($source) && count($source)) ?$source :(is_string($check['from']) ?$this->in[$check['from']] :$check['from']);
 			$value =($source)[$check['name']] ?? null;
 			$check['value']=$value;
