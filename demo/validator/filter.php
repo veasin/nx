@@ -81,7 +81,7 @@ class app extends \nx\app{//框架的根基是trait 需要先use，如果没有u
 				'default',
 				'>0',
 				'remove',
-			]);
+			], ['empty'=>['throw'=>404]]);
 			var_export($v6);
 
 			//$v7=$this->filter('category_id', [
@@ -222,29 +222,30 @@ class app extends \nx\app{//框架的根基是trait 需要先use，如果没有u
 app::factory([
 	'filter/throw'=>[
 		'throw'=>444,
-		'message'=>[
-			'unknown'=>'未知规则错误: {rule}',
-			'from'=>'custorm from 无法找到指定来源: {from}[{name}]',
-			'default'=>'来源为空: {from}[{name}]',
-			'>'=>'{from}[{name}]值不大于{check}',
-			'<'=>'{from}[{name}]值不小于{check}',
-			'>='=>'{from}[{name}]值小于{check}',
-			'<='=>'{from}[{name}]值大于{check}',
-			'array'=>'无效的数组值{from}[{name}]',
-			'json'=>'无效的json值{from}[{name}]',
-			'source'=>'错误的数据来源',
-			'length'=>'{from}[{name}]值长度不正确',
-			'length='=>'{from}[{name}]值长度不为{check}',
-			'length<'=>'{from}[{name}]值长度多于{check}',
-			'length>'=>'{from}[{name}]值长度少于{check}',
-			'number'=>'{from}[{name}]无效的数字格式',
-			'pcre'=>'{from}[{name}]无效的内容，未通过验证',
-			'email'=>'{from}[{name}]无效的邮箱格式',
-			'url'=>'{from}[{name}]无效的地址格式',
-			'china-mobile'=>'{from}[{name}]无效的手机号码格式',
-			'china-id'=>'{from}[{name}]无效的身份证号格式',
-			'callback'=>'{from}[{name}]无效内容无法通过自定义检测',
-		]
+		//'message'=>[
+		//	'unknown'=>'未知规则错误: {rule}',
+		//	'from'=>'custorm from 无法找到指定来源: {from}[{name}]',
+		//	'default'=>'来源为空: {from}[{name}]',
+		//	'>'=>'{from}[{name}]值不大于{check}',
+		//	'<'=>'{from}[{name}]值不小于{check}',
+		//	'>='=>'{from}[{name}]值小于{check}',
+		//	'<='=>'{from}[{name}]值大于{check}',
+		//	'array'=>'无效的数组值{from}[{name}]',
+		//	'json'=>'无效的json值{from}[{name}]',
+		//	'source'=>'错误的数据来源',
+		//	'length'=>'{from}[{name}]值长度不正确',
+		//	'length='=>'{from}[{name}]值长度不为{check}',
+		//	'length<'=>'{from}[{name}]值长度多于{check}',
+		//	'length>'=>'{from}[{name}]值长度少于{check}',
+		//	'number'=>'{from}[{name}]无效的数字格式',
+		//	'pcre'=>'{from}[{name}]无效的内容，未通过验证',
+		//	'email'=>'{from}[{name}]无效的邮箱格式',
+		//	'url'=>'{from}[{name}]无效的地址格式',
+		//	'china-mobile'=>'{from}[{name}]无效的手机号码格式',
+		//	'china-id'=>'{from}[{name}]无效的身份证号格式',
+		//	'callback'=>'{from}[{name}]无效内容无法通过自定义检测',
+		//  'empty'=>'无效的参数值，值为空',
+		//]
 	]
 ])->run();
 

@@ -36,15 +36,15 @@ trait filterThrow{
 				'china-mobile'=>'{from}[{name}]无效的手机号码格式',
 				'china-id'=>'{from}[{name}]无效的身份证号格式',
 				'callback'=>'{from}[{name}]无效内容无法通过自定义检测',
+				'empty'=>'无效的参数值，值为空',
 			]
 		], $it->setup['filter/throw'] ?? []);
 
 		if(!array_key_exists('message', $check)){
-			$lang=$set['message'];
 			$keys=array_map(function($value){
 				return '{'.$value.'}';
 			}, array_keys($check));
-			$check['message']=str_replace($keys, array_values($check), $lang[$check['rule'] ?? 'unknown'] ?? $lang['unknown']);
+			$check['message']=str_replace($keys, array_values($check), $set['message'][$check['rule'] ?? 'unknown'] ?? $set['message']['unknown']);
 		}
 		$error =$error ?? $check['error'] ?? $set['error'];
 		$throw =$throw ?? $check['throw'] ?? $set['throw'];
@@ -331,6 +331,12 @@ trait filterThrow{
 				}
 			}
 			if(!$remove) $data[$key] =$check['value'];
+		}
+		if(in_array('empty', $options)) $options['empty'] =[];
+		if(array_key_exists('empty', $options) && 0===count($data)){
+			$empty=!is_array($options['empty']) ?['throw'=>$options['empty']]:$options['empty'];
+			$empty['rule']='empty';
+			$this->nx_filter_throw($empty, $from_set['error'] ?? $empty['error'] ?? null, $from_set['throw'] ?? $empty['throw'] ?? null);
 		}
 		return $single ?$data[$key] ?? null :$data;
 	}
