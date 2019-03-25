@@ -52,7 +52,7 @@ trait filterThrow{
 		$exp->rule =$check;
 		throw $exp;
 	}
-	protected function filter($vars=[], $options=[]){
+	public function filter($vars=[], $options=[]){
 		$data =[];
 		$single =false;
 		if(is_string($vars)){//单字段模式
