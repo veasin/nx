@@ -21,41 +21,41 @@ class app extends \nx\app{//框架的根基是trait 需要先use，如果没有u
 		echo '<pre>';
 		try{
 
-			$v1=$this->filter([
-				'category_id'=>[
-					['rule'=>'from', 'value'=>'query', 'name'=>'cid', 'throw'=>401],
-					['rule'=>'type', 'value'=>'integer'],
-					['rule'=>'default', 'value'=>null, 'throw'=>402],
-					['rule'=>'>', 'value'=>0],
-					'throw'=>403,
-				],
-			], ['throw'=>404]);
-			$v2=$this->filter([
-				'category_id'=>[
-					'from'=>['value'=>'query', 'name'=>'cid'],
-					'type'=>['value'=>'integer'],
-					'default'=>['value'=>null],
-					'>'=>['value'=>0],
-				]
-			]);
-			$v3=$this->filter([
-				'category_id'=>[
-					'from'=>['value'=>'query'],
-					'name'=>['value'=>'cid'],
-					'type'=>['value'=>'integer'],
-					'default'=>['value'=>null],
-					'>'=>['value'=>0],
-				]
-			]);
-			$v4=$this->filter([
-				'category_id'=>[
-					'from'=>'query',
-					'name'=>'cid',
-					'type'=>'integer',
-					'default'=>null,
-					'>'=>0,
-				]
-			]);
+			//$v1=$this->filter([
+			//	'category_id'=>[
+			//		['rule'=>'from', 'value'=>'query', 'name'=>'cid', 'throw'=>401],
+			//		['rule'=>'type', 'value'=>'integer'],
+			//		['rule'=>'default', 'value'=>null, 'throw'=>402],
+			//		['rule'=>'>', 'value'=>0],
+			//		'throw'=>403,
+			//	],
+			//], ['throw'=>404]);
+			//$v2=$this->filter([
+			//	'category_id'=>[
+			//		'from'=>['value'=>'query', 'name'=>'cid'],
+			//		'type'=>['value'=>'integer'],
+			//		'default'=>['value'=>null],
+			//		'>'=>['value'=>0],
+			//	]
+			//]);
+			//$v3=$this->filter([
+			//	'category_id'=>[
+			//		'from'=>['value'=>'query'],
+			//		'name'=>['value'=>'cid'],
+			//		'type'=>['value'=>'integer'],
+			//		'default'=>['value'=>null],
+			//		'>'=>['value'=>0],
+			//	]
+			//]);
+			//$v4=$this->filter([
+			//	'category_id'=>[
+			//		'from'=>'query',
+			//		'name'=>'cid',
+			//		'type'=>'integer',
+			//		'default'=>null,
+			//		'>'=>0,
+			//	]
+			//]);
 			$v5=$this->filter([
 				'category_id'=>[
 					'query',
@@ -63,13 +63,16 @@ class app extends \nx\app{//框架的根基是trait 需要先use，如果没有u
 					'integer',
 					'default',
 					'>0',
+					'remove',
 				]
 			]);
-			echo 'v1-v5:', "\n";
-			var_export($v1);
-			echo "\nsame:";
-			var_export(($v1 == $v2) && ($v2 == $v3) && ($v3 == $v4) && ($v4 == $v5));
+			//echo 'v1-v5:', "\n";
+			//var_export($v1);
+			//echo "\nsame:";
+			//var_export(($v1 == $v2) && ($v2 == $v3) && ($v3 == $v4) && ($v4 == $v5));
 
+			echo "\n", 'v5:', "\n";
+			var_export($v5);
 			echo "\n", 'v6:', "\n";
 			$v6=$this->filter('category_id', [
 				'query',
@@ -77,6 +80,7 @@ class app extends \nx\app{//框架的根基是trait 需要先use，如果没有u
 				'int',
 				'default',
 				'>0',
+				'remove',
 			]);
 			var_export($v6);
 

@@ -151,6 +151,11 @@ trait filterThrow{
 					case 'throw':
 					case 'error':
 						break;
+					case 'remove':
+					case 'null-remove':
+						$check['remove'] =true;
+						//$remove =is_null($check['value']);
+						break;
 					default://所有其他后置规则检测
 						$valids[$rule] = $set;
 						break;
@@ -159,16 +164,19 @@ trait filterThrow{
 			$source =(is_array($source) && count($source)) ?$source :(is_string($check['from']) ?$this->in[$check['from']] :$check['from']);
 			$value =($source)[$check['name']] ?? null;
 			$check['value']=$value;
-			if(null ===$value){
-				if(array_key_exists('throw', $from_set)){
-					$check['rule'] ='from';
-					$this->nx_filter_throw($check,$from_set['error'] ?? $check['error'],$from_set['throw'] ?? $check['throw']);
-				}
-				if(false !==$default_set && null===$check['default']){
-					$check['rule'] ='default';
-					$this->nx_filter_throw($check,$default_set['error'] ?? $check['error'],$default_set['throw'] ?? $check['throw']);
-				}
-			} else{//有值，做值类型变换
+			$remove =false;
+			if(null === $value){
+				if(!array_key_exists('remove', $check)){
+					if(array_key_exists('throw', $from_set)){
+						$check['rule']='from';
+						$this->nx_filter_throw($check, $from_set['error'] ?? $check['error'], $from_set['throw'] ?? $check['throw']);
+					}
+					if(false !== $default_set && null === $check['default']){
+						$check['rule']='default';
+						$this->nx_filter_throw($check, $default_set['error'] ?? $check['error'], $default_set['throw'] ?? $check['throw']);
+					}
+				} else $remove =true;
+			}else{//有值，做值类型变换
 				switch($check['type']){
 					case 'int':
 					case 'integer':
@@ -176,43 +184,43 @@ trait filterThrow{
 						$check['value']=(int)$value;
 						break;
 					case 'json':
-						$check['value'] =json_decode($value, true);
+						$check['value']=json_decode($value, true);
 						$check['rule']='json';
-						if('null'!==strtolower($value) && null ===$check['value']) $this->nx_filter_throw($check);
+						if('null' !== strtolower($value) && null === $check['value']) $this->nx_filter_throw($check);
 						if(count($type_set)){//存在子过滤
-							$opts =$type_set;
+							$opts=$type_set;
 							$opts['source']=['json'=>$check['value']];
-							$check['value'] =$this->filter('json', $opts);
+							$check['value']=$this->filter('json', $opts);
 						}
 						break;
 					case 'arr':
 					case 'array':
-						$check['value'] =$value;
+						$check['value']=$value;
 						if(is_string($value)){
-							$split =$type_set['split'] ?? ',';
-							$check['value'] =strlen($value) ? ((false !== strpos($value, $split)) ?explode($split, $value) :[$value]) :[];
+							$split=$type_set['split'] ?? ',';
+							$check['value']=strlen($value) ?((false !== strpos($value, $split)) ?explode($split, $value) :[$value]) :[];
 						}
 						$check['rule']='array';
 						if(!is_array($check['value'])) $this->nx_filter_throw($check);
 						if(count($type_set)){//存在子过滤
-							$arr_set =[];
+							$arr_set=[];
 							foreach($check['value'] as $_key=>$value){
-								$opts =$type_set;
+								$opts=$type_set;
 								$opts['source']=$check['value'];
 								$arr_set[$_key]=$opts;
 							}
-							$check['value'] =$this->filter($arr_set);
+							$check['value']=$this->filter($arr_set);
 						}
 						break;
 					case 'hex':
-						$check['value'] =hexdec($value);
+						$check['value']=hexdec($value);
 						break;
 					case 'base64':
-						$check['value'] =base64_decode($value, true);
+						$check['value']=base64_decode($value, true);
 						if(empty($check['value'])) $this->nx_filter_throw($check);
 						break;
 					case 'date':
-						$check['value'] =strtotime($value);
+						$check['value']=strtotime($value);
 						if(!is_array($check['value'])) $this->nx_filter_throw($check);
 						break;
 					default:
@@ -220,110 +228,111 @@ trait filterThrow{
 						break;
 				}
 			}
-			//开始后置规则检验
-			foreach($valids as $rule=>$set){
-				$check['rule'] =$rule;
-				$check['error'] =$set['error'] ?? $check['error'];
-				$check['throw'] =$set['throw'] ?? $check['throw'];
-				$check['check'] =$set[$rule] ?? $set['value'] ?? null;
-				switch($rule){
-					case 'callback':
-						$callback =$check['check'];
-						unset($check['check']);
-						$check['value'] =call_user_func($callback,
-							$check['value'],
-							function($msg, $code=null, $exception=null) use($check){
-								$check['message'] =$msg;
-								$this->nx_filter_throw($check,$exception, $code);
-							},
-							$source,
-							$check['name']
-						);
-						break;
-					case '>0':
-						$set['value'] =0;
-						$check['rule'] ='>';
-					case '>':
-						/**
-						 * ['rule'=>'>', 'value'=>0, 'throw'=>400],
-						 * '>'=>['value'=>0, 'throw'=>400],
-						 * '>'=>0,
-						 * '>0'=>['throw'=>400],
-						 * '>0',
-						 */
-						if($check['check'] >=$check['value']) $this->nx_filter_throw($check);
-						break;
-					case '>=':
-						if($check['check'] >$check['value']) $this->nx_filter_throw($check);
-						break;
-					case '<=':
-						if($check['check'] <$check['value']) $this->nx_filter_throw($check);
-						break;
-					case '<':
-						/**
-						 * ['rule'=>'<', 'value'=>0, 'throw'=>400],
-						 * '<'=>['value'=>0, 'throw'=>400],
-						 * '<'=>0,
-						 */
-						if($check['value'] >=$check['check']) $this->nx_filter_throw($check);
-						break;
-					case '=':
-						if($check['value'] !=$check['check']) $this->nx_filter_throw($check);
-						break;
-					case 'len':
-					case 'length':
-						$check['rule'] ='length';
-						$len =strlen($check['value']);
-						if(null !==($cc =$check['check'] ?? $set['='] ?? null) && $len !=$cc){
-							$check['rule'] ='length=';
-							$check['check'] =$cc;
+			if(!$remove){
+				//开始后置规则检验
+				foreach($valids as $rule=>$set){
+					$check['rule']=$rule;
+					$check['error']=$set['error'] ?? $check['error'];
+					$check['throw']=$set['throw'] ?? $check['throw'];
+					$check['check']=$set[$rule] ?? $set['value'] ?? null;
+					switch($rule){
+						case 'empty-remove':
+							$remove=empty($check['value']);
+							break;
+						case 'callback':
+							$callback=$check['check'];
+							unset($check['check']);
+							$check['value']=call_user_func($callback, $check['value'], function($msg, $code=null, $exception=null) use ($check){
+								$check['message']=$msg;
+								$this->nx_filter_throw($check, $exception, $code);
+							}, $source, $check['name']);
+							break;
+						case '>0':
+							$set['value']=0;
+							$check['rule']='>';
+						case '>':
+							/**
+							 * ['rule'=>'>', 'value'=>0, 'throw'=>400],
+							 * '>'=>['value'=>0, 'throw'=>400],
+							 * '>'=>0,
+							 * '>0'=>['throw'=>400],
+							 * '>0',
+							 */
+							if($check['check'] >= $check['value']) $this->nx_filter_throw($check);
+							break;
+						case '>=':
+							if($check['check'] > $check['value']) $this->nx_filter_throw($check);
+							break;
+						case '<=':
+							if($check['check'] < $check['value']) $this->nx_filter_throw($check);
+							break;
+						case '<':
+							/**
+							 * ['rule'=>'<', 'value'=>0, 'throw'=>400],
+							 * '<'=>['value'=>0, 'throw'=>400],
+							 * '<'=>0,
+							 */
+							if($check['value'] >= $check['check']) $this->nx_filter_throw($check);
+							break;
+						case '=':
+							if($check['value'] != $check['check']) $this->nx_filter_throw($check);
+							break;
+						case 'len':
+						case 'length':
+							$check['rule']='length';
+							$len=strlen($check['value']);
+							if(null !== ($cc=$check['check'] ?? $set['='] ?? null) && $len != $cc){
+								$check['rule']='length=';
+								$check['check']=$cc;
+								$this->nx_filter_throw($check);
+							}
+							if(null !== ($cc=$set['>'] ?? null) && $len <= $cc){
+								$check['rule']='length>';
+								$check['check']=$cc;
+								$this->nx_filter_throw($check);
+							}
+							if(null !== ($cc=$set['<'] ?? null) && $len >= $cc){
+								$check['rule']='length<';
+								$check['check']=$cc;
+								$this->nx_filter_throw($check);
+							}
+							break;
+						case 'number':
+							$value=trim($check['value']);
+							if(!preg_match('/^(\d+)$/', $value)) $this->nx_filter_throw($check);
+							break;
+						case 'pcre':
+						case 'preg':
+							$check['rule']='pcre';
+							$value=trim($check['value']);
+							if(!preg_match($check['check'], $value)) $this->nx_filter_throw($check);
+							break;
+						case 'mail':
+						case 'email':
+							if(!preg_match('/^[\w\d]+[\w\d-.]*@[\w\d-.]+\.[\w\d]{2,10}$/i', $value)) $this->nx_filter_throw($check);
+							break;
+						case 'china-mobile':
+							if(!preg_match('/^[(\d+)|0]?([13|14|15|17|18]\d{9})$/', $value)) $this->nx_filter_throw($check);
+							break;
+						case 'china-id':
+							if(!preg_match('/^\d{6}((1[89])|(2\d))\d{2}((0\d)|(1[0-2]))((3[01])|([0-2]\d))\d{3}(\d|X)$/i', $value)) $this->nx_filter_throw($check);
+							break;
+						case 'ip-v4':
+							if(!preg_match('/^(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|[1-9])\.(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|[1-9]|0)\.(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|[1-9]|0)\.(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|\d)$',
+								$value)) $this->nx_filter_throw($check);
+							break;
+						case 'url':
+							if(!preg_match('/^(http:\/\/)?(https:\/\/)?([\w\d-]+\.)+[\w-]+(\/[\d\w-.\/?%&=]*)?$/', $value)) $this->nx_filter_throw($check);
+							break;
+						default:
 							$this->nx_filter_throw($check);
-						}
-						if(null !==($cc =$set['>'] ?? null) && $len <=$cc){
-							$check['rule'] ='length>';
-							$check['check'] =$cc;
-							$this->nx_filter_throw($check);
-						}
-						if(null !==($cc =$set['<'] ?? null) && $len >=$cc){
-							$check['rule'] ='length<';
-							$check['check'] =$cc;
-							$this->nx_filter_throw($check);
-						}
-						break;
-					case 'number':
-						$value = trim($check['value']);
-						if(!preg_match('/^(\d+)$/', $value)) $this->nx_filter_throw($check);
-						break;
-					case 'pcre':
-					case 'preg':
-						$check['rule'] ='pcre';
-						$value = trim($check['value']);
-						if(!preg_match($check['check'], $value)) $this->nx_filter_throw($check);
-						break;
-					case 'mail':
-					case 'email':
-						if(!preg_match('/^[\w\d]+[\w\d-.]*@[\w\d-.]+\.[\w\d]{2,10}$/i', $value)) $this->nx_filter_throw($check);
-						break;
-					case 'china-mobile':
-						if(!preg_match('/^[(\d+)|0]?([13|14|15|17|18]\d{9})$/', $value)) $this->nx_filter_throw($check);
-						break;
-					case 'china-id':
-						if(!preg_match('/^\d{6}((1[89])|(2\d))\d{2}((0\d)|(1[0-2]))((3[01])|([0-2]\d))\d{3}(\d|X)$/i', $value)) $this->nx_filter_throw($check);
-						break;
-					case 'ip-v4':
-						if(!preg_match('/^(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|[1-9])\.(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|[1-9]|0)\.(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|[1-9]|0)\.(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|\d)$', $value)) $this->nx_filter_throw($check);
-						break;
-					case 'url':
-						if(!preg_match('/^(http:\/\/)?(https:\/\/)?([\w\d-]+\.)+[\w-]+(\/[\d\w-.\/?%&=]*)?$/', $value)) $this->nx_filter_throw($check);
-						break;
-					default:
-						$this->nx_filter_throw($check);
-						break;
+							break;
+					}
 				}
 			}
-			$data[$key] =$check['value'];
+			if(!$remove) $data[$key] =$check['value'];
 		}
-		return $single ?$data[$key] :$data;
+		return $single ?$data[$key] ?? null :$data;
 	}
 
 
