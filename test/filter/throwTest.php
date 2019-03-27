@@ -36,6 +36,10 @@ class throwTest extends TestCase{
 			'email'=>'vea.urn2@gmail.com',
 			'mobile'=>17090084418,
 			'id'=>'000000198103230000',
+			'date1'=>'2019-03-07 15:17',
+			'date2'=>'2019-03-07 15:17:05',
+			'date3'=>'2019/03/07',
+			'date4'=>'- xx d 2019x/03/07',
 			'hex'=>'0xFFFF',
 			'int1'=>1,
 			'int2'=>10,
@@ -46,6 +50,13 @@ class throwTest extends TestCase{
 			'json3'=>json_encode(null, JSON_UNESCAPED_UNICODE),
 			'json4'=>json_encode([1,2,3], JSON_UNESCAPED_UNICODE),
 			'json5'=>json_encode(['id'=>1, 'xx'=>2], JSON_UNESCAPED_UNICODE),
+			'json6'=>json_encode(['id'=>1, 'xx'=>'x'], JSON_UNESCAPED_UNICODE),
+			'array1'=>[1,2,3],
+			'array2'=>['id'=>1, 'xx'=>2],
+			'array3'=>['id'=>1, 'xx'=>'x'],
+			'array4'=>'1,2,3,4,5',
+			'array5'=>'1,2,3,4,5,xx',
+			'base64'=>base64_encode('12345'),
 		];
 		$this->in['params']=[
 			'cid'=>5,
@@ -200,7 +211,6 @@ class throwTest extends TestCase{
 		$data =$this->filter('int1', ['int'], ['source'=>$this->source]);
 		$this->assertEquals(1, $data);
 	}
-
 	public function testString(){
 		//标准数组返回
 		$data=$this->filter(['string'=>['str', 'body']]);
@@ -211,15 +221,137 @@ class throwTest extends TestCase{
 		$data=$this->filter(['string'=>['string', 'body']]);
 		$this->assertInternalType('string', $data['string']);
 	}
-	//public function testJson(){
-	//	//标准数组返回
-	//	$data=$this->filter([
-	//		'json1'=>'json',
-	//		'json2'=>'json',
-	//		'json3'=>'json',
-	//		'json4'=>'json',
-	//		'json5'=>'json',
-	//	], ['body']);
-	//	//$this->assertInternalType('string', $data['string']);
-	//}
+	public function testJson(){
+		//标准数组返回
+		$data=$this->filter([
+			'json1'=>['json'=>'int'],
+			'json2'=>'json',
+			'json3'=>'json',
+			'json4'=>['json'=>['arr'=>'int']],
+			'json5'=>'json',//todo [key=>value] ?
+			//'json6'=>['json'=>['arr'=>['int', 'throw'=>401]]],
+		], ['body']);
+		//$this->assertInternalType('string', $data['json1']);
+		$this->assertInternalType('integer', $data['json1']);
+		$this->assertEquals('12345', $data['json1']);
+		$this->assertInternalType('boolean', $data['json2']);
+		$this->assertEquals(true, $data['json2']);
+		$this->assertEquals(null, $data['json3']);
+		$this->assertInternalType('array', $data['json4']);
+		$this->assertEquals([1,2,3], $data['json4']);
+		$this->assertInternalType('array', $data['json5']);
+		$this->assertEquals(['id'=>1, 'xx'=>2], $data['json5']);
+		//$this->assertInternalType('array', $data['json6']);
+		//$this->assertEquals(['id'=>1, 'xx'=>'x'], $data['json6']);
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 401
+	 */
+	public function testDate(){
+		$data=$this->filter([
+			'date1'=>'date',
+			'date2'=>'date',
+			'date3'=>'date',
+			'date4'=>['date', 'throw'=>401],
+		], ['body']);
+		$this->assertInternalType('integer', $data['date1']);
+		$this->assertEquals(strtotime('2019-03-07 15:17'), $data['date1']);
+		$this->assertInternalType('integer', $data['date2']);
+		$this->assertEquals(strtotime('2019-03-07 15:17:05'), $data['date2']);
+		$this->assertInternalType('integer', $data['date3']);
+		$this->assertEquals(strtotime('2019-03-07 00:00:00'), $data['date3']);
+		$this->assertInternalType('integer', $data['date4']);
+		$this->assertEquals(0, $data['date4']);
+	}
+	public function testArray(){
+		$data=$this->filter([
+			//'array1'=>'arr',
+			//'array2'=>['array'=>['key-exists'=>'id']],
+			//'array3'=>['type'=>['value'=>'array', 'throw'=>403], 'throw'=>404],//no exists idx
+			'array4'=>['array'=>['int', 'throw'=>402], 'throw'=>401],
+		], ['body']);
+		//$this->assertInternalType('array', $data['array1']);
+		//$this->assertEquals([1,2,3], $data['array1']);
+		//$this->assertInternalType('array', $data['array2']);
+		//$this->assertEquals(['id'=>1, 'xx'=>2], $data['array2']);
+		//$this->assertInternalType('array', $data['array3']);
+		//$this->assertEquals(['id'=>1, 'xx'=>'x'], $data['array3']);
+		$this->assertInternalType('array', $data['array4']);
+		$this->assertEquals([1,2,3,4,5], $data['array4']);
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 402
+	 */
+	public function testArrayInt(){
+		$data=$this->filter([
+			'array5'=>['array'=>['int', 'throw'=>402], 'throw'=>401],
+		], ['body']);
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 402
+	 */
+	public function testArrayKeyNoExists(){
+		$data=$this->filter([
+			'array4'=>['array'=>['key-exists'=>'idx', 'throw'=>402], 'throw'=>401],
+		], ['body']);
+		$this->assertInternalType('array', $data['array4']);
+		$this->assertEquals([1,2,3,4,5], $data['array4']);
+
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 402
+	 */
+	public function testArrayValueNoExists(){
+		$data=$this->filter([
+			'array4'=>['array'=>['value-exists'=>6, 'throw'=>402], 'throw'=>401],
+		], ['body']);
+		$this->assertInternalType('array', $data['array4']);
+		$this->assertEquals([1,2,3,4,5], $data['array4']);
+
+	}
+	public function testHex(){
+		//标准数组返回
+		$data=$this->filter([
+			'hex'=>'hex',
+		], ['body']);
+		//$this->assertInternalType('string', $data['json1']);
+		$this->assertInternalType('integer', $data['hex']);
+		$this->assertEquals(65535, $data['hex']);
+	}
+	public function testBase64(){
+		//标准数组返回
+		$data=$this->filter([
+			'base64'=>'base64',
+		], ['body']);
+		$this->assertInternalType('string', $data['base64']);
+		$this->assertEquals('12345', $data['base64']);
+	}
+	public function testRemove(){
+		//标准数组返回
+		$data=$this->filter([
+			'cid'=>['int'],
+			'did'=>['int'],
+			'xid'=>['int', 'remove'],
+		], ['body']);
+		$this->assertInternalType('array', $data);
+		$this->assertEquals(['cid'=>3, 'did'=>4], $data);
+	}
+	public function testRemoveOne(){
+		//标准数组返回
+		$data=$this->filter('xid', ['int', 'remove']);
+		$this->assertInternalType('null', $data);
+		$this->assertEquals(null, $data);
+	}
+	public function testRemoveAndEmpty(){
+		//标准数组返回
+		$data=$this->filter([
+			'xid'=>['int', 'remove'],
+		], ['body']);
+		$this->assertInternalType('array', $data);
+		$this->assertEquals([], $data);
+	}
 }
