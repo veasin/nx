@@ -10,8 +10,7 @@ namespace nx\validator;
 
 trait filterThrow{
 	private function nx_filter_throw($check, $error=null, $throw=null){
-		$it=is_a($this, 'nx\app') ?$this :$this->app;
-		$set =array_merge([
+		$default =[
 			'throw'=>400,
 			'error'=>'\Exception',
 			'message'=>[
@@ -38,7 +37,11 @@ trait filterThrow{
 				'callback'=>'{from}[{name}]无效内容无法通过自定义检测',
 				'empty'=>'无效的参数值，值为空',
 			]
-		], $it->setup['filter/throw'] ?? []);
+		];
+		$it=is_a($this, 'nx\app') ?$this :(property_exists($this, 'app') ?$this->app :false);
+		if(false !==$it){
+			$set=array_merge($default, $it->setup['filter/throw'] ?? []);
+		} else $set =$default;
 
 		if(!array_key_exists('message', $check)){
 			$keys=array_map(function($value){
@@ -55,52 +58,46 @@ trait filterThrow{
 	public function filter($vars=[], $options=[]){
 		$data =[];
 		$single =false;
-		if(is_string($vars)){//单字段模式
+		if(is_string($vars)){//单字段模式 filter('id', [], []) =>filter(['id'=>[], [])
 			$single =true;
 			$vars =[$vars=>$options];
 			$options =func_num_args()>2 ?func_get_arg(2) :[];
 		}
 		foreach($vars as $key=>$rules){
-			if(is_callable($rules)) $rules =['callback'=>$rules];
+			if(is_callable($rules)) $rules =['callback'=>$rules];//callback 特殊设置
+			if(!is_array($rules)) $rules =[$rules];//'int'  =>['int']
+			$rules =array_merge($options, $rules);//合并默认设置
 			$valids=[];//后置检验规则
-			$default_set =false;
-			$from_set =$rules['from'] ?? $options['from'] ?? [];
-			$type_set =false;
-			$source =$rules['source'] ?? $options['source'] ?? [];
-			$check =[
-				'from' =>$rules['from'] ?? $options['from'] ?? (empty($source) ?'body' :'source'),
-				'name' =>$key,
-				'type' =>'string',
-				'default' =>null,
-				'error' =>$rules['error'] ?? $options['error'] ?? null,
-				'throw' =>$rules['throw'] ?? $options['throw'] ?? null,
+			$check=[
+				'from'=>'body',
+				'name'=>$key,
 			];
+			$from_set =[];//从规则列表中分离来源设置
+			$source =[];//指定来源为 source时，来源值
+			$default_set =false; //默认值设置
 			foreach($rules as $rule=>$set){//['rule'=>'from', 'value'=>'body', 'key'=>'cid', 'throw'=>400, 'error'=>'\nx\exception\filter\http'],
-				if(is_numeric($rule)){// 'int', 'url', '>0'
-					if(is_string($set)){
-						$rule =$set;
-						$set =[];
-					}// else {
-					//	$rule =$set['rule'] ?? null;//'query'=>'cid' , 'query'=>['query'=>'cid']
-					//}
-				} else {
-					if(!is_array($set)) $set=['value'=>$set];
-					//var_dump('>'.$rule, $set);
+				if(is_int($rule) && is_numeric($rule)){
+					$_set =!is_array($set) ?['rule'=>$set] :$set;// 'int', 'url', '>0' => ['rule'=>'int']
+				} else{
+					$_set =!is_array($set) ?['value'=>$set] :$set;
+					if(!array_key_exists('rule', $_set)) $_set['rule'] =$rule;
 				}
-				$rule =$set['rule'] ?? $rule;
-				switch($rule){
+				$_org_set =$set;
+				$set =array_merge($rules, $_set);
+				//前置规则整理（获取指定key的值）
+				switch($set['rule']){
 					/**
 					 * 值来源
 					 * 'from'=>['from'=>'body', 'name'=>'cid'],
 					 * 'from'=>'body',
-					 * 'from'=>$var, //todo ????
+					 * 'body'
 					 */
 					case 'from':
-						$check['from'] =$set[$rule] ?? $set['value'] ?? $check['from'];
+						$check['from'] =$set['value'] ?? null;
 						$check['name'] =$set['name'] ?? $key;
-						$source =$set['source'] ?? $rules['source'] ?? [];
+						$source =$set['source'] ?? [];
 						$from_set =$set;
-						//if(array_key_exists('as', $set)) $key =$set['as'];//'as'=>'xcid'
+						$from_set['throw'] =$_org_set['throw'] ?? null;
 						break;
 					case 'source':
 						$check['from'] ='SET';
@@ -111,21 +108,22 @@ trait filterThrow{
 					case 'uri':
 					case 'header':
 					case 'cookie':
-						$check['from'] =$rule;
+						$check['from'] =$set['rule'];
 						$from_set =$set;
-						if(array_key_exists($rule, $set)) $check['name'] =$set[$rule];//'query'=>'cid'
+						$from_set['throw'] =$_org_set['throw'] ?? null;
 						if(array_key_exists('name', $set)) $check['name'] =$set['name'];//'query'=>['name'=>'cid']
 						break;
 					case 'name':
-						$check['name'] =$set[$rule] ?? $set['value'] ?? $key;
-						//if(array_key_exists('as', $set)) $key =$set['as'];//'as'=>'xcid'
+						$check['name'] =$set['value'] ?? $key;
 						break;
 					/**
 					 * 值类型
 					 */
 					case 'type':
-						$check['type'] =$set['type'] ?? $set['value'] ?? 'string';
+						$check['type'] =$set['value'] ?? 'string';
 						$type_set =$set ?? [];
+						unset($type_set['rule']);
+						unset($type_set['type']);
 						break;
 					case 'int':
 					case 'integer':
@@ -137,44 +135,47 @@ trait filterThrow{
 					case 'date':
 					case 'hex':
 					case 'base64':
-						$check['type'] =$rule;
+						$check['type'] =$set['rule'];
 						$type_set =$set ?? [];
+						unset($type_set['rule']);
+						unset($type_set['type']);
 						break;
 					/**
 					 * 默认值
 					 */
 					case 'default':
-						$check['default'] =$set[$rule] ?? $set['value'] ?? null;
+						$check['default'] =$set['value'] ?? null;
 						$default_set =$set;
-						//if('must_has' ===$default) $valid['default'] =true;//todo ?? 立刻检测空值？
 						break;
 					case 'throw':
 					case 'error':
+						$check[$set['rule']] =$set[$set['rule']];
 						break;
 					case 'remove':
 					case 'null-remove':
 						$check['remove'] =true;
-						//$remove =is_null($check['value']);
 						break;
 					default://所有其他后置规则检测
-						$valids[$rule] = $set;
+						$valids[$set['rule']] = $set;
 						break;
 				}
 			}
-			if('uri'===$check['from']) $check['from'] ='params';
-			$source =(is_array($source) && count($source)) ?$source :(is_string($check['from']) ?$this->in[$check['from']] :$check['from']);
+			if('uri'===$check['from']) $check['from'] ='params';//hack this->in
+			$source =(is_array($source) && count($source)) ?$source :(is_string($check['from']) ?$this->in[$check['from']] :[]);
 			$value =($source)[$check['name']] ?? null;
 			$check['value']=$value;
 			$remove =false;
 			if(null === $value){
 				if(!array_key_exists('remove', $check)){
-					if(array_key_exists('throw', $from_set)){
+					if(null !==($from_set['throw'] ??null)){
 						$check['rule']='from';
-						$this->nx_filter_throw($check, $from_set['error'] ?? $check['error'], $from_set['throw'] ?? $check['throw']);
+						$this->nx_filter_throw($check, $from_set['error'] ?? $check['error'] ?? null, $from_set['throw'] ?? $check['throw'] ?? null);
 					}
-					if(false !== $default_set && null === $check['default']){
-						$check['rule']='default';
-						$this->nx_filter_throw($check, $default_set['error'] ?? $check['error'], $default_set['throw'] ?? $check['throw']);
+					if(false !== $default_set){
+						if(null === ($default_set['value'] ?? null)){
+							$check['rule']='default';
+							$this->nx_filter_throw($check, $default_set['error'] ?? $check['error'] ?? null, $default_set['throw'] ?? $check['throw'] ?? null);
+						} else $check['value'] =$default_set['value'];
 					}
 				} else $remove =true;
 			}else{//有值，做值类型变换
@@ -233,8 +234,8 @@ trait filterThrow{
 				//开始后置规则检验
 				foreach($valids as $rule=>$set){
 					$check['rule']=$rule;
-					$check['error']=$set['error'] ?? $check['error'];
-					$check['throw']=$set['throw'] ?? $check['throw'];
+					$check['error']=$set['error'] ?? $check['error'] ?? null;
+					$check['throw']=$set['throw'] ?? $check['throw'] ?? null;
 					$check['check']=$set[$rule] ?? $set['value'] ?? null;
 					switch($rule){
 						case 'empty-remove':
