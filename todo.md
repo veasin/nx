@@ -1,5 +1,5 @@
 
-#待做
+# 待做
 - [ ] trait的依赖加载
   - [ ] 多层依赖？
   - [x] 依赖返回依赖内容
@@ -7,8 +7,8 @@
   - [ ] 二次或多次循环
 - [ ] request分类
   - [ ] 标准php
-  - [ ] json
-  - [ ] REST
+  - [x] json
+  - [x] REST
   - [ ] 其他自定义
 - [x] response分类
   - [x] 支持status(code & message)

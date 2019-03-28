@@ -5,7 +5,7 @@
   
   小框架，可以随意扩充
 
-#feature
+# feature
 - [x] trait,trait,trait!!!
 - [x] 支持命名空间
 - [x] 支持composer
@@ -18,9 +18,15 @@
 - [x] 支持php7，支持php新功能
 - [x] 脚手架
   - [x] 项目预制
-  - [ ] 编译（打包）
+  - [ ] 编译（打包phar）
+- [ ] PHPUnit
+  - [x] filter\throw
+  - [ ] db\sql
+  - [ ] router\uri
 
-#code
+
+
+# code
 ```
 class app extends \nx\app{
   use \nx\log\file,
