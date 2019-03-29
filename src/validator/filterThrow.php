@@ -192,7 +192,7 @@ trait filterThrow{
 					}
 				} else $remove =true;
 			}else{//有值，做值类型变换
-				switch($check['type']){
+				switch($check['type']??''){
 					case 'int':
 					case 'integer':
 						$check['type']='integer';
@@ -364,8 +364,7 @@ trait filterThrow{
 							if(!preg_match('/^\d{6}((1[89])|(2\d))\d{2}((0\d)|(1[0-2]))((3[01])|([0-2]\d))\d{3}(\d|X)$/i', $value)) $this->nx_filter_throw($check);
 							break;
 						case 'ip-v4':
-							if(!preg_match('/^(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|[1-9])\.(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|[1-9]|0)\.(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|[1-9]|0)\.(25[0-5]|2[0-4]\d|[0-1]{1}\d{2}|[1-9]{1}\d{1}|\d)$',
-								$value)) $this->nx_filter_throw($check);
+							if(!filter_var($value, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) $this->nx_filter_throw($check);
 							break;
 						case 'url':
 							if(!preg_match('/^(http:\/\/)?(https:\/\/)?([\w\d-]+\.)+[\w-]+(\/[\d\w-.\/?%&=]*)?$/', $value)) $this->nx_filter_throw($check);

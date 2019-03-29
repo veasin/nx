@@ -57,6 +57,33 @@ class throwTest extends TestCase{
 			'array4'=>'1,2,3,4,5',
 			'array5'=>'1,2,3,4,5,xx',
 			'base64'=>base64_encode('12345'),
+			'email1'=>'x9@c.com',
+			'email2'=>'x.a@c.cn',
+			'email3'=>'172847081@11.com',
+			'email4'=>'17284708111.com',
+			'email5'=>'1728470@8111',
+			'email6'=>'1728470中@8111.com',
+			'mobile1'=>'13620801000',//ok
+			'mobile2'=>'14820801000',
+			'mobile3'=>'15820801000',
+			'mobile4'=>'17820801000',
+			'mobile5'=>'18820801000',
+			'mobile6'=>'19820',//error
+			'mobile7'=>'19820801000',
+			'mobile8'=>'29820801000122',
+			'url1'=>'http://b.com/',//ok
+			'url2'=>'https://baidu.com/?a=xxaaa',
+			'url3'=>'xx.com',
+			'url4'=>'xxcom',//error
+			'url5'=>'http://xx.com/a=xx#aaa',
+			'id1'=>'110112198001010001',//ok
+			'id2'=>'11011219800101000X',
+			'id3'=>'110112800101000',
+			'id4'=>'11011280010',//error
+			'ip1'=>'127.0.0.1',
+			'ip2'=>'192.168.1.88',
+			'ip3'=>'116.62.188.207',
+			'ip4'=>'116.62.188'
 		];
 		$this->in['params']=[
 			'cid'=>5,
@@ -353,5 +380,109 @@ class throwTest extends TestCase{
 		], ['body']);
 		$this->assertInternalType('array', $data);
 		$this->assertEquals([], $data);
+	}
+	public function testEmail(){
+		$data=$this->filter([
+			'email1'=>['email'],
+			'email2'=>['email'],
+			'email3'=>['email'],
+		], ['body']);
+		$this->assertEquals($this->in['body']['email1'], $data['email1']);
+		$this->assertEquals($this->in['body']['email2'], $data['email2']);
+		$this->assertEquals($this->in['body']['email3'], $data['email3']);
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 401
+	 */
+	public function testEmailError(){
+		$data=$this->filter([
+			'email4'=>['email'],
+			'email5'=>['email'],
+			'email6'=>['email'],
+		], ['body', 'throw'=>401]);
+	}
+	public function testMobile(){
+		$data=$this->filter([
+			'mobile1'=>['china-mobile'],
+			'mobile2'=>['china-mobile'],
+			'mobile3'=>['china-mobile'],
+			'mobile4'=>['china-mobile'],
+			'mobile5'=>['china-mobile'],
+		], ['body']);
+		$this->assertEquals($this->in['body']['mobile1'], $data['mobile1']);
+		$this->assertEquals($this->in['body']['mobile2'], $data['mobile2']);
+		$this->assertEquals($this->in['body']['mobile3'], $data['mobile3']);
+		$this->assertEquals($this->in['body']['mobile4'], $data['mobile4']);
+		$this->assertEquals($this->in['body']['mobile5'], $data['mobile5']);
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 401
+	 */
+	public function testMobileError(){
+		//$this->in['body']['mobile8']=18620806200;
+		$data=$this->filter([
+			'mobile6'=>['china-mobile'],
+			'mobile7'=>['china-mobile'],
+			'mobile8'=>['china-mobile'],
+		], ['body', 'throw'=>401]);
+	}
+	public function testUrl(){
+		$data=$this->filter([
+			'url1'=>['url'],
+			'url2'=>['url'],
+			'url3'=>['url'],
+		], ['body']);
+		$this->assertEquals($this->in['body']['url1'], $data['url1']);
+		$this->assertEquals($this->in['body']['url2'], $data['url2']);
+		$this->assertEquals($this->in['body']['url3'], $data['url3']);
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 401
+	 */
+	public function testUrlError(){
+		$data=$this->filter([
+			'url3'=>['url'],
+			'url5'=>['url'],
+		], ['body', 'throw'=>401]);
+	}
+	public function testID(){
+		$data=$this->filter([
+			'id1'=>['china-id'],
+			'id2'=>['china-id'],
+		], ['body']);
+		$this->assertEquals($this->in['body']['id1'], $data['id1']);
+		$this->assertEquals($this->in['body']['id2'], $data['id2']);
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 401
+	 */
+	public function testIDError(){
+		$data=$this->filter([
+			'id3'=>['china-id'],
+			'id4'=>['china-id'],
+		], ['body', 'throw'=>401]);
+	}
+	public function testIP(){
+		$data=$this->filter([
+			'ip1'=>['ip-v4'],
+			'ip2'=>['ip-v4'],
+			'ip3'=>['ip-v4'],
+		], ['body']);
+		$this->assertEquals($this->in['body']['ip1'], $data['ip1']);
+		$this->assertEquals($this->in['body']['ip2'], $data['ip2']);
+		$this->assertEquals($this->in['body']['ip3'], $data['ip3']);
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 401
+	 */
+	public function testIPError(){
+		$data=$this->filter([
+			'ip4'=>['ip-v4'],
+		], ['body', 'throw'=>401]);
 	}
 }
