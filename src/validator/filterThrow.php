@@ -59,6 +59,12 @@ trait filterThrow{
 		$exp->rule =$check;
 		throw $exp;
 	}
+	/**
+	 * 过滤器，对输入进行过滤。可指定输入内容来源或设置来源数组。('id', ['int', 'default']) (['id'=>['int', 'default']])
+	 * @param array|string $vars 内容key配置或key字符串
+	 * @param array $options 过滤规则配置 from body[uri,query...] type int[hex,base64...] default throw error remove ...
+	 * @return array|mixed|null
+	 */
 	public function filter($vars=[], $options=[]){
 		$data =[];
 		$single =false;

@@ -4,6 +4,7 @@ namespace nx\validator;
 /**
  * Class valid
  * @package nx\validator
+ * @deprecated 2019-03-29
  */
 trait valid{
 	/**

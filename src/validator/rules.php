@@ -8,6 +8,11 @@
 
 namespace nx\validator;
 
+/**
+ * Class rules
+ * @package nx\validator
+ * @deprecated 2019-03-29
+ */
 class rules{
 	private static $msg_map=[
 		'not_empty'=>'%s 不能为空',

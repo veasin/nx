@@ -15,6 +15,7 @@ trait filter{
 	 * @param null  $filter
 	 * @param array ...$pattern
 	 * @return array|mixed|null|string
+	 * @deprecated 2019-03-29
 	 */
 	public function filter($value, $def=null, $filter=null, ...$pattern){
 		switch($filter){
