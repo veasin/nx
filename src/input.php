@@ -126,8 +126,7 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 			case 'cookie':
 				$data =&$this[$from];
 				if(null !==$key){
-					$app=\nx\app::$instance;
-					$app->log("       ->{$from}[{$key}]");
+					if(\nx\app::$instance) \nx\app::$instance->log("       ->{$from}[{$key}]");
 					//$app->log('  : {value}', ['value'=>json_encode($data[$key] ?? null)]);
 				}
 				return null ===$key ?$data :$data[$key]??null;

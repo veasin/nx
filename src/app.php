@@ -9,7 +9,6 @@ namespace nx;
  * @method main(array $route) 执行默认控制方法
  * @method string i18n() 返回对应语言文本
  * @method array|string|null config(string $word, $params=null) 读取配置
- * @method filter($value, $def=null, $filter=null, ...$pattern) 根据filter来对$value进行过滤，默认返回$def
  * @method \PDO db($name='default') 根据$app->setup['db/pdo'] 的配置创建pdo对象
  * @method int|false insertSQL($sql, array $params=[], $config='default') 执行插入数据动作 ->insertSQL('INSERT INTO cds (`interpret`, `titel`) VALUES (?, ?)', ['veas', 'new cd']);
  * @method array|false selectSQL($sql, array $params=[], $config='default') 执行查询数据方法 ->selectSQL('SELECT `cds`.* FROM `cds` WHERE `cds`.`id` = ?', [13])
@@ -19,6 +18,9 @@ namespace nx;
  * @method response(array|string $string) 设置默认输出方法
  * @method in() 返回全部输入内容
  * @method out(array|string $string) 设置默认输出方法
+ * @method throw($codeOrException=400, $message='', $exception='\Exception') 抛出指定异常
+ * @method filter(array|string $vars=[], array $options=[]) 过滤器，对输入进行过滤。可指定输入内容来源或设置来源数组。
+ * @method filterValue(mixed $value, array $options=[]) 过滤器，针对值做过滤，不包含取值逻辑。
  */
 class app{
 	/**
@@ -65,7 +67,7 @@ class app{
 		(defined('AGREE_LICENSE') && AGREE_LICENSE === true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
 		//静态实例
 		static::$instance=$this;
-		$this->setup =array_merge($this->setup ??[] , $setup ??[]);
+		$this->setup =($this->setup ??[]) + ($setup ??[]);
 		$this->uuid=$setup['uuid'] ?? $this->uuid ?? str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
 		if($this->ver ?? 1.0 >1.5){
 			$this->in =$overwrite['in'] ?? new input();
@@ -120,6 +122,8 @@ class app{
 	 */
 	public function __call($name, $args){
 		switch($name){
+			case 'throw':
+				return ($args[2] instanceof \Throwable) ?$args[2] :new $args[2]($args[1], $args[0]);
 			case 'log':
 				break;
 			case 'main':

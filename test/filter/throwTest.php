@@ -51,11 +51,29 @@ class throwTest extends TestCase{
 			'json4'=>json_encode([1,2,3], JSON_UNESCAPED_UNICODE),
 			'json5'=>json_encode(['id'=>1, 'xx'=>2], JSON_UNESCAPED_UNICODE),
 			'json6'=>json_encode(['id'=>1, 'xx'=>'x'], JSON_UNESCAPED_UNICODE),
+			'json7'=>json_encode([
+				'id'=>1,
+				'xx'=>[
+					'a'=>2,
+					'b'=>3,
+				]
+			], JSON_UNESCAPED_UNICODE),
 			'array1'=>[1,2,3],
 			'array2'=>['id'=>1, 'xx'=>2],
 			'array3'=>['id'=>1, 'xx'=>'x'],
 			'array4'=>'1,2,3,4,5',
 			'array5'=>'1,2,3,4,5,xx',
+			'array6'=>json_encode([
+				'id'=>1,
+				'xx'=>[
+					'a'=>[
+						['n'=>1],
+						['n'=>2],
+						['n'=>3],
+					],
+					'b'=>3,
+				]
+			], JSON_UNESCAPED_UNICODE),
 			'base64'=>base64_encode('12345'),
 			'email1'=>'x9@c.com',
 			'email2'=>'x.a@c.cn',
@@ -103,27 +121,21 @@ class throwTest extends TestCase{
 	 */
 	public function testRules(){
 		$data =$this->filter([
-			'cxx-id'=>[
-				['rule'=>'type', 'value'=>'integer'],
-				['rule'=>'from', 'value'=>'query'],
-				['rule'=>'name', 'value'=>'cid'],
-			],
 			'dxx-id'=>[
 				'type'=>['value'=>'integer'],
-				'from'=>['value'=>'query'],
-				'name'=>['value'=>'did'],
+				'from'=>'query',
+				'key'=>['value'=>'did'],
 			],
 			'cx-id'=>[
-				'type'=>'integer',
+				'type'=>'integer',//=> ['value'=>'integer']
 				'from'=>'body',
-				'name'=>'cid',
+				'key'=>'cid',
 			],
-			'dx-id'=>['integer','body','name'=>'did',],
+			'dx-id'=>['integer','body','key'=>'did',],
 			'cid'=>['int','uri'],
 			'did'=>['int', 'uri'],
 			'int2'=>'int',
 		]);
-		$this->assertEquals(1, $data['cxx-id']);
 		$this->assertEquals(2, $data['dxx-id']);
 		$this->assertEquals(3, $data['cx-id']);
 		$this->assertEquals(4, $data['dx-id']);
@@ -137,13 +149,13 @@ class throwTest extends TestCase{
 	public function testFrom(){
 		//todo header & cookie
 		$data =$this->filter([
-			'cid1'=>['int', 'query', 'name'=>'cid'],
-			'cid2'=>['int', 'body', 'name'=>'cid'],
-			'cid3'=>['int', 'uri', 'name'=>'cid'],
-			'cid4'=>['int', 'header', 'name'=>'cid'],
-			'cid5'=>['int', 'cookie', 'name'=>'cid'],
-			'cid6'=>['int', 'source'=>$this->source, 'name'=>'cid'],
-			'cid7'=>['int', 'name'=>'cid'],//<----------default 'body'
+			'cid1'=>['int', 'query', 'key'=>'cid'],
+			'cid2'=>['int', 'body', 'key'=>'cid'],
+			'cid3'=>['int', 'uri', 'key'=>'cid'],
+			'cid4'=>['int', 'header', 'key'=>'cid'],
+			'cid5'=>['int', 'cookie', 'key'=>'cid'],
+			'cid6'=>['int', 'from'=>$this->source, 'key'=>'cid'],
+			'cid7'=>['int', 'key'=>'cid'],//<----------default 'body'
 		]);
 		$this->assertEquals(1, $data['cid1']);
 		$this->assertEquals(3, $data['cid2']);
@@ -159,15 +171,15 @@ class throwTest extends TestCase{
 	public function testFromDefault(){
 		//todo header & cookie
 		$data =$this->filter([
-			'cid1'=>['int', 'query', 'name'=>'cid'],
-			'cid2'=>['int', 'name'=>'cid'],//<----------default 'query'
-			'cid3'=>['int', 'uri', 'name'=>'cid'],
-			'cid4'=>['int', 'header', 'name'=>'cid'],
-			'cid5'=>['int', 'cookie', 'name'=>'cid'],
-			'cid6'=>['int', 'source'=>$this->source, 'name'=>'cid'],
-			'cid7'=>['int', 'name'=>'cidx'],//<----------no exist
-			'cid8'=>['int', 'name'=>'cidx', 'default'=>1],//<----------no exist set default
-		], ['query', 'throw'=>404]);
+			'cid1'=>['int', 'query', 'key'=>'cid'],
+			'cid2'=>['int', 'key'=>'cid'],//<----------default 'query'
+			'cid3'=>['int', 'uri', 'key'=>'cid'],
+			'cid4'=>['int', 'header', 'key'=>'cid'],
+			'cid5'=>['int', 'cookie', 'key'=>'cid'],
+			'cid6'=>['int', 'from'=>$this->source, 'key'=>'cid'],
+			'cid7'=>['int', 'key'=>'cidx'],//<----------no exist
+			'cid8'=>['int', 'key'=>'cidx', 'null'=>1],//<----------no exist set default
+		], ['query', 'error'=>404]);
 		$this->assertEquals(1, $data['cid1']);
 		$this->assertEquals(1, $data['cid2']);
 		$this->assertEquals(5, $data['cid3']);
@@ -180,9 +192,9 @@ class throwTest extends TestCase{
 	/**
 	 * 默认值设置
 	 */
-	public function testDefault(){
+	public function testNull(){
 		//数据返回 全局数据来源配置
-		$data =$this->filter('xid', ['default'=>2, 'query']);
+		$data =$this->filter('xid', ['null'=>2, 'query']);
 		$this->assertEquals(2, $data);
 	}
 	/**
@@ -190,18 +202,18 @@ class throwTest extends TestCase{
 	 * @expectedException \Exception
 	 * @expectedExceptionCode 400
 	 */
-	public function testDefaultError(){
+	public function testNullError(){
 		//数据返回 全局数据来源配置
-		$this->filter('xid', ['default', 'query']);
+		$this->filter('xid', ['null', 'query']);
 	}
 	/**
 	 * 必填
 	 * @expectedException \Exception
 	 * @expectedExceptionCode 401
 	 */
-	public function testDefaultErrorAndCustomError(){
+	public function testNullErrorAndCustomError(){
 		//数据返回 全局数据来源配置
-		$this->filter('xid', ['default', 'query', 'throw'=>401]);
+		$this->filter('xid', ['null', 'query', 'error'=>401]);
 	}
 	/**
 	 * @expectedException \Exception
@@ -209,7 +221,7 @@ class throwTest extends TestCase{
 	 */
 	public function testIntGT10Error(){
 		//数据返回 全局数据来源配置
-		$this->filter('cid', ['int', '>'=>10, 'query', 'throw'=>401]);
+		$this->filter('cid', ['int', 'digit'=>['>'=>10], 'query', 'error'=>401]);
 	}
 	public function testINT1(){
 		//标准数组返回
@@ -225,7 +237,7 @@ class throwTest extends TestCase{
 	}
 	public function testINT1NameAs(){
 		//数组返回 别名
-		$data=$this->filter(['int'=>['int', 'name'=>'int1', 'source'=>$this->source]]);
+		$data=$this->filter(['int'=>['int', 'key'=>'int1', 'from'=>$this->source]]);
 		$this->assertEquals(1, $data['int']);
 	}
 	public function testINT1Data(){
@@ -251,12 +263,12 @@ class throwTest extends TestCase{
 	public function testJson(){
 		//标准数组返回
 		$data=$this->filter([
-			'json1'=>['json'=>'int'],
+			'json1'=>['json'=>'int'], //=>{type:json, children:{int}}
 			'json2'=>'json',
 			'json3'=>'json',
 			'json4'=>['json'=>['arr'=>'int']],
 			'json5'=>'json',//todo [key=>value] ?
-			//'json6'=>['json'=>['arr'=>['int', 'throw'=>401]]],
+			'json6'=>['json'=>['arr'=>['int', 'error'=>401]]],
 		], ['body']);
 		//$this->assertInternalType('string', $data['json1']);
 		$this->assertInternalType('integer', $data['json1']);
@@ -280,7 +292,7 @@ class throwTest extends TestCase{
 			'date1'=>'date',
 			'date2'=>'date',
 			'date3'=>'date',
-			'date4'=>['date', 'throw'=>401],
+			'date4'=>['date', 'null'=>'throw', 'error'=>401],
 		], ['body']);
 		$this->assertInternalType('integer', $data['date1']);
 		$this->assertEquals(strtotime('2019-03-07 15:17'), $data['date1']);
@@ -295,8 +307,8 @@ class throwTest extends TestCase{
 		$data=$this->filter([
 			//'array1'=>'arr',
 			//'array2'=>['array'=>['key-exists'=>'id']],
-			//'array3'=>['type'=>['value'=>'array', 'throw'=>403], 'throw'=>404],//no exists idx
-			'array4'=>['array'=>['int', 'throw'=>402], 'throw'=>401],
+			//'array3'=>['type'=>['value'=>'array', 'error'=>403], 'error'=>404],//no exists idx
+			'array4'=>['array'=>['int', 'error'=>402], 'error'=>401],
 		], ['body']);
 		//$this->assertInternalType('array', $data['array1']);
 		//$this->assertEquals([1,2,3], $data['array1']);
@@ -313,32 +325,8 @@ class throwTest extends TestCase{
 	 */
 	public function testArrayInt(){
 		$data=$this->filter([
-			'array5'=>['array'=>['int', 'throw'=>402], 'throw'=>401],
+			'array5'=>['array'=>['int', 'throw', 'error'=>402], 'error'=>401],
 		], ['body']);
-	}
-	/**
-	 * @expectedException \Exception
-	 * @expectedExceptionCode 402
-	 */
-	public function testArrayKeyNoExists(){
-		$data=$this->filter([
-			'array4'=>['array'=>['key-exists'=>'idx', 'throw'=>402], 'throw'=>401],
-		], ['body']);
-		$this->assertInternalType('array', $data['array4']);
-		$this->assertEquals([1,2,3,4,5], $data['array4']);
-
-	}
-	/**
-	 * @expectedException \Exception
-	 * @expectedExceptionCode 402
-	 */
-	public function testArrayValueNoExists(){
-		$data=$this->filter([
-			'array4'=>['array'=>['value-exists'=>6, 'throw'=>402], 'throw'=>401],
-		], ['body']);
-		$this->assertInternalType('array', $data['array4']);
-		$this->assertEquals([1,2,3,4,5], $data['array4']);
-
 	}
 	public function testHex(){
 		//标准数组返回
@@ -383,7 +371,7 @@ class throwTest extends TestCase{
 	}
 	public function testEmail(){
 		$data=$this->filter([
-			'email1'=>['email'],
+			'email1'=>['match'=>'email'],
 			'email2'=>['email'],
 			'email3'=>['email'],
 		], ['body']);
@@ -400,7 +388,8 @@ class throwTest extends TestCase{
 			'email4'=>['email'],
 			'email5'=>['email'],
 			'email6'=>['email'],
-		], ['body', 'throw'=>401]);
+		], ['body', 'error'=>401]);
+		var_dump($data);
 	}
 	public function testMobile(){
 		$data=$this->filter([
@@ -426,17 +415,15 @@ class throwTest extends TestCase{
 			'mobile6'=>['china-mobile'],
 			'mobile7'=>['china-mobile'],
 			'mobile8'=>['china-mobile'],
-		], ['body', 'throw'=>401]);
+		], ['body', 'error'=>401]);
 	}
 	public function testUrl(){
 		$data=$this->filter([
 			'url1'=>['url'],
 			'url2'=>['url'],
-			'url3'=>['url'],
 		], ['body']);
 		$this->assertEquals($this->in['body']['url1'], $data['url1']);
 		$this->assertEquals($this->in['body']['url2'], $data['url2']);
-		$this->assertEquals($this->in['body']['url3'], $data['url3']);
 	}
 	/**
 	 * @expectedException \Exception
@@ -445,8 +432,9 @@ class throwTest extends TestCase{
 	public function testUrlError(){
 		$data=$this->filter([
 			'url3'=>['url'],
+			'url4'=>['url'],
 			'url5'=>['url'],
-		], ['body', 'throw'=>401]);
+		], ['body', 'error'=>401]);
 	}
 	public function testID(){
 		$data=$this->filter([
@@ -464,7 +452,7 @@ class throwTest extends TestCase{
 		$data=$this->filter([
 			'id3'=>['china-id'],
 			'id4'=>['china-id'],
-		], ['body', 'throw'=>401]);
+		], ['body', 'error'=>401]);
 	}
 	public function testIP(){
 		$data=$this->filter([
@@ -483,6 +471,6 @@ class throwTest extends TestCase{
 	public function testIPError(){
 		$data=$this->filter([
 			'ip4'=>['ip-v4'],
-		], ['body', 'throw'=>401]);
+		], ['body', 'error'=>401]);
 	}
 }
