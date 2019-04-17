@@ -1,9 +1,20 @@
-# nx is **"a next-gen framework"**
+```
+        ___  ___
+     __ \  \/  /
+    /  \ \  \ /
+   /  / \ \  \
+  /  /\  / \  \   php.nx.cn
+ /__/  \/__/\__\  vea, 2019
+```
+
+# [![nx](./logo.png)](//php.nx.cn/) is **"a next-gen framework"**
   php 7.0+
   
-  使用php语言中的trait实现在代码编写时的加载扩充，而不是运行时的扩充
+    small,fast,emmmm...
   
-  小框架，可以随意扩充
+    使用php语言中的trait实现在代码编写时的加载扩充，而不是运行时的扩充
+  
+    小框架，可以随意扩充
 
 # feature
 - [x] trait,trait,trait!!!

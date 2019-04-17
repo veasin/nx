@@ -2,7 +2,7 @@
 
 namespace nx;
 
-use nx\base\o2;
+use nx\parts\o2;
 
 class output implements \ArrayAccess, \Countable, \IteratorAggregate{
 	use o2;

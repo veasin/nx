@@ -16,9 +16,18 @@
 	},
 	"minimum-stability": "stable",
 	"autoload": {
-		"psr-4": {"nx\\": "src/"}
+		"psr-4": {
+			"nx\\": ["src/", "deprecated/"],
+			"nx\tools\\": "tools/"
+		}
 	},
 	"require-dev": {
 		"phpunit/phpunit": "^6.2"
+	},
+	"repositories": {
+		"packagist": {
+			"type": "composer",
+			"url": "https://packagist.laravel-china.org"
+		}
 	}
 }

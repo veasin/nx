@@ -7,7 +7,7 @@
  */
 namespace nx;
 
-use nx\base\o2;
+use nx\parts\o2;
 
 /**
  * Class request

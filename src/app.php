@@ -13,7 +13,7 @@ namespace nx;
  * @method int|false insertSQL($sql, array $params=[], $config='default') 执行插入数据动作 ->insertSQL('INSERT INTO cds (`interpret`, `titel`) VALUES (?, ?)', ['veas', 'new cd']);
  * @method array|false selectSQL($sql, array $params=[], $config='default') 执行查询数据方法 ->selectSQL('SELECT `cds`.* FROM `cds` WHERE `cds`.`id` = ?', [13])
  * @method false|int executeSQL($sql,array $params=[], $config='default') 执行默认控制方法 ->executeSQL('UPDATE `cds` SET `interpret` =? WHERE `cds`.`id` = ?', ['vea', 14])
- * @method \nx\db\table\sql table($name, $primary='id', $config='default') 返回一个sql对象
+ * @method \nx\helpers\db\sql table($name, $primary='id', $config='default') 返回一个sql对象
  * @method request() 返回全部输入内容
  * @method response(array|string $string) 设置默认输出方法
  * @method in() 返回全部输入内容
@@ -27,14 +27,6 @@ class app{
 	 * @var /nx/app 静态实例;
 	 */
 	static public $instance=null;
-	/**
-	 * @var \nx\request 请求对象
-	 */
-	public $request=null;
-	/**
-	 * @var \nx\response 响应对象
-	 */
-	public $response=null;
 	/**
 	 * @var array 预定义缓存存储
 	 */
@@ -56,6 +48,7 @@ class app{
 	 * @var \nx\output
 	 */
 	public $out =null;
+	protected $ver =1.1;
 	/**
 	 * 构建app
 	 * app constructor.
@@ -69,14 +62,11 @@ class app{
 		static::$instance=$this;
 		$this->setup =($this->setup ??[]) + ($setup ??[]);
 		$this->uuid=$setup['uuid'] ?? $this->uuid ?? str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
-		if($this->ver ?? 1.0 >1.5){
-			$this->in =$overwrite['in'] ?? new input();
-			$this->out =$overwrite['out'] ?? new output();
-		} else {
+		$this->in =$overwrite['in'] ?? new input();
+		$this->out =$overwrite['out'] ?? new output();
+		if(($this->ver ?? 1.0) ==1.0){
 			$this->request=$overwrite['request'] ?? new request([]);//初始化请求
 			$this->response=$overwrite['response'] ?? new response();//初始化相应
-			$this->in =&$this->request;
-			$this->out =&$this->response;
 		}
 		//初始化traits
 		foreach(class_uses($this) as $_trait){
