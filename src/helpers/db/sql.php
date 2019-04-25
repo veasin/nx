@@ -8,130 +8,11 @@
 declare(strict_types=1);
 namespace nx\helpers\db;
 
+use \nx\helpers\db\pdo;
+
 /**
- * Class sql
+ * Class sql 单表模式，移除多表逻辑
  * @package nx\helpers\db
- * 13.2.1. DELETE语法
- * DELETE [LOW_PRIORITY] [QUICK] [IGNORE] FROM tbl_name
- *          [WHERE where_definition]
- *          [ORDER BY ...]
- *          [LIMIT row_count]
- * DELETE [LOW_PRIORITY] [QUICK] [IGNORE]
- *          tbl_name[.*] [, tbl_name[.*] ...]
- *          FROM table_references
- *          [WHERE where_definition]
- * DELETE [LOW_PRIORITY] [QUICK] [IGNORE]
- *          FROM tbl_name[.*] [, tbl_name[.*] ...]
- *          USING table_references
- *          [WHERE where_definition]
- * 13.2.2. DO语法
- * DO expr [, expr] ...
- * 13.2.3. HANDLER语法
- * HANDLER tbl_name OPEN [ AS alias ]
- * HANDLER tbl_name READ index_name { = | >= | <= | < } (value1,value2,...)
- *          [ WHERE where_condition ] [LIMIT ... ]
- * HANDLER tbl_name READ index_name { FIRST | NEXT | PREV | LAST }
- *          [ WHERE where_condition ] [LIMIT ... ]
- * HANDLER tbl_name READ { FIRST | NEXT }
- *          [ WHERE where_condition ] [LIMIT ... ]
- * HANDLER tbl_name CLOSE
- * 13.2.4. INSERT语法
- * INSERT [LOW_PRIORITY | DELAYED | HIGH_PRIORITY] [IGNORE]
- *          [INTO] tbl_name [(col_name,...)]
- *          VALUES ({expr | DEFAULT},...),(...),...
- *          [ ON DUPLICATE KEY UPDATE col_name=expr, ... ]
- * INSERT [LOW_PRIORITY | DELAYED | HIGH_PRIORITY] [IGNORE]
- *          [INTO] tbl_name
- *          SET col_name={expr | DEFAULT}, ...
- *          [ ON DUPLICATE KEY UPDATE col_name=expr, ... ]
- * INSERT [LOW_PRIORITY | HIGH_PRIORITY] [IGNORE]
- *          [INTO] tbl_name [(col_name,...)]
- *          SELECT ...
- *          [ ON DUPLICATE KEY UPDATE col_name=expr, ... ]
- * 13.2.5. LOAD DATA INFILE语法
- * LOAD DATA [LOW_PRIORITY | CONCURRENT] [LOCAL] INFILE 'file_name.txt'
- *          [REPLACE | IGNORE]
- *          INTO TABLE tbl_name
- *          [FIELDS
- *              [TERMINATED BY 'string']
- *              [[OPTIONALLY] ENCLOSED BY 'char']
- *              [ESCAPED BY 'char' ]
- *          ]
- *          [LINES
- *              [STARTING BY 'string']
- *              [TERMINATED BY 'string']
- *          ]
- *          [IGNORE number LINES]
- *          [(col_name_or_user_var,...)]
- *          [SET col_name = expr,...)]
- * 13.2.6. REPLACE语法
- * REPLACE [LOW_PRIORITY | DELAYED]
- *          [INTO] tbl_name [(col_name,...)]
- *          VALUES ({expr | DEFAULT},...),(...),...
- * REPLACE [LOW_PRIORITY | DELAYED]
- *          [INTO] tbl_name
- *          SET col_name={expr | DEFAULT}, ...
- * REPLACE [LOW_PRIORITY | DELAYED]
- *          [INTO] tbl_name [(col_name,...)]
- *          SELECT ...
- * 13.2.7. SELECT语法
- * SELECT
- *          [ALL | DISTINCT | DISTINCTROW ]
- *              [HIGH_PRIORITY]
- *              [STRAIGHT_JOIN]
- *              [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESULT]
- *              [SQL_CACHE | SQL_NO_CACHE] [SQL_CALC_FOUND_ROWS]
- *          select_expr, ...
- *          [INTO OUTFILE 'file_name' export_options | INTO DUMPFILE 'file_name']
- *          [FROM table_references
- *          [WHERE where_definition]
- *          [GROUP BY {col_name | expr | position}
- *              [ASC | DESC], ... [WITH ROLLUP]]
- *          [HAVING where_definition]
- *          [ORDER BY {col_name | expr | position}
- *              [ASC | DESC] , ...]
- *          [LIMIT {[offset,] row_count | row_count OFFSET offset}]
- *          [PROCEDURE procedure_name(argument_list)]
- *          [FOR UPDATE | LOCK IN SHARE MODE]]
- * 13.2.7.1. JOIN语法
- * table_references:
- *          table_reference [, table_reference] …
- * table_reference:
- *          table_factor | join_table
- * table_factor:
- *          tbl_name [[AS] alias]
- *          [{USE|IGNORE|FORCE} INDEX (key_list)]
- *          | ( table_references )
- *          | { OJ table_reference LEFT OUTER JOIN table_reference
- *          ON conditional_expr }
- * join_table:
- *          table_reference [INNER | CROSS] JOIN table_factor [join_condition]
- *          | table_reference STRAIGHT_JOIN table_factor
- *          | table_reference STRAIGHT_JOIN table_factor ON condition
- *          | table_reference LEFT [OUTER] JOIN table_reference join_condition
- *          | table_reference NATURAL [LEFT [OUTER]] JOIN table_factor
- *          | table_reference RIGHT [OUTER] JOIN table_reference join_condition
- *          | table_reference NATURAL [RIGHT [OUTER]] JOIN table_factor
- * join_condition:
- *          ON conditional_expr
- *          | USING (column_list)
- * 13.2.7.2. UNION语法
- * SELECT ...
- *          UNION [ALL | DISTINCT]
- * SELECT ...
- *          [UNION [ALL | DISTINCT]
- *          SELECT ...]
- * 13.2.9. TRUNCATE语法
- * TRUNCATE [TABLE] tbl_name
- * 13.2.10. UPDATE语法
- * UPDATE [LOW_PRIORITY] [IGNORE] tbl_name
- *          SET col_name1=expr1 [, col_name2=expr2 ...]
- *          [WHERE where_definition]
- *          [ORDER BY ...]
- *          [LIMIT row_count]
- * UPDATE [LOW_PRIORITY] [IGNORE] table_references
- *          SET col_name1=expr1 [, col_name2=expr2 ...]
- *          [WHERE where_definition]
  *
  * 12.1.3. 比较函数和操作符
  * @method static sql\part equal($N1, $N2) =
@@ -366,10 +247,50 @@ namespace nx\helpers\db;
  * @method static sql\part VAR_SAMP($expr) 返回expr 的样本方差。更确切的说，分母的数字是行数减去1
  * @method static sql\part VARIANCE($expr) 返回expr 的总体标准方差。这是标准SQL 的延伸。可使用标准SQL 函数 VAR_POP() 进行代替
  */
-class sql{
-	protected $table =[];
+class sql implements \ArrayAccess{
+	/**
+	 * 选项指定是否重复行应被返回。如果这些选项没有被给定，则默认值为ALL（所有的匹配行被返回）。DISTINCT和DISTINCTROW是同义词，用于指定结果集合中的重复行应被删除。
+	 */
+	const OPTS_DISTINCT ='DISTINCT';
+	/**
+	 * 给予SELECT更高的优先权，高于用于更新表的语句
+	 */
+	const OPTS_HIGH_PRIORITY ='HIGH_PRIORITY';
+	/**
+	 * 用于促使优化符把表联合在一起，顺序按照这些表在FROM子句中排列的顺序
+	 */
+	const OPTS_STRAIGHT_JOIN ='STRAIGHT_JOIN';
+	/**
+	 * 可以与GROUP BY或DISTINCT同时使用，来告知优化符结果集合是较小的。在此情况下，MySAL使用快速临时表来储存生成的表，而不是使用分类。
+	 */
+	const OPTS_SQL_SMALL_RESULT ='SQL_SMALL_RESULT';
+	/**
+	 * 可以与GROUP BY或DISTINCT同时使用，来告知优化符结果集合有很多行。在这种情况下，MySQL直接使用以磁盘为基础的临时表（如果需要的话）。
+	 */
+	const OPTS_SQL_BIG_RESULT ='SQL_BIG_RESULT';
+	/**
+	 * 促使结果被放入一个临时表中。这可以帮助MySQL提前解开表锁定，在需要花费较长时间的情况下，也可以帮助把结果集合发送到客户端中。
+	 */
+	const OPTS_SQL_BUFFER_RESULT ='SQL_BUFFER_RESULT';
+	/**
+	 * 告知MySQL不要把查询结果存储在查询缓存中。
+	 */
+	const OPTS_SQL_NO_CACHE ='SQL_NO_CACHE';
+	/**
+	 * 告知MySQL计算有多少行应位于结果集合中，不考虑任何LIMIT子句。行的数目可以使用SELECT FOUND_ROWS()恢复
+	 */
+	const OPTS_SQL_CALC_FOUND_ROWS ='SQL_CALC_FOUND_ROWS';
+
+	const JOIN_INNER ='INNER';
+	const JOIN_CROSS ='CROSS';
+	const JOIN_STRAIGHT ='STRAIGHT';
+	const JOIN_LEFT ='LEFT';
+	const JOIN_RIGHT ='RIGHT';
+	const JOIN_NATURAL ='NATURAL';
+
+	//protected $table =[];
 	protected $where =[];
-	protected $select =[];
+	protected $select =null;
 	protected $limit =null;
 	protected $sort =null;
 	protected $join =[];
@@ -379,7 +300,7 @@ class sql{
 	 * 操作
 	 * @var string
 	 */
-	protected $action ='select';
+	protected $action ='';
 	/**
 	 * 操作配置参数
 	 * @var array
@@ -391,6 +312,21 @@ class sql{
 	 */
 	protected $set =[];//
 	/**
+	 * 表名 单表逻辑
+	 * @var string
+	 */
+	protected $table ='';
+	/**
+	 * 表名 别名
+	 * @var string
+	 */
+	protected $tableAS ='';
+	/**
+	 * 当前表的主键名
+	 * @var string
+	 */
+	protected $primary ='id';
+	/**
 	 * @var \nx\helpers\db\pdo
 	 */
 	protected $db =null;
@@ -398,20 +334,41 @@ class sql{
 	 * 执行参数
 	 * @var array
 	 */
-	public static $params =[];
+	public $params =[];
+	public $collectParams =true;
 	/**
 	 * sql constructor.
+	 * @param string                  $tableName
+	 * @param string                  $primary
 	 * @param \nx\helpers\db\pdo|null $db
 	 */
-	public function __construct(\nx\helpers\db\pdo $db=null){
+	public function __construct(string $tableName, string $primary='id', pdo $db=null){
+		$n =explode(' ', $tableName, 2);
+		$this->table =$n[0];
+		$this->tableAS =$n[1] ?? '';
+		$this->primary =$primary;
 		$this->db =$db;
 	}
-	public function execute(\nx\helpers\db\pdo $db=null){
-		$_db =$db ?? $this->db ?? null;
+	public function execute(pdo $db=null){
+		$pdo =$db ?? $this->db ?? null;
 		$sql =(string)$this;
-		return [];
+		switch($this->action){
+			case 'insert':
+				return $pdo->select($sql, $this->params);
+			case 'update':
+			case 'delete':
+				return $pdo->execute($sql, $this->params);
+			case 'select':
+				return $pdo->select($sql, $this->params);
+		}
 	}
 	//-------------------------------------------------------------------------------------------------------------
+	/**
+	 * 向表格中插入数据 insert
+	 * @param array[string $field =>any] $fields
+	 * @param array $options
+	 * @return \nx\helpers\db\sql
+	 */
 	public function create($fields=[], array $options=[]):sql{
 		$this->set =$fields;
 		$this->options =$options;
@@ -424,37 +381,32 @@ class sql{
 		$this->action ='update';
 		return $this;
 	}
-	public function read(...$fields):?array{
-
-	}
-	public function first(...$fields):?array{
-
-	}
 	public function delete(array $options=[]):sql{
 		$this->options =$options;
 		$this->action ='delete';
 		return $this;
 	}
-	//-------------------------------------------------------------------------------------------------------------
-	public static function table(string $name, string $primary='id'):sql\table{
-		return new sql\table($name, $primary);
-	}
-	public function from(sql\table ...$tables):sql{
-		$this->table =$tables;
+	public function select($fields=[], array $options=[]):sql{
+		$this->select=$fields;
+		$this->options =$options;
+		$this->action ='select';
 		return $this;
 	}
-	public function join(sql $table2, string $on=null):sql{
-		$this->join =[$table2, $on];
+	//-------------------------------------------------------------------------------------------------------------
+	/**
+	 * https://dev.mysql.com/doc/refman/8.0/en/join.html
+	 * @param \nx\helpers\db\sql $table2
+	 * @param string|null        $on  USING => ['id'], ON => ['id'=>'id'], ['id'=>$user['id']] $user['id'] $user('123')
+	 * @param array              $options
+	 * @return \nx\helpers\db\sql
+	 */
+	public function join(sql $table2, $on=null, array $options=[]):sql{
+		$this->join[] =[$table2, $on, $options];
 		return $this;
 	}
 	//-------------------------------------------------------------------------------------------------------------
 	public function where(...$conds):sql{
 		$this->where=$conds;
-		return $this;
-	}
-	public function select(...$fields):sql{
-		$this->select=$fields;
-		$this->action ='select';
 		return $this;
 	}
 	public function limit(int $rows, int $offset=0):sql{
@@ -478,54 +430,85 @@ class sql{
 		return $this;
 	}
 	//-------------------------------------------------------------------------------------------------------------
-	public static function formatValue($value){
+	/**
+	 * 设置别名
+	 * @param string $name
+	 * @return \nx\helpers\db\sql
+	 */
+	public function as(string $name):sql{
+		$tab =clone $this;
+		$tab->tableAS =$name;
+		return $tab;
+	}
+	public function formatField($name=null, $withTable =true):string{
+		$table =$this->tableAS ?"`{$this->tableAS}`" :"`{$this->table}`";
+		if($name instanceof sql\part) return (string)$name;
+		$value =$name??$this->primary;
+		$field = ('*'===$value) ?$value :"`{$value}`";
+		return $withTable ?"{$table}.{$field}" :$field;
+	}
+	public function getFormatName($withAS =true):string{
+		if($withAS) return $this->tableAS ?"`{$this->table}` `{$this->tableAS}`" : "`{$this->table}`";
+		else return "`{$this->table}`";
+	}
+	public function formatValue($value){
 		switch(gettype($value)){
 			case 'object':
-				if($value instanceof sql\part){
+				if($this->collectParams && ($value instanceof sql\part)){
 					if('value' ===$value->type){
-						self::$params[] =$value;
+						$this->params[] =$value;
 						return '?';
 					}
 				}
 				return (string)$value;
-			//case 'string':
-			//	if('*'===$value) return "*";
+			case 'string':
+				if('*'===$value) return "*";
+				if($this->collectParams){
+					$this->params[]=$value;//(string)
+					return '?';
+				}
+				return "\"{$value}\"";
 			default:
 				if('*'===$value) return "*";
-				self::$params[] =$value;//(string)
-				return '?';
-				//return "\"{$value}\"";
+				if($this->collectParams){
+					$this->params[]=$value;//(string)
+					return '?';
+				} else return (string)$value;
 			//default:
 			//	return (string)$value;
 		}
 	}
-	public static function formatField($value){
-		if($value instanceof sql\part) return (string)$value;//todo ??
-		return ('*'===$value) ?$value :"`{$value}`";
-	}
 	//-------------------------------------------------------------------------------------------------------------
-	protected static function buildWhere($where, sql\table $table=null, $command ='WHERE'):string{
+	protected function buildWhere($where, $command ='WHERE'):string{
 		if(count($where) >0){
 			$_conds=[];
 			foreach($where as $cond){
-				if($cond instanceof sql\part) $cond =new sql\part($cond, 'value', $table);
+				if(is_array($cond)){
+					foreach($cond as $field=>$value){
+						$_conds[] =$this[$field]->equal($this($value));
+					}
+					continue;
+				} elseif(!($cond instanceof sql\part)) $cond =$this[null]->equal($this($cond));
 				$_conds[] =$cond;
 			}
-			$_where ="{$command} ".implode(' AND ', $_conds);
+			$_where =" {$command} ".implode(' AND ', $_conds);
 		} else $_where ='';
 		return $_where;
 	}
-	protected static function buildSelect($select, sql\table $table=null):string{
+	public function buildSelect($only =true):string{
+		$select =$this->select;
+		if(null ===$select) return '';
+		elseif(!is_array($select)) $select=[$select];
 		if(count($select) >0){
 			$_fields =[];
 			foreach($select as $field){
-				$_fields[] =$field instanceof sql\part ?$field :new sql\part($field, 'field', $table);
+				$_fields[] =$field instanceof sql\part ?$field :new sql\part($field, 'field', $this);
 			}
-			$_select =' '.implode(', ', $_fields);
-		} else $_select =" *";
+			$_select =implode(', ', $_fields);
+		} else $_select =$only ?'*' :$this->formatField("*");
 		return $_select;
 	}
-	protected function buildInsertValue($set, sql\table $table=null):array{
+	protected function buildInsertValue($set):array{
 		if(!is_array($set) || empty($set)) return [[],[],null];
 		$cols =current($set);
 		if(!is_array($cols)){
@@ -554,19 +537,19 @@ class sql{
 		}
 		return [implode(', ', $_cols), implode(', ', $_prepares), $params];
 	}
-	protected static function buildSet($set, sql\table $table=null):string{
+	protected function buildSet($set):string{
 		if(!is_array($set) || empty($set)) return '';
 
 		$params =[];
 		foreach($set as $field=>$value){//default -> value
 
-			$_value =self::formatValue($value);
-			$_field =$table->formatField($field);
+			$_value =$this->formatValue($value);
+			$_field =$this->formatField($field);
 			$params[] ="{$_field} = {$_value}";
 		}
 		return " SET ".implode(', ', $params);
 	}
-	protected static function buildSort($sort, sql\table $table=null, $commond="ORDER"):string{
+	protected function buildSort($sort, $commond="ORDER"):string{
 		if(empty($sort)) return '';
 		list($field, $asc) =$sort ?? [null,true];
 
@@ -581,191 +564,223 @@ class sql{
 			elseif(is_string($_asc)){
 				$_sort =(strtolower($_asc[0]) =='a') ?'ASC' :'DESC';
 			}
-			$field =$table->formatField($_field);
+			$field =$this->formatField($_field);
 			$_s[] ="{$field} {$_sort}";
 		}
 		return count($_s) ?" {$commond} BY ".implode(", ", $_s) :'';
 	}
-	protected static function buildLimit($limit, sql\table $table=null):string{
+	protected function buildLimit($limit):string{
 		if(empty($limit)) return '';
 		list($rows, $offset) =$limit ?? ['', 0];
 		if(empty($rows)) return '';
 		return 0 === $offset ?" LIMIT {$rows}" :" LIMIT {$offset}, {$rows}";
 	}
 	public function __toString(){
-		$firstTable =null;
-		if(count($this->table)){
-			$firstTable =current($this->table);
-			$table =implode(', ', $this->table);
-		} else $table ='';
-		self::$params=[];//清空所有参数，重新构建
+		$this->params=[];//清空所有参数，重新构建
 		switch($this->action){
+			case 'delete':
+				/**
+				 * 13.2.2 DELETE Syntax
+				 * DELETE [LOW_PRIORITY] [QUICK] [IGNORE] FROM tbl_name [[AS] tbl_alias]
+				 * 				[PARTITION (partition_name [, partition_name] ...)]
+				 * 				[WHERE where_condition]
+				 * 				[ORDER BY ...]
+				 * 				[LIMIT row_count]
+				 */
+				$priority =($this->options['priority'] ??false) ?' LOW_PRIORITY' :''; //LOW_PRIORITY
+				$ignore =($this->options['ignore'] ??false) ?' IGNORE' :''; //IGNORE
+				$quick =($this->options['quick'] ??false) ?' QUICK' :''; //QUICK
+				$table =$this->getFormatName();
+				$where =$this->buildWhere($this->where);
+				$order =$this->buildSort($this->sort);
+				$limit =$this->buildLimit($this->limit);
+				return "DELETE{$priority}{$quick}{$ignore} FROM {$table}{$where}{$order}{$limit}";
 			case 'insert':
 				/**
-				 * INSERT [LOW_PRIORITY | DELAYED | HIGH_PRIORITY] [IGNORE] //多条
-				 * 		[INTO] tbl_name [(col_name,...)]
-				 * 		VALUES ({expr | DEFAULT},...),(...),...
-				 * 		[ ON DUPLICATE KEY UPDATE col_name=expr, ... ]
-				 * INSERT [LOW_PRIORITY | DELAYED | HIGH_PRIORITY] [IGNORE] //单条
-				 * 		[INTO] tbl_name
-				 * 		SET col_name={expr | DEFAULT}, ...
-				 * 		[ ON DUPLICATE KEY UPDATE col_name=expr, ... ]
-				 * INSERT [LOW_PRIORITY | HIGH_PRIORITY] [IGNORE] //多条
-				 * 		[INTO] tbl_name [(col_name,...)]
-				 * 		SELECT ...
-				 * 		[ ON DUPLICATE KEY UPDATE col_name=expr, ... ]
+				 * 13.2.6 INSERT Syntax
+				 * INSERT [LOW_PRIORITY | DELAYED | HIGH_PRIORITY] [IGNORE]
+				 * 				[INTO] tbl_name
+				 * 				[PARTITION (partition_name [, partition_name] ...)]
+				 * 				[(col_name [, col_name] ...)]
+				 * 				{VALUES | VALUE} (value_list) [, (value_list)] ...
+				 * 				[ON DUPLICATE KEY UPDATE assignment_list] //todo change to this mode
+				 * INSERT [LOW_PRIORITY | DELAYED | HIGH_PRIORITY] [IGNORE]
+				 * 				[INTO] tbl_name
+				 * 				[PARTITION (partition_name [, partition_name] ...)]
+				 * 				SET assignment_list
+				 * 				[ON DUPLICATE KEY UPDATE assignment_list]
+				 * INSERT [LOW_PRIORITY | HIGH_PRIORITY] [IGNORE] //todo support
+				 * 				[INTO] tbl_name
+				 * 				[PARTITION (partition_name [, partition_name] ...)]
+				 * 				[(col_name [, col_name] ...)]
+				 * 				SELECT ...
+				 * 				[ON DUPLICATE KEY UPDATE assignment_list]
+				 * value:
+				 * 				{expr | DEFAULT}
+				 * value_list:
+				 * 				value [, value] ...
+				 * assignment:
+				 * 				col_name = value
+				 * assignment_list:
+				 * 				assignment [, assignment] ...
 				 */
 				$priority =($this->options['priority'] ??false) ?' '.strtoupper($this->options['priority']) :''; //LOW_PRIORITY | DELAYED | HIGH_PRIORITY
 				$ignore =($this->options['ignore'] ??false) ?' IGNORE' :''; //IGNORE
 				//$set =[]; //ON DUPLICATE KEY UPDATE col_name=expr, ...
-				list($cols, $prepares, self::$params) =self::buildInsertValue($this->set,$firstTable);
-				$table =$firstTable->getFormatName(false);
-				$from =empty($firstTable) ?'' :" INTO {$table}";
-				return "INSERT{$priority}{$ignore}{$from} ({$cols}) VALUES ($prepares)";
-			case 'delete':
-				/**
-				 * DELETE [LOW_PRIORITY] [QUICK] [IGNORE] FROM tbl_name //support
-				 * 		[WHERE where_definition]
-				 * 		[ORDER BY ...]
-				 * 		[LIMIT row_count]
-				 * DELETE [LOW_PRIORITY] [QUICK] [IGNORE] //no
-				 * 		tbl_name[.*] [, tbl_name[.*] ...]
-				 * 		FROM table_references
-				 * 		[WHERE where_definition]
-				 * DELETE [LOW_PRIORITY] [QUICK] [IGNORE] //no
-				 * 		FROM tbl_name[.*] [, tbl_name[.*] ...]
-				 * 		USING table_references
-				 * 		[WHERE where_definition]
-				 */
-				$priority =($this->options['priority'] ??false) ?' '.strtoupper($this->options['priority']) :''; //LOW_PRIORITY
-				$ignore =($this->options['ignore'] ??false) ?' IGNORE' :''; //IGNORE
-				$where =self::buildWhere($this->where, $firstTable);
-				$order =self::buildSort($this->sort, $firstTable);
-				$limit =self::buildLimit($this->limit, $firstTable);
-				$from =empty($firstTable) ?'' :" FROM {$table}";
-				return "DELETE{$priority}{$ignore}{$from} {$where}{$order}{$limit}";
+				list($cols, $prepares, $this->params) =$this->buildInsertValue($this->set);
+				$table =$this->getFormatName(false);
+				return "INSERT{$priority}{$ignore} INTO {$table} ({$cols}) VALUES ($prepares)";
 			case 'update':
 				/**
-				 * UPDATE [LOW_PRIORITY] [IGNORE] tbl_name
-				 * 		SET col_name1=expr1 [, col_name2=expr2 ...]
-				 * 		[WHERE where_definition]
-				 * 		[ORDER BY ...]
-				 * 		[LIMIT row_count]
-				 * UPDATE [LOW_PRIORITY] [IGNORE] table_references //no
-				 * 		SET col_name1=expr1 [, col_name2=expr2 ...]
-				 * 		[WHERE where_definition]
+				 * 13.2.12 UPDATE Syntax
+				 * UPDATE [LOW_PRIORITY] [IGNORE] table_reference
+				 * 				SET assignment_list
+				 * 				[WHERE where_condition]
+				 * 				[ORDER BY ...]
+				 * 				[LIMIT row_count]
+				 * value:
+				 * 				{expr | DEFAULT}
+				 * assignment:
+				 * 				col_name = value
+				 * assignment_list:
+				 * 				assignment [, assignment] ...
 				 */
 				$priority =($this->options['priority'] ??false) ?' '.strtoupper($this->options['priority']) :''; //LOW_PRIORITY
 				$ignore =($this->options['ignore'] ??false) ?' IGNORE' :''; //IGNORE
-				$set =self::buildSet($this->set, $firstTable);
-				$where =self::buildWhere($this->where, $firstTable);
-
-				$multiple =count($this->table)>1;
-				if($multiple){
-					return "UPDATE{$priority}{$ignore} {$table} {$set} {$where}";
-				}
-				$order =self::buildSort($this->sort, $firstTable);
-				$limit =self::buildLimit($this->limit, $firstTable);
-				return "UPDATE{$priority}{$ignore} {$table} {$set} {$where}{$order}{$limit}";
+				$set =$this->buildSet($this->set);
+				$where =$this->buildWhere($this->where);
+				//$multiple =count($this->table)>1;
+				//if($multiple){
+				//	return "UPDATE{$priority}{$ignore} {$table} {$set} {$where}";
+				//}
+				$order =$this->buildSort($this->sort);
+				$limit =$this->buildLimit($this->limit);
+				$table =$this->getFormatName();
+				return "UPDATE{$priority}{$ignore} {$table} {$set}{$where}{$order}{$limit}";
 			case 'select':
 				/**
+				 * 13.2.10 SELECT Syntax
 				 * SELECT
-				 * 		[ALL | DISTINCT | DISTINCTROW ]
-				 * 			[HIGH_PRIORITY]
-				 * 			[STRAIGHT_JOIN]
-				 * 			[SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESULT]
-				 * 			[SQL_CACHE | SQL_NO_CACHE] [SQL_CALC_FOUND_ROWS]
-				 * 		select_expr, ...
-				 * 		[INTO OUTFILE 'file_name' export_options
-				 *  		| INTO DUMPFILE 'file_name']
+				 * 		[ALL | DISTINCT | DISTINCTROW ]	//选项指定是否重复行应被返回。如果这些选项没有被给定，则默认值为ALL（所有的匹配行被返回）。DISTINCT和DISTINCTROW是同义词，用于指定结果集合中的重复行应被删除。
+				 * 			[HIGH_PRIORITY]			//给予SELECT更高的优先权，高于用于更新表的语句
+				 * 			[STRAIGHT_JOIN]			//用于促使优化符把表联合在一起，顺序按照这些表在FROM子句中排列的顺序
+				 * 			[SQL_SMALL_RESULT]		//可以与GROUP BY或DISTINCT同时使用，来告知优化符结果集合是较小的。在此情况下，MySAL使用快速临时表来储存生成的表，而不是使用分类。
+				 * 			[SQL_BIG_RESULT]		//可以与GROUP BY或DISTINCT同时使用，来告知优化符结果集合有很多行。在这种情况下，MySQL直接使用以磁盘为基础的临时表（如果需要的话）。
+				 * 			[SQL_BUFFER_RESULT]		//促使结果被放入一个临时表中。这可以帮助MySQL提前解开表锁定，在需要花费较长时间的情况下，也可以帮助把结果集合发送到客户端中。
+				 * 			[SQL_NO_CACHE]			//告知MySQL不要把查询结果存储在查询缓存中。
+				 * 			[SQL_CALC_FOUND_ROWS]	//告知MySQL计算有多少行应位于结果集合中，不考虑任何LIMIT子句。行的数目可以使用SELECT FOUND_ROWS()恢复
+				 * 		select_expr [, select_expr ...]
 				 * 		[FROM table_references
-				 *  		[WHERE where_definition]
-				 * 			[GROUP BY {col_name | expr | position}
-				 *            [ASC | DESC], ... [WITH ROLLUP] //no rollup
-				 * 			]
-				 * 			[HAVING where_definition]
-				 * 			[ORDER BY {col_name | expr | position} [ASC | DESC] , ...]
+				 * 			[PARTITION partition_list]		//?
+				 * 			[WHERE where_condition]
+				 * 			[GROUP BY {col_name | expr | position}, ... [WITH ROLLUP]]
+				 * 			[HAVING where_condition]
+				 * 			[WINDOW window_name AS (window_spec)	//?
+				 * 				[, window_name AS (window_spec)] ...]
+				 * 			[ORDER BY {col_name | expr | position}
+				 * 				[ASC | DESC], ... [WITH ROLLUP]]
 				 * 			[LIMIT {[offset,] row_count | row_count OFFSET offset}]
-				 * 			[PROCEDURE procedure_name(argument_list)]
-				 * 			[FOR UPDATE | LOCK IN SHARE MODE]
+				 * 			[INTO OUTFILE 'file_name'
+				 * 				[CHARACTER SET charset_name]
+				 * 				export_options
+				 * 			| INTO DUMPFILE 'file_name'
+				 * 			| INTO var_name [, var_name]]
+				 * 			[FOR {UPDATE | SHARE} [OF tbl_name [, tbl_name] ...] [NOWAIT | SKIP LOCKED]
+				 * 			| LOCK IN SHARE MODE]
 				 * 		]
-				 *
-				 * table_references:
-				 * 		escaped_table_reference [, escaped_table_reference] ...
-				 *
-				 * escaped_table_reference:
-				 * 		table_reference
-				 * 		| { OJ table_reference }
-				 *
-				 * table_reference:
-				 * 		table_factor
-				 * 		| joined_table
-				 *
-				 * table_factor:
-				 * 		tbl_name [PARTITION (partition_names)] [[AS] alias] [index_hint_list] //user as u
-				 * 		| table_subquery [AS] alias [(col_list)] // (select * from user) as u (id)
-				 * 		| ( table_references ) // FROM (user, (user, info))
-				 *
-				 * joined_table:
-				 * 		table_reference {[INNER | CROSS] JOIN | STRAIGHT_JOIN} table_factor [join_specification] //FROM user INNER JOIN info
-				 * 		| table_reference {LEFT|RIGHT} [OUTER] JOIN table_reference join_specification //FROM user LEFT OUTER JOIN info
-				 * 		| table_reference NATURAL [INNER | {LEFT|RIGHT} [OUTER]] JOIN table_factor
-				 *
-				 * join_specification:
-				 * 		ON search_condition
-				 * 		| USING (join_column_list)
-				 *
-				 * join_column_list:
-				 * 		column_name [, column_name] ...
-				 *
-				 * index_hint_list:
-				 * 		index_hint [, index_hint] ...
-				 *
-				 * index_hint:
-				 * 		USE {INDEX|KEY}
-				 * 			[FOR {JOIN|ORDER BY|GROUP BY}] ([index_list])
-				 * 		| {IGNORE|FORCE} {INDEX|KEY}
-				 * 			[FOR {JOIN|ORDER BY|GROUP BY}] (index_list)
-				 *
-				 * index_list:
-				 * 		index_name [, index_name] ...
-				 *
-				 *
-				 * table_references:
-				 *          table_reference [, table_reference] … //array(table_reference, table_references, ...)
-				 * table_reference:
-				 *          table_factor | join_table //class table_factor extend table_reference,class join_table extend table_reference,
-				 * table_factor:
-				 *          tbl_name [[AS] alias] //user AS u, user u
-				 *          [{USE|IGNORE|FORCE} INDEX (key_list)]
-				 *          | ( table_references )
-				 *          | { OJ table_reference LEFT OUTER JOIN table_reference
-				 *          ON conditional_expr }
-				 * join_table:
-				 *          table_reference [INNER | CROSS] JOIN table_factor [join_condition]
-				 *          | table_reference STRAIGHT_JOIN table_factor
-				 *          | table_reference STRAIGHT_JOIN table_factor ON condition
-				 *          | table_reference LEFT [OUTER] JOIN table_reference join_condition
-				 *          | table_reference NATURAL [LEFT [OUTER]] JOIN table_factor
-				 *          | table_reference RIGHT [OUTER] JOIN table_reference join_condition
-				 *          | table_reference NATURAL [RIGHT [OUTER]] JOIN table_factor
-				 * join_condition:
-				 *          ON conditional_expr
-				 *          | USING (column_list)
-				 *
 				 */
-				$select =self::buildSelect($this->select, $firstTable);
-				$from =empty($firstTable) ?'' :" FROM {$table}";
-				$where =self::buildWhere($this->where, $firstTable);
-				$group =self::buildSort($this->group, $firstTable, 'GROUP');
-				$having =self::buildWhere($this->having, $firstTable, ' HAVING');
-				$order =self::buildSort($this->sort, $firstTable);
-				$limit =self::buildLimit($this->limit, $firstTable);
-				return "SELECT{$select}{$from} {$where}{$group}{$having}{$order}{$limit}";
+				/**
+				 * table_references:
+				 * 				escaped_table_reference [, escaped_table_reference] ...
+				 * escaped_table_reference:
+				 * 				table_reference
+				 * 				| { OJ table_reference }
+				 * table_reference:
+				 * 				table_factor
+				 * 				| joined_table
+				 * table_factor:
+				 * 				tbl_name [PARTITION (partition_names)]
+				 * 				[[AS] alias] [index_hint_list]
+				 * 				| table_subquery [AS] alias [(col_list)]
+				 * 				| ( table_references )
+				 * joined_table:
+				 * 				table_reference {[INNER | CROSS] JOIN | STRAIGHT_JOIN} table_factor [join_specification]
+				 * 				| table_reference {LEFT|RIGHT} [OUTER] JOIN table_reference join_specification
+				 * 				| table_reference NATURAL [INNER | {LEFT|RIGHT} [OUTER]] JOIN table_factor
+				 * join_specification:
+				 * 				ON search_condition
+				 * 				| USING (join_column_list)
+				 * join_column_list:
+				 * 				column_name [, column_name] ...
+				 * index_hint_list:
+				 * 				index_hint [, index_hint] ...
+				 * index_hint:
+				 * 				USE {INDEX|KEY}
+				 * 					[FOR {JOIN|ORDER BY|GROUP BY}] ([index_list])
+				 * 				| {IGNORE|FORCE} {INDEX|KEY}
+				 * 					[FOR {JOIN|ORDER BY|GROUP BY}] (index_list)
+				 * index_list:
+				 * 				index_name [, index_name] ...
+				 */
+				$where =$this->buildWhere($this->where);
+				$group =$this->buildSort($this->group, 'GROUP');
+				$having =$this->buildWhere($this->having, ' HAVING');
+				$order =$this->buildSort($this->sort);
+				$limit =$this->buildLimit($this->limit);
+				$table =$this->getFormatName();
+				$options =$this->buildOptions('DISTINCT,DISTINCTROW,HIGH_PRIORITY,STRAIGHT_JOIN,SQL_SMALL_RESULT,SQL_BIG_RESULT,SQL_BUFFER_RESULT,SQL_NO_CACHE,SQL_CALC_FOUND_ROWS', $this->options);
+				$hasJoin =count($this->join)>0;
+				$select =$this->buildSelect(!$hasJoin);
+				if($hasJoin){
+					list($join, $joinSelect) =$this->buildJoin($this->join);
+					$select .=(''===$joinSelect) ?'' :($select?', ':'').$joinSelect;
+				} else $join='';
+				return "SELECT{$options} {$select} FROM {$table}{$join}{$where}{$group}{$having}{$order}{$limit}";
+			case 'do':
+			default:
+				/**
+				 * 13.2.3 DO Syntax
+				 * DO expr [, expr] ...
+				 */
+				return 'DO 1';
 		}
 	}
+	protected function buildJoin($joins=[]){
+		$_joins =[];
+		$_select =[];
+		foreach($joins as $join){
+			if(empty($join[2])) $join[2]=['LEFT'];
+			$options =$this->buildOptions('NATURAL,INNER,CROSS,LEFT,RIGHT', $join[2]);
+			$table =$join[0]->getFormatName();
+			$on =[];
+			if(!is_array($join[1])) $join[1]=[$join[1]=>$join[1]];
+			foreach($join[1] as $joinField =>$field){
+				$j =$join[0]->formatField(empty($joinField) ?null :$joinField);
+				$t =$this->formatField($field);
+				$on[] ="{$j} = $t";
+			}
+			$keyword =in_array('STRAIGHT', $join[2]) ?'STRAIGHT_JOIN' :'JOIN';
+			$_on =implode(', ', $on);
+			$_joins[]="{$options} {$keyword} {$table} ON ({$_on})";
+
+			$select =$join[0]->buildSelect(false);
+			if(''!==$select) $_select[] =$select;
+		}
+		if(count($_select)){
+			$select =implode(", ", $_select);
+		} else $select ='';
+		return [implode("", $_joins), $select];
+	}
+	protected function buildOptions($in='', $options=[]){
+		if(!is_array($options)) return '';
+		$r=[];
+		foreach(explode(',', $in) as $opt){
+			if(in_array($opt, $options)) $r[] =$opt;
+		}
+		return count($r) ?' '.implode(' ', $r):'';
+	}
 	public function __invoke($value):sql\part{
-		return new sql\part($value, 'value');
+		return new sql\part($value, 'value', $this);
 	}
 	/**
 	 * @param $name
@@ -775,11 +790,21 @@ class sql{
 	public static function __callStatic($name, $arguments):sql\part{
 		return (new sql\part($name, 'function'))->arguments(...$arguments);
 	}
+	//-------------------------------------------------------------------------------------------------------------
+	public function offsetSet($offset, $value){
+		//
+	}
+	public function offsetExists($offset) {
+		//
+	}
+	public function offsetUnset($offset) {
+		//
+	}
+	/**
+	 * @param mixed $offset
+	 * @return \nx\helpers\db\sql\part
+	 */
+	public function offsetGet($offset):sql\part{
+		return new sql\part($offset, 'field',$this);
+	}
 }
-
-/*
-$table =new sql('user', 'id', 'u', $db);
-
-
-
-*/

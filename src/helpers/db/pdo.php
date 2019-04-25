@@ -18,33 +18,44 @@ class pdo{
 	/**
 	 * @var \PDO
 	 */
-	public $PDO=null;
-	/**
-	 * @var \nx\app;
-	 */
-	private $app=null;
+	public $link=null;
 	private $setup=[];
+	/**
+	 * @var callable
+	 */
+	private $_log =null;
 	public function __construct($setup=[]){
-		$this->app=\nx\app::$instance;
-		$this->setup=$setup;
+		if(\nx\app::$instance) $this->_log =\nx\app::$instance->log;
+		$this->setup=$setup ??[];
+		$this->timeout =$this->setup['timeout'] ?? 0;
 		$this->setup['options']=($this->setup['options'] ?? []) + $this->_nx_db_pdo_options;
 	}
 	/**
 	 * @return \PDO
 	 */
-	private function db(){
+	private function db():\PDO{
 		$now=time();
-		if(null === $this->PDO || ($this->timeout > 0 && $this->timeout < $now)){
-			$this->PDO=new \PDO($this->setup['dsn'], $this->setup['username'], $this->setup['password'], $this->setup['options']);
+		if(null === $this->link || ($this->timeout > 0 && $this->timeout < $now)){
+			$this->link=new \PDO($this->setup['dsn'], $this->setup['username'], $this->setup['password'], $this->setup['options']);
 			$this->timeout=($this->setup['timeout'] ?? 0 > 0) ?$now + $this->setup['timeout'] :0;
 		}
-		return $this->PDO;
+		return $this->link;
+	}
+	public function setLog(callable $logger){
+		$this->_log =$logger;
+	}
+	/**
+	 * @param string $template
+	 * @param array  $data
+	 */
+	private function log(string $template, array $data=[]){
+		if(null !==$this->_log) call_user_func($this->_log, sprintf($template, ...$data));
 	}
 	/**
 	 * @return null
 	 */
 	private function failed(){
-		if($this->app) $this->app->log(sprintf('sql error: %s %s %s', $this->PDO->errorInfo()));
+		$this->log('sql error: %s %s %s', $this->link->errorInfo());
 		return null;
 	}
 	/**
@@ -54,8 +65,8 @@ class pdo{
 	 * @param array  $params
 	 * @return null|int
 	 */
-	public function insert(string $sql, array $params=[]){
-		if($this->app) $this->app->log(sprintf('sql: %s %s', $sql, json_encode($params, JSON_UNESCAPED_UNICODE)));
+	public function insert(string $sql, array $params=[]):?int{
+		$this->log('sql: %s [%s]', [$sql, json_encode($params, JSON_UNESCAPED_UNICODE)]);
 		$db=$this->db();
 		$ok=false;
 		if(0 === count($params)){
@@ -72,21 +83,21 @@ class pdo{
 				}
 			}
 		}
-		return $ok ?$db->lastInsertId() :$this->failed();
+		return $ok ?(int)$db->lastInsertId() :$this->failed();
 	}
 	/**
-	 * 查找记录
+	 * 选择记录
 	 * ->select('SELECT `cds`.* FROM `cds` WHERE `cds`.`id` = ?', [13])
 	 * @param string     $sql
 	 * @param array|null $params
 	 * @return array|null
 	 */
-	public function select(string $sql, array $params=null){
-		if($this->app) $this->app->log(sprintf('sql: %s %s', $sql, json_encode($params, JSON_UNESCAPED_UNICODE)));
+	public function select(string $sql, array $params=null):?array{
+		$this->log('sql: %s [%s]', [$sql, json_encode($params, JSON_UNESCAPED_UNICODE)]);
 		$db=$this->db();
 		$sth=$db->prepare($sql);
 		if(false === $sth) return $this->failed();
-		$ok=$sth->execute($params);
+		$ok=$sth->execute($params ??[]);
 		return (false === $ok) ?$this->failed() :$sth->fetchAll();
 	}
 	/**
@@ -97,8 +108,8 @@ class pdo{
 	 * @param array|null $params
 	 * @return int|null
 	 */
-	public function execute(string $sql, array $params=null){
-		if($this->app) $this->app->log(sprintf('sql: %s %s', $sql, json_encode($params, JSON_UNESCAPED_UNICODE)));
+	public function execute(string $sql, array $params=null):?int{
+		$this->log('sql: %s [%s]', [$sql, json_encode($params, JSON_UNESCAPED_UNICODE)]);
 		$db=$this->db();
 		$sth=$db->prepare($sql);
 		if(false === $sth) return $this->failed();
@@ -111,7 +122,7 @@ class pdo{
 	 * @return null|mixed
 	 */
 	public function transaction(callable $fun){
-		if($this->app) $this->app->log('sql transaction begin:');
+		$this->log('sql transaction begin:');
 		$db=$this->db();
 		$db->beginTransaction();
 		$rollback=$fun($this);
@@ -119,13 +130,16 @@ class pdo{
 			$db->rollBack();
 			$rollback=null;
 		}else $db->commit();
-		if($this->app) $this->app->log('sql transaction end.');
+		$this->log('sql transaction end.');
 		return $rollback;
 	}
-	public function sql():\nx\helpers\db\sql{
-		return new sql($this);
-	}
-	public function from():\nx\helpers\db\sql{
-		return new sql($this);
+	/**
+	 * 返回table对象
+	 * @param string $tableName
+	 * @param string $primary
+	 * @return \nx\helpers\db\sql
+	 */
+	public function from(string $tableName, string $primary='id'):\nx\helpers\db\sql{
+		return new sql($tableName, $primary, $this);
 	}
 }

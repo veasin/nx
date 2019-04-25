@@ -251,7 +251,7 @@ class part{
 	public $type='value';
 	/**
 	 * 部分来源 用于类型为field的时候
-	 * @var \nx\helpers\db\sql\table
+	 * @var \nx\helpers\db\sql
 	 */
 	protected $from=null;
 	/**
@@ -273,7 +273,7 @@ class part{
 	 * @var part array
 	 */
 	protected $parts =[];
-	public function __construct($value, string $type='value', \nx\helpers\db\sql\table $from=null){
+	public function __construct($value, string $type='value', \nx\helpers\db\sql $from=null){
 		$this->value =$value;
 		$this->type =$type;
 		$this->from =$from;
@@ -302,7 +302,7 @@ class part{
 		$r ='';
 		switch($this->type){
 			case 'value':
-				$r =\nx\helpers\db\sql::formatValue($this->value);
+				$r =$this->from->formatValue($this->value);
 				break;
 			case 'field':
 				//$table =(string)$this->from;
