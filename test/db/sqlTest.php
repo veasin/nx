@@ -95,13 +95,13 @@ class sqlTest extends TestCase{
 		$this->assertEquals('UPDATE `user`  SET `user`.`id` = ?, `user`.`name` = ?', (string)$user);
 		$this->assertEquals([1, 'vea'], $user->params);
 
-		$info->update(['id'=>1, 'password'=>$info['salt']->MD5(2)]);
-		$this->assertEquals('UPDATE `info` `i`  SET `i`.`id` = ?, `i`.`password` = MD5(`i`.`salt`, ?)', (string)$info);
-		$this->assertEquals([1, 2], $info->params);
+		$info->update(['id'=>1, 'password'=>$info['salt']->MD5()]);
+		$this->assertEquals('UPDATE `info` `i`  SET `i`.`id` = ?, `i`.`password` = MD5(`i`.`salt`)', (string)$info);
+		$this->assertEquals([1], $info->params);
 
-		$info->where($info['id']->equal(123))->update(['id'=>1, 'password'=>$info['salt']->MD5(2)]);
-		$this->assertEquals('UPDATE `info` `i`  SET `i`.`id` = ?, `i`.`password` = MD5(`i`.`salt`, ?) WHERE `i`.`id` = ?', (string)$info);
-		$this->assertEquals([1, 2, 123], $info->params);
+		$info->where($info['id']->equal(123))->update(['id'=>1, 'password'=>$info['salt']->MD5()]);
+		$this->assertEquals('UPDATE `info` `i`  SET `i`.`id` = ?, `i`.`password` = MD5(`i`.`salt`) WHERE `i`.`id` = ?', (string)$info);
+		$this->assertEquals([1, 123], $info->params);
 
 		$user->where()->update(['id'=>1, 'name'=>'vea'])->sort(['id'=> 'desc'])->limit(1);
 		$this->assertEquals('UPDATE `user`  SET `user`.`id` = ?, `user`.`name` = ? ORDER BY `user`.`id` DESC LIMIT 1', (string)$user);
@@ -134,15 +134,15 @@ class sqlTest extends TestCase{
 		$this->assertEquals('SELECT * FROM `user` WHERE `user`.`id` = ?', (string)$user);
 		$this->assertEquals([1], $user->params);
 
-		$info->where($info['createdAt']->TIMESTAMP($info['1'])->YEAR($info(2))->equal("3"), $info['id']->equal(4))->select();
-		$this->assertEquals('SELECT * FROM `info` `i` WHERE YEAR(TIMESTAMP(`i`.`createdAt`, `i`.`1`), ?) = ? AND `i`.`id` = ?', (string)$info);
-		$this->assertEquals([2,"3",4], $info->params);
+		$info->where($info['createdAt']->TIMESTAMP($info['1'])->YEAR()->equal("3"), $info['id']->equal(4))->select();
+		$this->assertEquals('SELECT * FROM `info` `i` WHERE YEAR(TIMESTAMP(`i`.`createdAt`, `i`.`1`)) = ? AND `i`.`id` = ?', (string)$info);
+		$this->assertEquals(["3",4], $info->params);
 
 	}
 	public function testDelete(){
 		$db =new \nx\helpers\db\pdo();
 		$user =$db->from('user');
-		$info =$db->from('info i');
+		//$info =$db->from('info i');
 
 		$user->where($user['id']->equal(1))->delete($options=[]);
 		$this->assertEquals('DELETE FROM `user` WHERE `user`.`id` = ?', (string)$user);

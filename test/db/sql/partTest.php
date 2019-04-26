@@ -84,4 +84,57 @@ class partTest extends PHPUnit\Framework\TestCase{
 		$part =$user['createdAt']->UNIX_TIMESTAMP()->YEAR('Y')->and($user['updatedAt']->MONTH()->equal(4));
 		$this->assertEquals('YEAR(UNIX_TIMESTAMP(`user`.`createdAt`), "Y") AND MONTH(`user`.`updatedAt`) = 4', (string)$part);
 	}
+	public function testFunction2(){
+		$part =\nx\helpers\db\sql::operate(1, 2);
+		$this->assertEquals('1 = 2', (string)$part);
+
+		$part =\nx\helpers\db\sql::operate(1, 2, '>');
+		$this->assertEquals('1 > 2', (string)$part);
+
+		$part =\nx\helpers\db\sql::operate(1, 2, '>=');
+		$this->assertEquals('1 >= 2', (string)$part);
+
+		$part =\nx\helpers\db\sql::operate(1, 2, 'NOT LIKE');
+		$this->assertEquals('1 NOT LIKE 2', (string)$part);
+
+		$part =\nx\helpers\db\sql::operate("1", 2, 'and');
+		$this->assertEquals('"1" AND 2', (string)$part);
+
+		$part =\nx\helpers\db\sql::and("1", 2);
+		$this->assertEquals('"1" AND 2', (string)$part);
+
+		$part =\nx\helpers\db\sql::between(2, 1,3);
+		$this->assertEquals('2 BETWEEN 1 AND 3', (string)$part);
+
+		$part =\nx\helpers\db\sql::between(1, 2,3, true);
+		$this->assertEquals('1 NOT BETWEEN 2 AND 3', (string)$part);
+
+		$part =\nx\helpers\db\sql::in(1, 1, 2, 3);
+		$this->assertEquals('1 IN (1,2,3)', (string)$part);
+
+		$part =\nx\helpers\db\sql::notIn(1, 1, 2, 3);
+		$this->assertEquals('1 NOT IN (1,2,3)', (string)$part);
+
+		$part =\nx\helpers\db\sql::IFIF(true, 'true', 'false');//(string)true =1;
+		$this->assertEquals('IF(TRUE, "true", "false")', (string)$part);
+
+		$part =\nx\helpers\db\sql::IFIF(null, 'true', 'false');
+		$this->assertEquals('IF(NULL, "true", "false")', (string)$part);
+
+		$part =\nx\helpers\db\sql::IFIF('*', '\*', 'no');
+		$this->assertEquals('IF(*, "*", "no")', (string)$part);
+
+		$part =\nx\helpers\db\sql::TRIM(' 123 ');
+		$this->assertEquals('TRIM(BOTH FROM " 123 ")', (string)$part);
+
+		$part =\nx\helpers\db\sql::TRIM(' 123 ', 'x', 'TRAILING');
+		$this->assertEquals('TRIM(TRAILING "x" FROM " 123 ")', (string)$part);
+
+		$part =\nx\helpers\db\sql::WEIGHT_STRING('abc', null, 'char');
+		$this->assertEquals('WEIGHT_STRING("abc" AS CHAR())', (string)$part);
+
+		$part =\nx\helpers\db\sql::WEIGHT_STRING('abc', 4, 'byte');
+		$this->assertEquals('WEIGHT_STRING("abc" AS BYTE(4))', (string)$part);
+
+	}
 }
