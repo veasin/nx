@@ -8,9 +8,10 @@
 namespace nx\parts\output;
 
 trait rest{
-	protected function nx_output_rest(){
+	protected function nx_parts_output_rest(){
 		$this->out->setRender(function(\nx\output $out){
-			$status =$out->buffer['status'] ?? (count($out) ?200 :404);
+			$r =$out();
+			$status =$out->buffer['status'] ?? ( null !==$r ?200 :404);
 			$this->log( 'status: '.$status);
 			header($_SERVER["SERVER_PROTOCOL"].' '.$status);//HTTP/1.1
 			header_remove('X-Powered-By');
@@ -26,7 +27,6 @@ trait rest{
 				}elseif(is_int($header)) header($value);
 				else header($header.': '.$value);
 			}
-			$r =$out();
 			if(!is_null($r)) echo json_encode($r, JSON_UNESCAPED_UNICODE);
 		});
 	}

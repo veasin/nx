@@ -2,7 +2,7 @@
 namespace nx\parts\log;
 
 trait file{
-	protected function nx_log_file(){
+	protected function nx_parts_log_file(){
 		$setup=$this->setup['log/file'] ?? [];
 		$name=date($setup['name'] ?? 'Y-m-d');
 		$path=$setup['path'] ?? $this->getPath('./logs/');
