@@ -51,6 +51,23 @@ class pdo{
 	private function log(string $template, array $data=[]){
 		if(null !==$this->_log) call_user_func($this->_log, sprintf($template, ...$data));
 	}
+	public function logFormatSQL(string $prepare, array $params=[], string $action=''){
+		$sql =str_replace('?', '%s', $prepare);
+		$prifix ='sql: ';
+		$map =function($value){
+			return gettype($value) ==='integer' ?$value :"\"{$value}\"";
+		};
+		if('insert' ===$action){
+			$_first=current($params);
+			if(is_array($_first)){
+				foreach($params as $param){
+					$this->log($prifix.sprintf($sql, ...array_map($map, $param)));
+				}
+				return ;
+			}
+		}
+		$this->log($prifix.sprintf($sql, ...array_map($map, $params)));
+	}
 	/**
 	 * @return null
 	 */
@@ -66,7 +83,7 @@ class pdo{
 	 * @return null|int
 	 */
 	public function insert(string $sql, array $params=[]):?int{
-		$this->log('sql: %s [%s]', [$sql, json_encode($params, JSON_UNESCAPED_UNICODE)]);
+		$this->logFormatSQL($sql, $params);
 		$db=$this->db();
 		$ok=false;
 		if(0 === count($params)){
@@ -93,7 +110,7 @@ class pdo{
 	 * @return array|null
 	 */
 	public function select(string $sql, array $params=null):?array{
-		$this->log('sql: %s [%s]', [$sql, json_encode($params, JSON_UNESCAPED_UNICODE)]);
+		$this->logFormatSQL($sql, $params);
 		$db=$this->db();
 		$sth=$db->prepare($sql);
 		if(false === $sth) return $this->failed();
@@ -109,7 +126,7 @@ class pdo{
 	 * @return int|null
 	 */
 	public function execute(string $sql, array $params=null):?int{
-		$this->log('sql: %s [%s]', [$sql, json_encode($params, JSON_UNESCAPED_UNICODE)]);
+		$this->logFormatSQL($sql, $params);
 		$db=$this->db();
 		$sth=$db->prepare($sql);
 		if(false === $sth) return $this->failed();
