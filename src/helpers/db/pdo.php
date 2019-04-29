@@ -25,7 +25,7 @@ class pdo{
 	 */
 	private $_log =null;
 	public function __construct($setup=[]){
-		if(\nx\app::$instance) $this->_log =\nx\app::$instance->log;
+		if(\nx\app::$instance) $this->_log =[\nx\app::$instance, 'log'];
 		$this->setup=$setup ??[];
 		$this->timeout =$this->setup['timeout'] ?? 0;
 		$this->setup['options']=($this->setup['options'] ?? []) + $this->_nx_db_pdo_options;
