@@ -556,7 +556,7 @@ class sql implements \ArrayAccess{
 		$sql =(string)$this;
 		switch($this->action){
 			case 'insert':
-				return $pdo->select($sql, $this->params);
+				return $pdo->insert($sql, $this->params);
 			case 'update':
 			case 'delete':
 				return $pdo->execute($sql, $this->params);
