@@ -9,13 +9,34 @@
 use PHPUnit\Framework\TestCase;
 
 class throwCheckTest extends TestCase{
-	use \nx\validator\filterThrow;
+	use \nx\parts\validator\filterThrow;
 	/**
 	 * 空值(null)检测
 	 */
 	public function testNullDefault(){
 		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>1]));
 		$this->assertEquals(1, $value[1]);
+		//触发松散比较 fix
+		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>0]));
+		$this->assertEquals(0, $value[1]);
+
+		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>true]));
+		$this->assertEquals(true, $value[1]);
+
+		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>false]));
+		$this->assertEquals(false, $value[1]);
+
+		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>'123']));
+		$this->assertEquals('123', $value[1]);
+
+		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>['value'=>'default', 'default'=>[]]]));
+		$this->assertEquals([], $value[1]);
+
+		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['default'=>[]]));
+		$this->assertEquals([], $value[1]);
+
+		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>""]));
+		$this->assertEquals("", $value[1]);
 	}
 	/**
 	 * 空值(null)移除
@@ -31,6 +52,14 @@ class throwCheckTest extends TestCase{
 	 */
 	public function testNullThrow(){
 		$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>'throw', 'error'=>401]));
+	}
+	/**
+	 * 空值(null)报错 并定义错误code
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 401
+	 */
+	public function testNullThrowNull(){
+		$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>null, 'error'=>401]));
 	}
 	/**
 	 * 空值(empty)检测

@@ -9,7 +9,7 @@
 use PHPUnit\Framework\TestCase;
 
 class throwTest extends TestCase{
-	use \nx\validator\filterThrow;
+	use \nx\parts\validator\filterThrow;
 	protected $in;
 	protected $source=[
 		'string'=>"123456789",

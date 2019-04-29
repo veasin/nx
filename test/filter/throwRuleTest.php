@@ -9,7 +9,7 @@
 use PHPUnit\Framework\TestCase;
 
 class throwRuleTest extends TestCase{
-	use \nx\validator\filterThrow;
+	use \nx\parts\validator\filterThrow;
 	/**
 	 * 规则降级(简化)
 	 */

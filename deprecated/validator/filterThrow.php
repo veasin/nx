@@ -72,7 +72,7 @@ trait filterThrow{
 			}
 			if('from' !=$rule && 'default' !=$rule && !is_array($set)) $set =['value'=>$set]; // type:'int', cb:()=>{}  => type:{value:'int'}
 			//转换简写规则
-			switch($rule){
+			switch(@(string)$rule){
 				case 'obj':
 				case 'object':
 				case 'keys':
@@ -149,7 +149,7 @@ trait filterThrow{
 	private function _nx_filter_change_type($value, $rules){
 		$set =$rules['type'] ??[];
 		$type =$set['value'] ??'string';
-		switch($type){
+		switch(@(string)$type){
 			case 'int':
 			case 'integer':// id:{type:'int'}
 				$value =is_numeric($value) ?(int)$value :null; //'-123'=>123,'abc'=>null
@@ -226,7 +226,7 @@ trait filterThrow{
 			switch($rule){
 				case 'null':
 					if(null !== $value) continue;
-					switch($set['value'] ?? 'throw'){
+					switch(@(string)($set['value'] ?? 'throw')){
 						case 'throw':
 							$this->_nx_filter_throw(...$error);
 							break;
@@ -242,7 +242,7 @@ trait filterThrow{
 					break;
 				case 'empty':
 					if(!empty($value)) continue;
-					switch($set['value'] ?? 'throw'){
+					switch(@(string)($set['value'] ?? 'throw')){
 						case 'throw':
 							$this->_nx_filter_throw(...$error);
 							break;
@@ -278,7 +278,7 @@ trait filterThrow{
 					$check=$set['value'] ?? false;
 					if(!$check) continue;
 					$result=false;
-					switch($check){
+					switch(@(string)$check){
 						case 'number':
 							$result=preg_match('/^(\d+)$/', $value);
 							break;
@@ -315,7 +315,7 @@ trait filterThrow{
 		//'whole-empty'
 		if(array_key_exists('whole-empty', $options) && 0===count($data)){
 			$set =$options['whole-empty'] ??[];
-			switch($set['value'] ?? 'throw'){
+			switch(@(string)($set['value'] ?? 'throw')){
 				case 'throw':
 					$this->_nx_filter_throw('whole-empty', null, [], $set, $options['throw'] ?? null);
 					break;

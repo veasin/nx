@@ -9,7 +9,7 @@
 use PHPUnit\Framework\TestCase;
 
 class throwGetValueTest extends TestCase{
-	use \nx\validator\filterThrow;
+	use \nx\parts\validator\filterThrow;
 	protected $in;
 	protected $source=[
 		'cid'=>11,
