@@ -168,4 +168,24 @@ class throwCheckTest extends TestCase{
 		$value =$this->_nx_filter_key_check('1234', $this->_nx_filter_rules_parse(['length'=>['<'=>4], 'error'=>403]));
 		$this->assertEquals('1234', $value[1]);
 	}
+	public function testDigitGt(){
+		$value =$this->_nx_filter_key_check(5, $this->_nx_filter_rules_parse(['digit'=>['>'=>4]]));
+		$this->assertEquals(5, $value[1]);
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 400
+	 */
+	public function testDigitGtZero(){
+		$value =$this->_nx_filter_key_check(0, $this->_nx_filter_rules_parse(['digit'=>['>'=>0]]));
+		//$this->assertEquals(0, $value[1]);
+	}
+	/**
+	 * @expectedException \Exception
+	 * @expectedExceptionCode 404
+	 */
+	public function testDigitGtThrow(){
+		$value =$this->_nx_filter_key_check(3, $this->_nx_filter_rules_parse(['digit'=>['>'=>4], 'error'=>404]));
+		//$this->assertEquals(3, $value[1]);
+	}
 }

@@ -262,12 +262,12 @@ trait filterThrow{
 					$check=strlen($value);
 				case 'digit':
 					$set['=']=$set['='] ?? $set['value'] ?? null;
-					if(($set['='] ?? false) && $check != $set['=']) $this->_nx_filter_throw(...$error);
-					if(($set['>'] ?? false) && $check <= $set['>']) $this->_nx_filter_throw(...$error);
-					if(($set['<'] ?? false) && $check >= $set['<']) $this->_nx_filter_throw(...$error);
-					if(($set['!='] ?? false) && $check == $set['!=']) $this->_nx_filter_throw(...$error);
-					if(($set['<='] ?? false) && $check > $set['<=']) $this->_nx_filter_throw(...$error);
-					if(($set['>='] ?? false) && $check < $set['>=']) $this->_nx_filter_throw(...$error);
+					if(null !==($set['='] ?? null) && $check != $set['=']) $this->_nx_filter_throw(...$error);
+					if(null !==($set['>'] ?? null) && $check <= $set['>']) $this->_nx_filter_throw(...$error);
+					if(null !==($set['<'] ?? null) && $check >= $set['<']) $this->_nx_filter_throw(...$error);
+					if(null !==($set['!='] ?? null) && $check == $set['!=']) $this->_nx_filter_throw(...$error);
+					if(null !==($set['<='] ?? null) && $check > $set['<=']) $this->_nx_filter_throw(...$error);
+					if(null !==($set['>='] ?? null) && $check < $set['>=']) $this->_nx_filter_throw(...$error);
 					break;
 				case 'match':
 					$check=$set['value'] ?? false;
