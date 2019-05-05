@@ -312,7 +312,7 @@ trait filterThrow{
 			$set =$options['whole-empty'] ??[];
 			switch(@(string)($set['value'] ?? 'throw')){
 				case 'throw':
-					$this->_nx_filter_throw('whole-empty', null, [], $set, $options['throw'] ?? null);
+					$this->_nx_filter_throw('whole-empty', null, [], $set, $options['error'] ?? null);
 					break;
 				case 'default':
 					$data =$set['default'] ?? null;
