@@ -110,7 +110,9 @@ class app{
 		switch($name){
 			case 'throw':
 				if($args[0] instanceof \Throwable) throw $args[0];
-				return new $args[2]($args[1], $args[0]);
+				$exp =$args[2] ?? '\Exception';
+				$msg =$args[1] ?? '';
+				throw new $exp($msg, $args[0]);
 			case 'log':
 				break;
 			case 'main':
