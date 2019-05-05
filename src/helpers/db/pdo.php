@@ -83,7 +83,7 @@ class pdo{
 	 * @return null|int
 	 */
 	public function insert(string $sql, array $params=[]):?int{
-		$this->logFormatSQL($sql, $params);
+		$this->logFormatSQL($sql, $params, 'insert');
 		$db=$this->db();
 		$ok=false;
 		if(0 === count($params)){
