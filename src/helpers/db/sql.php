@@ -539,6 +539,11 @@ class sql implements \ArrayAccess{
 	public $params =[];
 	public $collectParams =true;
 	/**
+	 * 是否只返回第一条数据
+	 * @var bool
+	 */
+	private $first =false;
+	/**
 	 * sql constructor.
 	 * @param string                  $tableName
 	 * @param string                  $primary
@@ -561,7 +566,9 @@ class sql implements \ArrayAccess{
 			case 'delete':
 				return $pdo->execute($sql, $this->params);
 			case 'select':
-				return $pdo->select($sql, $this->params);
+				$r =$pdo->select($sql, $this->params);
+				if($this->first && is_array($r)) return current($r);
+				return $r;
 		}
 	}
 	//-------------------------------------------------------------------------------------------------------------
@@ -612,10 +619,12 @@ class sql implements \ArrayAccess{
 		return $this;
 	}
 	public function limit(int $rows, int $offset=0):sql{
+		$this->first =($rows===1);
 		$this->limit =[$rows, $offset];
 		return $this;
 	}
 	public function page(int $page, int $max=20):sql{
+		$this->first =false;
 		$this->limit =[$max, ($page -1)*$max];
 		return $this;
 	}
