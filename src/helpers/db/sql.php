@@ -566,9 +566,7 @@ class sql implements \ArrayAccess{
 			case 'delete':
 				return $pdo->execute($sql, $this->params);
 			case 'select':
-				$r =$pdo->select($sql, $this->params);
-				if($this->first && is_array($r)) return current($r);
-				return $r;
+				return $pdo->select($sql, $this->params);
 		}
 	}
 	//-------------------------------------------------------------------------------------------------------------

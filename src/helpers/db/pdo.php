@@ -8,6 +8,8 @@
 declare(strict_types=1);
 namespace nx\helpers\db;
 
+use nx\helpers\db\pdo\result;
+
 class pdo{
 	private $_nx_db_pdo_options=[
 		\PDO::ATTR_DEFAULT_FETCH_MODE=>\PDO::FETCH_ASSOC,
@@ -51,7 +53,8 @@ class pdo{
 	private function log(string $template, array $data=[]){
 		if(null !==$this->_log) call_user_func($this->_log, sprintf($template, ...$data));
 	}
-	public function logFormatSQL(string $prepare, array $params=[], string $action=''){
+	public function logFormatSQL(string $prepare, array $params=null, string $action=''){
+		$params =$params??[];
 		$sql =str_replace('?', '%s', $prepare);
 		$prifix ='sql: ';
 		$map =function($value){
@@ -78,11 +81,11 @@ class pdo{
 	/**
 	 * 直接插入方法
 	 * ->insert('INSERT INTO cds (`interpret`, `titel`) VALUES (?, ?)', ['veas', 'new cd']);
-	 * @param string $sql
-	 * @param array  $params
-	 * @return null|int
+	 * @param string     $sql
+	 * @param array|null $params
+	 * @return \nx\helpers\db\pdo\result
 	 */
-	public function insert(string $sql, array $params=[]):?int{
+	public function insert(string $sql, array $params=null):pdo\result{
 		$this->logFormatSQL($sql, $params, 'insert');
 		$db=$this->db();
 		$ok=false;
@@ -100,22 +103,22 @@ class pdo{
 				}
 			}
 		}
-		return $ok ?(int)$db->lastInsertId() :$this->failed();
+		return new result($ok, $sth, $db);
 	}
 	/**
 	 * 选择记录
 	 * ->select('SELECT `cds`.* FROM `cds` WHERE `cds`.`id` = ?', [13])
 	 * @param string     $sql
 	 * @param array|null $params
-	 * @return array|null
+	 * @return \nx\helpers\db\pdo\result
 	 */
-	public function select(string $sql, array $params=null):?array{
+	public function select(string $sql, array $params=null):pdo\result{
 		$this->logFormatSQL($sql, $params);
 		$db=$this->db();
 		$sth=$db->prepare($sql);
 		if(false === $sth) return $this->failed();
 		$ok=$sth->execute($params ??[]);
-		return (false === $ok) ?$this->failed() :$sth->fetchAll();
+		return new result($ok, $sth, $db);
 	}
 	/**
 	 * 更新记录
@@ -123,15 +126,15 @@ class pdo{
 	 * ->update('UPDATE `cds` SET `interpret` =? WHERE `cds`.`id` = ?', ['vea', 14])
 	 * @param string     $sql
 	 * @param array|null $params
-	 * @return int|null
+	 * @return \nx\helpers\db\pdo\result
 	 */
-	public function execute(string $sql, array $params=null):?int{
+	public function execute(string $sql, array $params=null):pdo\result{
 		$this->logFormatSQL($sql, $params);
 		$db=$this->db();
 		$sth=$db->prepare($sql);
 		if(false === $sth) return $this->failed();
 		$ok=$sth->execute($params);
-		return $ok ?$sth->rowCount() :$this->failed();
+		return new result($ok, $sth, $db);
 	}
 	/**
 	 * 事务

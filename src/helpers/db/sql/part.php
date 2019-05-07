@@ -493,6 +493,14 @@ class part{
 		return $part->arguments($this,...$arguments);
 	}
 	/**
+	 * @param $name
+	 * @param $arguments
+	 * @return part
+	 */
+	public static function __callStatic($name, $arguments):part{
+		return (new static($name, 'function'))->arguments(...$arguments);
+	}
+	/**
 	 * 设置别名
 	 * @param string $name
 	 * @return \nx\helpers\db\sql\part
