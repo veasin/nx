@@ -18,7 +18,7 @@
 	"autoload": {
 		"psr-4": {
 			"nx\\": ["src/", "deprecated/"],
-			"nx\tools\\": "tools/"
+			"nx\\tools\\": "tools/"
 		}
 	},
 	"require-dev": {
