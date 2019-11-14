@@ -103,39 +103,49 @@ class swagger{
 		 * @var \nx\app
 		 */
 		$app=\nx\app::$instance;
-		$app->response->status(200);//强制覆盖当前的输出状态
+		//header('HTTP/1.1 200 OK');
+		//header('Status: 200');
+		$app->out->buffer['status']=200;//强制覆盖当前的输出状态
 		$class=get_class($app);
 		$path=substr($class, 0, strrpos($class, '\\')).'\\controllers\\';
 
 		$rc =[];
-		$before =[];
-
-		if(isset($app->buffer['router/route'])){
-			$rules=$app->buffer['router/route']['rules'];
+		$all =[
+			'parameters'=>[],
+			'responses'=>[],
+		];//*
+		if(isset($app->setup['router/uri'])){
+			$rules=$app->setup['router/uri']['rules'];
 			foreach($rules as $rule){
-				if(is_array($rule[2])){
-					$route=$rule[2];
+				$method =array_shift($rule);
+				$uri =array_shift($rule);
+				$uri2=$uri;
+				$as =[];
+				foreach($rule as $route){
 					$controller=$path.$route[0];
 					$exists=class_exists($controller, true);
 					if($exists){
 						if(!array_key_exists($controller, $rc)) $rc[$controller] =new \ReflectionClass($controller);
-						//if(!array_key_exists($controller, $before)){
-						//	$rr =$rule;
-						//	$rr[0]='*';
-						//	$rr[1]='';
-						//	$before[$controller] =$this->parseMethod($rc[$controller], 'before', $rr);
-						//}
-						$method =$this->parseMethod($rc[$controller], ($route[2]??$rule[0]).$route[1], $rule);
-						if(false !==$method){
-							//$mset =$method[2];
-							//if($before[$controller] ?? false){
-							//	$mset['parameters'] =array_merge($before[$controller][2]['parameters'] ??[], $mset['parameters']??[]);
-							//	$mset['responses'] =array_merge($before[$controller][2]['responses']??[], $mset['responses']??[]);
-							//}
-							$this->paths[$method[0]][$method[1]]=$method[2];
+						list($_path, $action) =$this->parseAction($rc[$controller], $route[1], $route,$method, $uri);
+						if(false !==$action){
+							if($uri==='*'){
+								if($action['parameters']) $all['parameters'] =array_merge($all['parameters'], $action['parameters']);
+								if($action['responses']) $all['responses'] =array_merge($all['responses'], $action['responses']);
+							} else {
+								$uri2 =$_path;
+								if(empty($as)) $as=$action;
+								else{
+									$as['parameters']=array_merge($as['parameters'] ?? [], $action['parameters'] ?? []);
+									$as['responses']=array_merge($as['responses'] ?? [], $action['responses'] ?? []);
+								}
+							}
 						}
 					}
 				}
+				if(empty($as['responses'])){
+					$as['responses']['200']=["description"=>'OK'];
+				}
+				if($uri !=='*') $this->paths[$uri2][$method]=$as;
 			}
 		}
 	}
@@ -144,42 +154,44 @@ class swagger{
 	 * @param $rule
 	 * @return array|bool
 	 */
-	public function parseMethod($r, $name, $rule=[]){
-		$method=$r->hasMethod($name) ?$r->getMethod($name) :false;
-		if(false ===$method) return false;
-		$route=$rule[2];
+	public function parseAction($r, $name, $route, $method, $uri){
+		$action=$r->hasMethod($name) ?$r->getMethod($name) :false;
+		if(false ===$action) return false;
+
 		$tag =strtolower($route[0]);
-		if(!array_key_exists($tag, $this->tags)) $this->tags[$tag] =['name'=>$tag, 'desc'=>self::parseDocCommont($r->getDocComment())];
-		$_route=self::parseRoute(str_replace('((?<i18n>\w{2})/)*', '', $rule[1]));
+		if('*'!==$uri && !array_key_exists($tag, $this->tags)) $this->tags[$tag] =['name'=>$tag, 'desc'=>self::parseDocCommont($r->getDocComment())];
+		$_route=self::parseRoute($uri);
+
 		$_path=$_route[0];
 		$set=[
 			'tags'=>[$tag],
-			'summary'=>self::parseDocCommont($method->getDocComment()),
+			'summary'=>self::parseDocCommont($action->getDocComment()),
 			'description'=>'',
-			'produces'=>["application/json", "text/plain"],
+			'produces'=>['application/x-www-form-urlencoded', "application/json", "text/plain"],
 			'parameters'=>[],//self::makePathParams($_route[1]),
 			'responses'=>[],
 			'security'=>[],
 		];
-		switch($rule[0]){
+		switch($method){
 			case 'post':
 			case 'put':
+			case 'patch':
 			case 'delete':
 				$set['consumes']=['application/x-www-form-urlencoded'];
 				break;
 		}
-		$code=self::readLine($method->getFileName(), $method->getStartLine(), $method->getEndLine());
+		$code=self::readLine($action->getFileName(), $action->getStartLine(), $action->getEndLine());
 		$_code=self::parseCode($code);
-		$set['parameters']=self::makeRequireParams($_code[0], $rule[0], $_route[1]);
-		$set['responses']=self::makeStatus($_code[1]);
-		if(!array_key_exists($_path, $this->paths)) $this->paths[$_path]=[];
 
+		$set['parameters']=self::makeRequireParams($_code[0], $method, $_route[1]);
+		$set['responses']=self::makeStatus($_code[1]);
+		if('*'!==$_path && !array_key_exists($_path, $this->paths)) $this->paths[$_path]=[];
 		$customMethod =$this->custom['method'] ?? false;
-		if(is_callable($customMethod)) $set =call_user_func($customMethod, $set, $rule, $_path);
+		if(is_callable($customMethod)) $set =call_user_func($customMethod, $set, [$method, $uri], $_path);
 
 		$overview =$this->custom['overview'] ?? false;
-		if(is_callable($overview)) $rr =call_user_func($overview, $set, $rule, $_path);
-		return $rr ?? [$_path, $rule[0], $set];
+		if(is_callable($overview)) $rr =call_user_func($overview, $set, [$method, $uri], $_path);
+		return [$_path, $set];
 	}
 	public function doc(){
 		return [
@@ -240,11 +252,17 @@ class swagger{
 		$num2=preg_match_all('#(swagger|S):(?<method>get|post|input|arg|params|header)\|(?<name>[^,\|\n]+)(,\s*(?<default>[^,;\|)]+))?(,\s*(?<filter>[^,;\|)]+))?(,\s*[\'"](?<pattern>[^,;\|)]+)[\'"])?\|?(?<comment>[^\n]*)?#', $code, $params2, PREG_SET_ORDER);
 		if($num2 >0) $params =array_merge($params, $params2);
 
+		$num3=preg_match_all('#in->(?<method>query|body|header|file|cookie|uri)\([\'"](?<name>[^)]+)[\'"]\)([,;]\h*//\h*(?<comment>.*))?#', $code, $params3, PREG_SET_ORDER);
+		if($num3 >0) $params =array_merge($params, $params3);
+
 		$status=[];
 		preg_match_all('#this->[status|i18nStatus]+\((?<code>[1-9]+\d*)(,\s*[\'"](?<info>[^,;)]+)[\'"])?\)([,;]\s*//\h*(?<comment>.*))?#', $code, $status, PREG_SET_ORDER);
 		$status2=[];
 		$num=preg_match_all('#this->response->status\(\s*(?<code>\d+)(,\s*[\'"](?<info>[^,;)]+)[\'"])?\)([,;]\s*//\h*(?<comment>.*))?#', $code, $status2, PREG_SET_ORDER);
 		if($num >0) $status =array_merge($status, $status2);
+		//$this->out->buffer['status']
+		$num3=preg_match_all('#out->buffer\[[\'"]status[\'"]]\s*=\s*(?<code>\d+)([,;]\s*//\h*(?<comment>.*))?#', $code, $status3, PREG_SET_ORDER);
+		if($num3 >0) $status =array_merge($status, $status3);
 		return [$params, $status];
 	}
 	/**
@@ -296,6 +314,7 @@ class swagger{
 			} else {
 				switch($param['method']){
 					case 'params':
+					case 'uri':
 						$in ='path';
 						break;
 					case 'header':
@@ -311,6 +330,7 @@ class swagger{
 					case 'input':
 					case 'put':
 					case 'delete':
+					case 'body':
 						$in='formData';
 						break;
 					default:
@@ -406,13 +426,13 @@ class swagger{
 				array_shift($params);
 				$route=preg_replace('#\(\?[P]?(\<([\w\d]+)\>)?[^\)]+\)#', '{$2}', $route);
 			}
-			return ["/".$route, $params];
+			return [$route, $params];
 		} elseif(preg_match_all('#([d|w]?)\:([a-zA-Z0-9_]+)#',  $route, $params)>0){
 			array_shift($params);
 			array_shift($params);
 			$route=preg_replace('#([d|w]?)\:([a-zA-Z0-9_]+)#', '{$2}', $route);
-			return ["/".$route, $params];
-		} else return ["/".$route, []];
+			return [$route, $params];
+		} else return [$route, []];
 	}
 	/**
 	 * 读取文件段落
