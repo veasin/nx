@@ -84,10 +84,18 @@ class result{
 			}
 			return $r;
 		};
-		return $this->fetchMap($callback);
+		return $this->fetchMap($callback, $this->pdo::FETCH_ASSOC);
 	}
-	public function fetchMap($callback){
-		return $this->fetchAll($this->pdo::FETCH_FUNC, $callback);
+	public function fetchMap($callback, ...$fetch_styles){
+		if(0===count($fetch_styles)) $fetch_styles[] =$this->pdo::FETCH_ASSOC;
+		$r =$this->fetchAll(...$fetch_styles);
+		if(is_array($r)){
+			$rr =[];
+			foreach($r as $index=>$array){
+				$rr[] =call_user_func($callback, $array, $index);
+			}
+			return $rr;
+		} else return $r;
 	}
 	public function fetch(...$args):?array{
 		if(false ===$this->result) return null;
