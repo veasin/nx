@@ -10,8 +10,8 @@ namespace nx;
  * @method string i18n() 返回对应语言文本
  * @method array|string|null config(string $word, $params=null) 读取配置
  * @method helpers\db\pdo db($name='default') 根据$app->setup['db/pdo'] 的配置创建pdo对象
- * @method request() 返回全部输入内容
- * @method response(array|string $string) 设置默认输出方法
+ * @method @deprecated request() 返回全部输入内容
+ * @method @deprecated response(array|string $string) 设置默认输出方法
  * @method in() 返回全部输入内容
  * @method out(array|string $string) 设置默认输出方法
  * @method throw($codeOrException=400, $message='', $exception='\Exception') 抛出指定异常
@@ -20,7 +20,7 @@ namespace nx;
  */
 class app{
 	/**
-	 * @var /nx/app 静态实例;
+	 * @var static 静态实例;
 	 */
 	static public $instance=null;
 	/**
@@ -48,7 +48,6 @@ class app{
 	/**
 	 * 构建app
 	 * app constructor.
-	 * @param array $setup 传入应用的配置 如数据库 路由 缓存等
 	 * @param array $setup     传入应用的配置 如数据库 路由 缓存等
 	 * @param array $overwrite 可选重写对象
 	 */
@@ -104,7 +103,8 @@ class app{
 	 * 魔术方法
 	 * @param string $name 调用函数名
 	 * @param array  $args 调用参数数组
-	 * @return mixed
+	 * @return mixed|\nx\response|null
+	 * @throws \Throwable
 	 */
 	public function __call($name, $args){
 		switch($name){
@@ -147,9 +147,8 @@ class app{
 			case 'in':
 			case 'out':
 				return ($this->$name)(...$args);
-			default:
-				die('nothing for ['.$name.'].');
 		}
+		die('nothing for ['.$name.'].');
 	}
 	/**
 	 * 创建一个实例
@@ -163,6 +162,7 @@ class app{
 	/**
 	 * 执行应用
 	 * @param array ...$route
+	 * @return mixed
 	 */
 	public function run(...$route){
 		return $this->control(...$route);

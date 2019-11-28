@@ -11,18 +11,8 @@ namespace nx\parts;
  * Trait callApp
  * @package nx\base
  * @method log($any, $template=false) 输出日志
- * @method string i18n() 返回对应语言文本
  * @method array|string|null config(string $word, $params=null) 读取配置
- * @method \PDO db($name='default') 根据$app->setup['db/pdo'] 的配置创建pdo对象
- * @method int|false insertSQL($sql, array $params=[], $config='default') 执行插入数据动作->insertSQL('INSERT INTO cds (`interpret`, `titel`) VALUES (?, ?)', ['veas', 'new cd']);
- * @method array|false selectSQL($sql, array $params=[], $config='default') 执行查询数据方法->selectSQL('SELECT `cds`.* FROM `cds` WHERE `cds`.`id` = ?', [13])
- * @method false|int executeSQL($sql, array $params=[], $config='default') 执行默认控制方法->executeSQL('UPDATE `cds` SET `interpret` =? WHERE `cds`.`id` = ?', ['vea', 14])
- * @method \nx\db\table\sql table($name, $primary='id', $config='default') 返回一个sql对象
- * @method true|array|int transaction(callable $fun) 返回事务
- * @property \nx\request request 输入对象
- * @property \nx\response response 输出对象
- * @method request() 返回全部输入内容
- * @method response(array|string $string) 设置默认输出方法
+ * @method \nx\helpers\db\pdo db($name='default') 根据$app->setup['db/pdo'] 的配置创建pdo对象
  * @method in() 返回全部输入内容
  * @method out(array|string $string) 设置默认输出方法
  * @property \nx\input in 输入对象
