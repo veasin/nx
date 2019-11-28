@@ -458,6 +458,11 @@ class part{
 	 */
 	protected $from=null;
 	/**
+	 * 作为参数收集来源记录，默认为from
+	 * @var \nx\helpers\db\sql
+	 */
+	protected $collect =null;
+	/**
 	 * 需要处理的值，应该为string
 	 * @var null
 	 */
@@ -480,6 +485,14 @@ class part{
 		$this->value =$value;
 		$this->type =$type;
 		$this->from =$from;
+	}
+	/**
+	 * @param \nx\helpers\db\sql $from
+	 * @return $this
+	 */
+	public function collectFrom(\nx\helpers\db\sql $from){
+		$this->collect =$from;
+		return $this;
 	}
 	public function arguments(...$arguments):part{
 		$this->arguments =[];

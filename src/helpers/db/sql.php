@@ -8,8 +8,6 @@
 declare(strict_types=1);
 namespace nx\helpers\db;
 
-use \nx\helpers\db\pdo;
-
 /**
  * Class sql 单表模式，移除多表逻辑
  * MySQL 8.0 https://dev.mysql.com/doc/refman/8.0/en/
@@ -556,9 +554,19 @@ class sql implements \ArrayAccess{
 		$this->primary =$primary;
 		$this->db =$db;
 	}
+	private function _log($data){
+		if(\nx\app::$instance) \nx\app::$instance->log($data);
+	}
+	/**
+	 * 执行sql语句
+	 * @param \nx\helpers\db\pdo|null $db
+	 * @return \nx\helpers\db\pdo\result
+	 */
 	public function execute(pdo $db=null){
 		$pdo =$db ?? $this->db ?? null;
 		$sql =(string)$this;
+		$this->_log('sql:');
+		$this->_log($sql);
 		switch($this->action){
 			case 'insert':
 				return $pdo->insert($sql, $this->params);
@@ -612,8 +620,8 @@ class sql implements \ArrayAccess{
 		return $this;
 	}
 	//-------------------------------------------------------------------------------------------------------------
-	public function where(...$conds):sql{
-		$this->where=$conds;
+	public function where(...$conditions):sql{
+		$this->where=$conditions;
 		return $this;
 	}
 	public function limit(int $rows, int $offset=0):sql{
@@ -634,8 +642,8 @@ class sql implements \ArrayAccess{
 		$this->group =[$fields, $sort];
 		return $this;
 	}
-	public function having(...$conds):sql{
-		$this->having =$conds;
+	public function having(...$conditions):sql{
+		$this->having =$conditions;
 		return $this;
 	}
 	//-------------------------------------------------------------------------------------------------------------
@@ -694,17 +702,17 @@ class sql implements \ArrayAccess{
 	//-------------------------------------------------------------------------------------------------------------
 	protected function buildWhere($where, $command ='WHERE'):string{
 		if(count($where) >0){
-			$_conds=[];
+			$_conditions=[];
 			foreach($where as $cond){
 				if(is_array($cond)){
 					foreach($cond as $field=>$value){
-						$_conds[] =$this[$field]->equal($this($value));
+						$_conditions[] =$this[$field]->equal($this($value));
 					}
 					continue;
 				} elseif(!($cond instanceof sql\part)) $cond =$this[null]->equal($this($cond));
-				$_conds[] =$cond;
+				$_conditions[] =$cond;//todo 值收集关联到当前表(联合查询时其中一表条件值的收集)
 			}
-			$_where =" {$command} ".implode(' AND ', $_conds);
+			$_where =" {$command} ".implode(' AND ', $_conditions);
 		} else $_where ='';
 		return $_where;
 	}
@@ -762,7 +770,7 @@ class sql implements \ArrayAccess{
 		}
 		return " SET ".implode(', ', $params);
 	}
-	protected function buildSort($sort, $commond="ORDER"):string{
+	protected function buildSort($sort, $command="ORDER"):string{
 		if(empty($sort)) return '';
 		list($field, $asc) =$sort ?? [null,true];
 
@@ -780,7 +788,7 @@ class sql implements \ArrayAccess{
 			$field =$this->formatField($_field);
 			$_s[] ="{$field} {$_sort}";
 		}
-		return count($_s) ?" {$commond} BY ".implode(", ", $_s) :'';
+		return count($_s) ?" {$command} BY ".implode(", ", $_s) :'';
 	}
 	protected function buildLimit($limit):string{
 		if(empty($limit)) return '';

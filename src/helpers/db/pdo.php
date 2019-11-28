@@ -76,7 +76,7 @@ class pdo{
 	 */
 	private function failed(){
 		$this->log('sql error: %s %s %s', $this->link->errorInfo());
-		return null;
+		return new result(false, null, $this->db());
 	}
 	/**
 	 * 直接插入方法

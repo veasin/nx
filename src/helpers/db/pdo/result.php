@@ -12,7 +12,7 @@ class result{
 	/**
 	 * @var \PDOStatement
 	 */
-	protected $sth;
+	protected $sth=null;
 	/**
 	 * @var \PDO
 	 */
@@ -21,7 +21,7 @@ class result{
 	 * @var bool
 	 */
 	protected $result =false;
-	public function __construct(bool $result, \PDOStatement $sth, \PDO $pdo){
+	public function __construct(bool $result, \PDOStatement $sth=null, \PDO $pdo=null){
 		$this->sth =$sth;
 		$this->pdo =$pdo;
 		$this->result =$result;
