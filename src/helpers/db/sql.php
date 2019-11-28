@@ -554,9 +554,6 @@ class sql implements \ArrayAccess{
 		$this->primary =$primary;
 		$this->db =$db;
 	}
-	private function _log($data){
-		if(\nx\app::$instance) \nx\app::$instance->log($data);
-	}
 	/**
 	 * 执行sql语句
 	 * @param \nx\helpers\db\pdo|null $db
@@ -565,8 +562,6 @@ class sql implements \ArrayAccess{
 	public function execute(pdo $db=null){
 		$pdo =$db ?? $this->db ?? null;
 		$sql =(string)$this;
-		$this->_log('sql:');
-		$this->_log($sql);
 		switch($this->action){
 			case 'insert':
 				return $pdo->insert($sql, $this->params);
