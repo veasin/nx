@@ -32,11 +32,20 @@ class throwCheckTest extends TestCase{
 		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>['value'=>'default', 'default'=>[]]]));
 		$this->assertEquals([], $value[1]);
 
+		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>['value'=>[]]]));
+		$this->assertEquals([], $value[1]);
+
 		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['default'=>[]]));
 		$this->assertEquals([], $value[1]);
 
 		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>""]));
 		$this->assertEquals("", $value[1]);
+
+		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse(['null'=>[]]));
+		$this->assertEquals([], $value[1]);
+
+		$value =$this->_nx_filter_key_check(null, $this->_nx_filter_rules_parse([]));
+		$this->assertEquals(null, $value[1]);
 	}
 	/**
 	 * 空值(null)移除

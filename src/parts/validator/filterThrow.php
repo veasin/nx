@@ -221,6 +221,7 @@ trait filterThrow{
 			switch($rule){
 				case 'null':
 					if(null !== $value) continue;
+					if(0===count($set)) $set['value']=[];
 					switch(@(string)($set['value'] ?? 'throw')){
 						case 'throw':
 							$this->_nx_filter_throw(...$error);
