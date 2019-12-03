@@ -685,6 +685,11 @@ class sql implements \ArrayAccess{
 				return $value ?'TRUE' :'FALSE';
 			case 'NULL':
 				return 'NULL';
+			case 'array':
+				if($table && $table->collectParams){
+					$table->params =array_merge($table->params, $value);
+					return implode(',', array_fill(0, count($value), '?'));
+				} else return (string)$value;
 			default:
 				if($table && $table->collectParams){
 					$table->params[]=$value;//(string)
