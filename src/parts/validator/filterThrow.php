@@ -220,7 +220,7 @@ trait filterThrow{
 			$error =[$rule, $key, $value, $set, $rules['error'] ?? null];
 			switch($rule){
 				case 'null':
-					if(null !== $value) continue;
+					if(null !== $value) continue 2;
 					if(0===count($set)) $set['value']=[];
 					switch(@(string)($set['value'] ?? 'throw')){
 						case 'throw':
@@ -237,7 +237,7 @@ trait filterThrow{
 					}
 					break;
 				case 'empty':
-					if(!empty($value)) continue;
+					if(!empty($value)) continue 2;
 					switch(@(string)($set['value'] ?? 'throw')){
 						case 'throw':
 							$this->_nx_filter_throw(...$error);
@@ -272,7 +272,7 @@ trait filterThrow{
 					break;
 				case 'match':
 					$check=$set['value'] ?? false;
-					if(!$check) continue;
+					if(!$check) continue 2;
 					$result=false;
 					switch(@(string)$check){
 						case 'number':
