@@ -51,7 +51,10 @@ class pdo{
 	 * @param array  $data
 	 */
 	private function log(string $template, array $data=[]){
-		if(null !==$this->_log) call_user_func($this->_log, sprintf($template, ...$data));
+		if(null !==$this->_log){
+			call_user_func($this->_log, $template);
+			count($data) && call_user_func($this->_log, $data);
+		}
 	}
 	public function logFormatSQL(string $prepare, array $params=null, string $action=''){
 		$params =$params??[];
