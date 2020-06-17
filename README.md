@@ -4,11 +4,11 @@
     /  \ \  \ /
    /  / \ \  \
   /  /\  / \  \   php.nx.cn
- /__/  \/__/\__\  vea, 2019
+ /__/  \/__/\__\  vea, 2020
 ```
 
-# [![nx](./logo.png)](//php.nx.cn/) is **"a next-gen framework"**
-  php 7.0+
+# ![nx](./logo.png) is **"a next-gen framework"**
+  php 7.2+
   
     small,fast,emmmm...
   
