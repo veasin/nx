@@ -9,14 +9,14 @@ namespace nx\parts\router;
 
 trait uri{
 	protected function router(){
-		$setup =$this->setup['router/uri'];
+		$setup =$this->config['router/uri'];
 
 		$rules=$setup['rules'] ?? [];
 		$actions=$setup['actions'] ?? [];
 		$uri=$setup['uri'] ?? (isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING']??'';
 		$method=$setup['method'] ?? $this->app->in['method'] ?? 'unknown';
 
-		$this->log("uri: {$uri}");
+		yield $this->log("uri: {$uri}");//默认暂停
 		foreach($rules as $rule){//0 method 1 uri 2 action[controller, action, args] 3 action...
 			if(empty($rule[2])) continue;//如果没定义处理方法，那么继续
 			$_method=array_shift($rule);
@@ -59,9 +59,9 @@ trait uri{
 	public function run(...$route){
 		$g=$this->router();
 		$next=function(...$_args) use (&$next, $g, $route){
+			$g->next();//因为next本身是作为下一个函数调用的，即需要先知道下一步的call，so，需要先yield一次
 			if($g->valid()){
 				$call=$g->current();
-				$g->next();
 				$result=$this->control($call, $next, ...$_args, ...$route);
 			}else $result=$args[0] ?? null;
 			return $result;
