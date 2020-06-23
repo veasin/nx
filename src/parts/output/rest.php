@@ -17,7 +17,7 @@ trait rest{
 			header_remove('X-Powered-By');
 
 			$headers =$out->buffer['header'] ?? [];
-			$headers['nx']='vea 2005-2019';
+			$headers['nx']='vea 2005-2020';
 			$headers['Status']=$status;
 			foreach($headers as $header=>$value){
 				if(is_array($value)){
@@ -27,7 +27,10 @@ trait rest{
 				}elseif(is_int($header)) header($value);
 				else header($header.': '.$value);
 			}
-			if(!is_null($r)) echo json_encode($r, JSON_UNESCAPED_UNICODE);
+			if(!is_null($r)){
+				header('Content-Type:application/json charset=UTF-8');
+				echo json_encode($r, JSON_UNESCAPED_UNICODE);
+			}
 		});
 	}
 }
