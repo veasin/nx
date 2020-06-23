@@ -29,6 +29,7 @@ class app{
 	public $buffer=[];
 	/**
 	 * @var array 应用设定
+	 * @deprecated 2020-6-23 使用config替换
 	 */
 	public $setup=[];
 	/**
@@ -46,6 +47,10 @@ class app{
 	public $out =null;
 	protected $ver =1.1;
 	/**
+	 * @var \nx\helpers\ci\setup
+	 */
+	public $config =null;
+	/**
 	 * 构建app
 	 * app constructor.
 	 * @param array $setup     传入应用的配置 如数据库 路由 缓存等
@@ -56,7 +61,8 @@ class app{
 		//静态实例
 		static::$instance=$this;
 		$this->setup =($this->setup ??[]) + ($setup ??[]);
-		$this->uuid=$setup['uuid'] ?? $this->uuid ?? str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
+		$this->config =is_a($setup, 'nx\helpers\config\setup') ? $setup :new helpers\config\setup($this->setup);
+		$this->uuid=$this->config['uuid'] ?? $this->uuid ?? str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
 		$this->in =$overwrite['in'] ?? new input();
 		$this->out =$overwrite['out'] ?? new output();
 		if(($this->ver ?? 1.0) ==1.0){
