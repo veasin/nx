@@ -15,9 +15,7 @@ trait middleware{
 	 * @return mixed
 	 */
 	public function control($call, ...$args){
-		if(is_callable($call)){//['\api\user','check'],[$this, 'main'],
-			return call_user_func_array($call, $args);
-		}elseif(isset($call[1]) && $call[1] instanceof \Closure){//[null, function(){}],
+		if(isset($call[1]) && $call[1] instanceof \Closure){//[null, function(){}],
 			return call_user_func_array($call[1]->bindTo($call[0] ?? $this), $args);
 		}else{
 			if(isset($call[0]) && isset($call[1]) && is_string($call[0]) && is_string($call[1])){//['user','check'],
