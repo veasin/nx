@@ -44,7 +44,7 @@ class response{
 			case 'http':
 				$headers=$this->meta['wrapper_data'];
 				$http=array_shift($headers);
-				list($protocols, $code, $this->statusMessage)=explode(' ', $http, 3);
+				@list($protocols, $code, $this->statusMessage)=explode(' ', $http, 3);
 				list($this->protocols, $this->protocolsVersion)=explode('/', $protocols, 2);
 				$this->statusCode=(int)$code;
 				foreach($headers as $header){

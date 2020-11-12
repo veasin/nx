@@ -7,13 +7,16 @@
  */
 namespace nx\parts\output;
 
+use nx\helpers\network\context\status;
+
 trait rest{
 	protected function nx_parts_output_rest(){
 		$this->out->setRender(function(\nx\output $out){
 			$r =$out();
 			$status =$out->buffer['status'] ?? ( null !==$r ?200 :404);
-			$this->log( 'status: '.$status);
-			header($_SERVER["SERVER_PROTOCOL"].' '.$status);//HTTP/1.1
+			$message =status::$Message[$status] ?? '';
+			$this->log( 'status: '.$status.' '.$message);
+			header($_SERVER["SERVER_PROTOCOL"].' '.$status.' '.$message);//HTTP/1.1
 			header_remove('X-Powered-By');
 
 			$headers =$out->buffer['header'] ?? [];
