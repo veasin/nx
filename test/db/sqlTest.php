@@ -124,7 +124,6 @@ class sqlTest extends TestCase{
 	public function testWhere(){
 		$db =new \nx\helpers\db\pdo();
 		$user =$db->from('user');
-		$info =$db->from('info i');
 
 		$user->where('123')->select();
 		$this->assertEquals('SELECT * FROM `user` WHERE `user`.`id` = ?', (string)$user);
@@ -134,9 +133,28 @@ class sqlTest extends TestCase{
 		$this->assertEquals('SELECT * FROM `user` WHERE `user`.`id` = ?', (string)$user);
 		$this->assertEquals([1], $user->params);
 
+		$info =$db->from('info i');
 		$info->where($info['createdAt']->TIMESTAMP($info['1'])->YEAR()->equal("3"), $info['id']->equal(4))->select();
 		$this->assertEquals('SELECT * FROM `info` `i` WHERE YEAR(TIMESTAMP(`i`.`createdAt`, `i`.`1`)) = ? AND `i`.`id` = ?', (string)$info);
 		$this->assertEquals(["3",4], $info->params);
+
+	}
+	public function testWhere2(){
+		$db =new \nx\helpers\db\pdo();
+		$article =$db->from('article a');
+		$article->where($article['status']->equal(1), $article['id']->equal(4)->or($article['id']->equal(5)))->select();
+		$this->assertEquals('SELECT * FROM `article` `a` WHERE `a`.`status` = ? AND (`a`.`id` = ? OR `a`.`id` = ?)', (string)$article);
+		$this->assertEquals([1 ,4, 5], $article->params);
+
+		$article =$db->from('info a');
+		$article->where($article['status']->equal(1), $article['id']->equal(4)->or($article['id']->equal(5))->and($article['id']->equal(6)))->select();
+		$this->assertEquals('SELECT * FROM `info` `a` WHERE `a`.`status` = ? AND ((`a`.`id` = ? OR `a`.`id` = ?) AND `a`.`id` = ?)', (string)$article);
+		$this->assertEquals([1 ,4, 5, 6], $article->params);
+
+		$article =$db->from('info2 a');
+		$article->where($article['status']->equal(1), $article['id']->equal(4)->or($article['id']->equal(5)->and($article['id']->equal(6))))->select();
+		$this->assertEquals('SELECT * FROM `info2` `a` WHERE `a`.`status` = ? AND (`a`.`id` = ? OR (`a`.`id` = ? AND `a`.`id` = ?))', (string)$article);
+		$this->assertEquals([1 ,4, 5, 6], $article->params);
 
 	}
 	public function testDelete(){

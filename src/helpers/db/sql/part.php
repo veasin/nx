@@ -540,7 +540,7 @@ class part{
 					case 'or':
 					case 'xor':
 						$opt =strtoupper($fun);
-						$r ="{$this->arguments[0]} {$opt} {$this->arguments[1]}";
+						$r ="({$this->arguments[0]} {$opt} {$this->arguments[1]})";
 						break;
 					case 'not':
 						$r ="NOT {$this->arguments[1]}";
