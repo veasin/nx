@@ -13,7 +13,7 @@ trait uri{
 
 		$rules=$setup['rules'] ?? [];
 		$actions=$setup['actions'] ?? [];
-		$uri=$setup['uri'] ?? (isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING']??'';
+		$uri=$setup['uri'] ?? (isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO']) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING']??'');
 		$method=$setup['method'] ?? $this->app->in['method'] ?? 'unknown';
 
 		yield $this->log("uri: {$uri}");//默认暂停
