@@ -704,9 +704,9 @@ class sql implements \ArrayAccess{
 		if(count($where) >0){
 			$_conditions=[];
 			foreach($where as $cond){
-				if(is_array($cond)){
-					foreach($cond as $field=>$value){
-						$_conditions[] =$this[$field]->equal($this($value));
+				if(is_array($cond)){// ->where(['id'=>1, 'status'=>2, sql\part()])
+					foreach($cond as $field=>$value){// id => 1 , any =>sql\part()
+						$_conditions[] =$value instanceof sql\part? $value : $this[$field]->equal($this($value));
 					}
 					continue;
 				} elseif(!($cond instanceof sql\part)) $cond =$this[null]->equal($this($cond));
