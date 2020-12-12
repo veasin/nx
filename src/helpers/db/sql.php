@@ -712,7 +712,7 @@ class sql implements \ArrayAccess{
 				} elseif(!($cond instanceof sql\part)) $cond =$this[null]->equal($this($cond));
 				$_conditions[] =$cond;//todo 值收集关联到当前表(联合查询时其中一表条件值的收集)
 			}
-			$_where =" {$command} ".implode(' AND ', $_conditions);
+			$_where =count($_conditions) ? " {$command} ".implode(' AND ', $_conditions) : '';
 		} else $_where ='';
 		return $_where;
 	}
