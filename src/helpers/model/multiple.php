@@ -21,6 +21,8 @@ class multiple{
 	 */
 	protected function _find(array $conditions=[], array $options=[]):?array{
 		$table=$this->table()->select()->where($conditions);
+		if(array_key_exists('sort', $options)) $table->sort($options['sort'], 'DESC');
+		$table->select(array_key_exists('select', $options) ?$options['select'] :[]);
 		if(array_key_exists('FIND', $options) && is_callable($options['FIND'])) call_user_func($options['FIND'], $table, $conditions, $options);
 		return $table->execute()->first($this->single);
 	}
