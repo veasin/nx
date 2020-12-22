@@ -68,7 +68,7 @@ class result{
 	 * @return array
 	 */
 	public function map($key=0, $value=1){
-		$callback =function(...$array) use($key, $value){
+		$callback =function($array) use($key, $value){
 			if(!is_array($array)) return $array;
 			$r=[];
 			if(is_null($key)){
@@ -84,7 +84,12 @@ class result{
 			}
 			return $r;
 		};
-		return $this->fetchMap($callback, $this->pdo::FETCH_ASSOC);
+		return $this->fetchAllMap($callback, $this->pdo::FETCH_ASSOC);
+	}
+	public function fetchAllMap($callback, ...$fetch_styles){
+		if(0===count($fetch_styles)) $fetch_styles[] =$this->pdo::FETCH_ASSOC;
+		$r =$this->fetchAll(...$fetch_styles);
+		return call_user_func($callback, $r);
 	}
 	public function fetchMap($callback, ...$fetch_styles){
 		if(0===count($fetch_styles)) $fetch_styles[] =$this->pdo::FETCH_ASSOC;
