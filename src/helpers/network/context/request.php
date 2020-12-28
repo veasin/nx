@@ -17,6 +17,18 @@ class request{
 	private $body='';
 	private $contentType=null;
 	private $headers=[];
+	/**
+	 * @var callable
+	 */
+	private $_log =null;
+	public function setLog(callable $logger){
+		$this->_log =$logger;
+	}
+	private function log($data){
+		if(null !==$this->_log){
+			call_user_func($this->_log, $data);
+		}
+	}
 	public function __construct(string $uri, string $method='GET'){
 		$this->uri=$uri;
 		$this->http['method']=$method;
@@ -124,10 +136,18 @@ class request{
 		}
 		$this->http['header'] =$headers;
 		//include file
+
+		$this->log('request:');
+		$this->log('  url:'.$this->uri);
+		$this->log('  header:');
+		$this->log($headers);
+		$this->log('  body:');
+		$this->log($body);
+
 		//todo catch error
 		$context=stream_context_create(['http'=>$this->http]);
 		$stream=fopen($this->uri, 'r', false, $context);
-		return new response($stream);
+		return new response($stream, ['log'=>$this->_log]);
 	}
 	/**
 	 * 覆盖设置header中的某个字段，如值为null 移除此字段

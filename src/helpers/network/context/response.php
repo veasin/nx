@@ -21,14 +21,23 @@ class response{
 	private $originHeaders=[];
 	private $headers=[];
 	private $body=null;
+	private $_log =null;
 	/**
 	 * response constructor.
 	 * @param null $stream
+	 * @param array $options
 	 */
-	public function __construct($stream=null){
+	public function __construct($stream=null, $options =[]){
+		$this->_log =$options['log'] ?? null;
 		$this->working=is_resource($stream) && 'stream' === get_resource_type($stream);
 		$this->stream=$stream;
+		$this->log('  working: '.($this->working?'yes':'no'));
 		if($this->working) $this->parseStream();
+	}
+	private function log($data){
+		if(null !==$this->_log){
+			call_user_func($this->_log, $data);
+		}
 	}
 	public function __destruct(){
 		fclose($this->stream);
@@ -40,10 +49,11 @@ class response{
 				$headers=$this->meta['wrapper_data'];
 				$http=array_shift($headers);
 				@list($protocols, $code, $this->statusMessage)=explode(' ', $http, 3);
-				list($this->protocols, $this->protocolsVersion)=explode('/', $protocols, 2);
+				[$this->protocols, $this->protocolsVersion]=explode('/', $protocols, 2);
 				$this->statusCode=(int)$code;
+				$this->log('  status: '.$code);
 				foreach($headers as $header){
-					list($key, $value)=explode(': ', $header);
+					[$key, $value]=explode(': ', $header);
 					$this->originHeaders[$key]=$value;
 					$this->headers[strtolower($key)]=$value;
 				}
