@@ -471,7 +471,7 @@ class part{
 	 * 别名，只考虑最外层别名
 	 * @var null
 	 */
-	protected $as =null;
+	public $as =null;
 	/**
 	 * 当类型为function的时候的调用参数
 	 * @var array
@@ -521,6 +521,12 @@ class part{
 	public function as(string $name):part{
 		$this->as =$name;
 		return $this;
+	}
+	/**
+	 * @return string|null
+	 */
+	public function getAs():?string{
+		return $this->as;
 	}
 	public function __toString():string{
 		$r ='';

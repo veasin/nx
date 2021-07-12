@@ -15,7 +15,7 @@ trait pdo{
 	 */
 	public function db($name='default'):?\nx\helpers\db\pdo{
 		if(!array_key_exists($name, $this->db_pdos)){
-			$config =($this->setup['db/pdo'] ??[])[$name] ?? null;
+			$config =$this->config('db/pdo.'.$name);
 			if(null ===$config) $this->throw(500, "db[{$name}] config error.");
 			$this->db_pdos[$name]= new \nx\helpers\db\pdo($config);
 		}

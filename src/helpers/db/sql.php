@@ -653,10 +653,10 @@ class sql implements \ArrayAccess{
 		return $tab;
 	}
 	public function formatField($name=null, $withTable =true):string{
-		$table =$this->tableAS ?"`{$this->tableAS}`" :"`{$this->table}`";
 		if($name instanceof sql\part) return (string)$name;
 		$value =$name??$this->primary;
 		$field = ('*'===$value) ?$value :"`{$value}`";
+		$table =$this->tableAS ?"`{$this->tableAS}`" :"`{$this->table}`";
 		return $withTable ?"{$table}.{$field}" :$field;
 	}
 	public function getFormatName($withAS =true):string{
@@ -770,23 +770,43 @@ class sql implements \ArrayAccess{
 		}
 		return " SET ".implode(', ', $params);
 	}
+	private function buildSortSC($_asc):string{
+		$_sort ='ASC';
+		if(is_bool($_asc)) $_sort =($_asc) ?'ASC' :'DESC';
+		elseif(is_string($_asc)){
+			$_sort =(strtolower($_asc[0]) === 'a') ?'ASC' :'DESC';
+		}
+		return $_sort;
+	}
 	protected function buildSort($sort, $command="ORDER"):string{
 		if(empty($sort)) return '';
-		list($field, $asc) =$sort ?? [null,true];
+		[$field, $asc]=$sort ?? [null, true];//(field, asc)
 
 		$_sorts =[];
-		if(is_array($field)) $_sorts =$field;//([], 'asc')
-		else $_sorts[$field] =$asc;
-
+		if(null ===$field) return '';
+		elseif(is_array($field)){//(['a'=>'asc', 'b'=>'desc, $part=>'desc', 'd'], 'asc')
+			foreach($field as $_field=>$_sort){
+				$_f =$_field;
+				$_s =$_sort;
+				if(is_string($_field)) {
+					$_f =$this->formatField($_field);
+					$_s =$this->buildSortSC($_sort ?? $sort);
+				} elseif(is_numeric($_field)){
+					$_f =$this->formatField($_sort);
+					$_s =$this->buildSortSC($sort);
+				} elseif($_field instanceof sql\part) {
+					$_f =$field->getAs() ?"`{$field->getAs()}`": (string)$field;
+					$_s =$this->buildSortSC($_sort ?? $sort);
+				} else trigger_error('无效的字段类型');
+				$_sorts[$_f] =$_s;
+			}
+		}
+		elseif($field instanceof sql\part) $_sorts[$field->getAs() ?"`{$field->getAs()}`": (string)$field] =$this->buildSortSC($asc);
+		elseif(is_string($field)) $_sorts[$this->formatField($field)] =$this->buildSortSC($asc);
+		else trigger_error('无效的字段类型');
 		$_s =[];
 		foreach($_sorts as $_field =>$_asc){
-			$_sort ='ASC';
-			if(is_bool($_asc)) $_sort =($_asc) ?'ASC' :'DESC';
-			elseif(is_string($_asc)){
-				$_sort =(strtolower($_asc[0]) =='a') ?'ASC' :'DESC';
-			}
-			$field =$this->formatField($_field);
-			$_s[] ="{$field} {$_sort}";
+			$_s[] ='GROUP'===$command ? $_field : "{$_field} {$_asc}";
 		}
 		return count($_s) ?" {$command} BY ".implode(", ", $_s) :'';
 	}
@@ -943,19 +963,19 @@ class sql implements \ArrayAccess{
 				 * index_list:
 				 * 				index_name [, index_name] ...
 				 */
-				$where =$this->buildWhere($this->where);
-				$group =$this->buildSort($this->group, 'GROUP');
-				$having =$this->buildWhere($this->having, ' HAVING');
-				$order =$this->buildSort($this->sort);
-				$limit =$this->buildLimit($this->limit);
 				$table =$this->getFormatName();
-				$options =$this->buildOptions('DISTINCT,DISTINCTROW,HIGH_PRIORITY,STRAIGHT_JOIN,SQL_SMALL_RESULT,SQL_BIG_RESULT,SQL_BUFFER_RESULT,SQL_NO_CACHE,SQL_CALC_FOUND_ROWS', $this->options);
 				$hasJoin =count($this->join)>0;
 				$select =$this->buildSelect(!$hasJoin);
 				if($hasJoin){
 					list($join, $joinSelect) =$this->buildJoin($this->join);
 					$select .=(''===$joinSelect) ?'' :($select?', ':'').$joinSelect;
 				} else $join='';
+				$where =$this->buildWhere($this->where);
+				$group =$this->buildSort($this->group, 'GROUP');
+				$having =$this->buildWhere($this->having, ' HAVING');
+				$order =$this->buildSort($this->sort);
+				$limit =$this->buildLimit($this->limit);
+				$options =$this->buildOptions('DISTINCT,DISTINCTROW,HIGH_PRIORITY,STRAIGHT_JOIN,SQL_SMALL_RESULT,SQL_BIG_RESULT,SQL_BUFFER_RESULT,SQL_NO_CACHE,SQL_CALC_FOUND_ROWS', $this->options);
 				return "SELECT{$options} {$select} FROM {$table}{$join}{$where}{$group}{$having}{$order}{$limit}";
 			case 'do':
 			default:
