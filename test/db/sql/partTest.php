@@ -82,7 +82,7 @@ class partTest extends PHPUnit\Framework\TestCase{
 		$this->assertEquals('YEAR(UNIX_TIMESTAMP(`user`.`createdAt`), "Y")', (string)$part);
 
 		$part =$user['createdAt']->UNIX_TIMESTAMP()->YEAR('Y')->and($user['updatedAt']->MONTH()->equal(4));
-		$this->assertEquals('YEAR(UNIX_TIMESTAMP(`user`.`createdAt`), "Y") AND MONTH(`user`.`updatedAt`) = 4', (string)$part);
+		$this->assertEquals('(YEAR(UNIX_TIMESTAMP(`user`.`createdAt`), "Y") AND MONTH(`user`.`updatedAt`) = 4)', (string)$part);
 	}
 	public function testFunction2(){
 		$part =\nx\helpers\db\sql::operate(1, 2);
@@ -101,7 +101,7 @@ class partTest extends PHPUnit\Framework\TestCase{
 		$this->assertEquals('"1" AND 2', (string)$part);
 
 		$part =\nx\helpers\db\sql::and("1", 2);
-		$this->assertEquals('"1" AND 2', (string)$part);
+		$this->assertEquals('("1" AND 2)', (string)$part);
 
 		$part =\nx\helpers\db\sql::between(2, 1,3);
 		$this->assertEquals('2 BETWEEN 1 AND 3', (string)$part);
