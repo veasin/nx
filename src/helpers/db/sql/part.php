@@ -588,6 +588,15 @@ class part{
 						$n =($this->arguments[1] ?? null) ?($this->arguments[1]->value ?? null) ?$this->arguments[1] :'' :'';
 						$r ="WEIGHT_STRING({$this->arguments[0]} AS {$type}({$n}))";
 						break;
+					case "AVG":
+					case "COUNT":
+					case "MIN":
+					case "MAX":
+					case "SUM":
+						$fun =strtoupper($fun);
+						$distinct =$this->arguments[1]->value ?'DISTINCT ':'';
+						$r ="{$fun}({$distinct}{$this->arguments[0]})";
+						break;
 					case "IFIF":
 						$fun ="IF";
 					default:

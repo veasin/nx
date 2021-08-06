@@ -66,4 +66,55 @@ class sqlbugTest extends TestCase{
 
 		$this->assertEquals('SELECT `article`.`id`, `article`.`content_id`, `article`.`url`, `article`.`title`, `article`.`desc`, `article`.`image`, COUNT(`user_course`.`id`) `count` FROM `article` LEFT JOIN `user_course` ON (`user_course`.`content_id` = `article`.`content_id`) GROUP BY `article`.`content_id` ORDER BY `count` DESC', (string)$content);
 	}
+	public function testBug4(){
+		$db =new \nx\helpers\db\pdo();
+		$pp = $db->from('payment_pay');
+		$py = $db->from('payment p');
+		$pp->join($py, ['id'=>$pp['id']]);
+		$pp->where($py['id']->equal($pp(1)));
+		$pp->select();
+
+		$this->assertEquals('SELECT `payment_pay`.* FROM `payment_pay` LEFT JOIN `payment` `p` ON (`p`.`id` = `payment_pay`.`id`) WHERE `p`.`id` = ?', (string)$pp);
+		$this->assertEquals([1], $pp->params);
+	}
+	public function testBug5(){
+		$db =new \nx\helpers\db\pdo();
+		$table = $db->from('user_c');
+		$article = $db->from('article');
+		$word = $db->from('word');
+		$user = $db->from('user');
+
+		//关联关系绑定
+		$table->join($article->select($article['title']->as('course_name')), ['id' => 'content_id'])
+			->join($word->select($word['name']->as('word_name')), ['id' => $article['word_id']])
+			->join($user->select(['name', 'mobile']), ['id' => 'user_id']);
+
+		$where[] = $article['title']->operate($table("%".'course_name'."%"), 'LIKE');
+		$where[] = $word['name']->operate($table('word_name'), '=');
+		$where[] = $user['name']->operate($table('nickname'), '=');
+		$where[] = $user['mobile']->operate($table('mobile'), '=');
+
+		$table->where($where);
+		$table->select();
+
+		$this->assertEquals('SELECT `user_c`.*, `article`.`title` `course_name`, `word`.`name` `word_name`, `user`.`name`, `user`.`mobile` FROM `user_c` LEFT JOIN `article` ON (`article`.`id` = `user_c`.`content_id`) LEFT JOIN `word` ON (`word`.`id` = `article`.`word_id`) LEFT JOIN `user` ON (`user`.`id` = `user_c`.`user_id`) WHERE `article`.`title` LIKE ? AND `word`.`name` = ? AND `user`.`name` = ? AND `user`.`mobile` = ?', (string)$table);
+		$this->assertEquals([1], $table->params);
+
+
+	}
+	public function testBug6(){
+		$db =new \nx\helpers\db\pdo();
+		$table = $db->from('user');
+		$table->select(
+			[$table::COUNT($table['xx'], true),
+			$table::AVG($table['xx'], true),
+			$table::MIN($table['xx'], true),
+			$table::MAX($table['xx'], true),
+			$table::SUM($table['xx'], true),]
+		);
+
+		$this->assertEquals('SELECT COUNT(DISTINCT `user`.`xx`), AVG(DISTINCT `user`.`xx`), MIN(DISTINCT `user`.`xx`), MAX(DISTINCT `user`.`xx`), SUM(DISTINCT `user`.`xx`) FROM `user`', (string)$table);
+
+
+	}
 }
