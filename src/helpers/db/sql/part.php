@@ -594,7 +594,7 @@ class part{
 					case "MAX":
 					case "SUM":
 						$fun =strtoupper($fun);
-						$distinct =$this->arguments[1]->value ?'DISTINCT ':'';
+						$distinct =(!empty($this->arguments[1]) && $this->arguments[1]->value) ?'DISTINCT ':'';
 						$r ="{$fun}({$distinct}{$this->arguments[0]})";
 						break;
 					case "IFIF":
