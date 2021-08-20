@@ -7,11 +7,27 @@
  */
 use PHPUnit\Framework\TestCase;
 
+class app2 extends nx\app{
+	public function getBuffer($name){
+		return $this->buffer[$name];
+	}
+	public function setBuffer($name, $value=null):void{
+		$this->buffer[$name]=$value;
+	}
+}
+
 class app extends TestCase{
 	public function testApp(){
 		define('AGREE_LICENSE', true);
-
-		$app =new \nx\app();
-		$this->assertInternalType('object',$app);
+		$app=new \nx\app();
+		$this->assertInternalType('object', $app);
+	}
+	public function testBuffer(){
+		define('AGREE_LICENSE', true);
+		$app=new app2();
+		$app->setBuffer('123', 'abc');
+		$this->assertEquals('abc', $app->getBuffer('123'));
+		$app->setBuffer('abc', 456);
+		$this->assertEquals(456, $app->getBuffer('abc'));
 	}
 }

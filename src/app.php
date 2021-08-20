@@ -24,9 +24,9 @@ class app{
 	 */
 	static public $instance=null;
 	/**
-	 * @var array 预定义缓存存储
+	 * @var \nx\buffer 预定义缓存存储
 	 */
-	public $buffer=[];
+	public $buffer=null;
 	/**
 	 * @var array 应用设定
 	 * @deprecated 2020-6-23 使用config替换
@@ -62,6 +62,7 @@ class app{
 		static::$instance=$this;
 		$this->setup =($this->setup ??[]) + ($setup ??[]);
 		$this->config =is_a($setup, 'nx\helpers\config\setup') ? $setup :new helpers\config\setup($this->setup);
+		$this->buffer =new buffer();
 		$this->uuid=$this->config['uuid'] ?? $this->uuid ?? str_pad(strrev(base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36).base_convert(mt_rand(0, 36 ** 3 - 1), 10, 36)), 6, '0', STR_PAD_RIGHT);
 		$this->in =$overwrite['in'] ?? new input();
 		$this->out =$overwrite['out'] ?? new output();
