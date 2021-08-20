@@ -15,7 +15,7 @@ trait o2{
 	public function count(){ return count($this->data??[]); } //->count($this)
 	//ArrayAccess
 	public function offsetSet($offset, $value){ $this->data[$offset]=$value; }   //$this['xx'] ='xx'
-	public function offsetGet($offset){ return $this->data[$offset]; }           //=$this['zz']
+	public function &offsetGet($offset){ return $this->data[$offset]; }           //=$this['zz']
 	public function offsetExists($offset){ return isset($this->data[$offset]); }       //isset($this['xx']
 	public function offsetUnset($offset){ unset($this->data[$offset]); }                //unset($this['xx']
 	////php5.2+?

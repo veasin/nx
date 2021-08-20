@@ -17,6 +17,7 @@ namespace nx\parts;
  * @method out(array|string $string) 设置默认输出方法
  * @property \nx\input in 输入对象
  * @property \nx\output out 输出对象
+ * @property \nx\buffer buffer 缓存
  * @method string getPath(string $subPath) 获取相对app的目录
  * @method string getUUID() 获取唯一id
  * @method throw($codeOrException=400, $message='', $exception='\Exception') 抛出指定异常

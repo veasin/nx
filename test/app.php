@@ -14,6 +14,9 @@ class app2 extends nx\app{
 	public function setBuffer($name, $value=null):void{
 		$this->buffer[$name]=$value;
 	}
+	public function getXXX(){
+		return $this->buffer['xxx']['a']['b'];
+	}
 }
 
 class app extends TestCase{
@@ -27,7 +30,11 @@ class app extends TestCase{
 		$app=new app2();
 		$app->setBuffer('123', 'abc');
 		$this->assertEquals('abc', $app->getBuffer('123'));
+
 		$app->setBuffer('abc', 456);
 		$this->assertEquals(456, $app->getBuffer('abc'));
+
+		$app->setBuffer('xxx', ['a'=>['b'=>'c']]);
+		$this->assertEquals('c', $app->getXXX());
 	}
 }
