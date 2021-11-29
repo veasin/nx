@@ -13,6 +13,9 @@ class single{
 	protected $data=[];
 	protected $_data=[];//初始化数据
 	protected $tombstone=false; //逻辑删除
+	protected $field_of_created ='create_time';
+	protected $field_of_updated ='update_time';
+	protected $field_of_deleted ='delete_time';
 	public function __construct(array $data=[]){
 		$this->data=$this->_data=$data ?? [];
 		$this->id=$this->data['id'] ?? 0;
@@ -33,12 +36,12 @@ class single{
 		if($this->id){
 			$update=array_diff_assoc($this->data, $this->_data);//对比出需要更新数据
 			if(empty($update)) return true;//如果无须更新返回成功
-			$update['update_time']=time();
+			if($this->field_of_updated) $update[$this->field_of_updated]=time();
 			$ok=$this->table()->where(['id'=>$this->id])->update($update)->execute()->ok();
 			$this->_data=$this->data;
 			if($ok) $this->plugin('update');
 		}else{
-			$this->data['create_time']=time();
+			if($this->field_of_created) $this->data[$this->field_of_created]=time();
 			$this->plugin('before_create');
 			$id=$this->table()->create($this->data)->execute()->lastInsertId();
 			$ok=$id > 0;
@@ -59,8 +62,8 @@ class single{
 		if($this->id > 0){
 			$this->_data=$this->data;
 			$table=$this->table()->where(['id'=>$this->id]);
-			if($this->tombstone){//逻辑删除
-				$table->update(['delete_time'=>time()]);
+			if($this->tombstone && $this->field_of_deleted){//逻辑删除
+				$table->update([$this->field_of_deleted=>time()]);
 			}else $table->delete();
 			$ok=$table->execute()->ok();
 			if($ok) $this->plugin('delete');
