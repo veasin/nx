@@ -121,19 +121,15 @@ class app{
 				$msg =$args[1] ?? '';
 				throw new $exp($msg, $args[0]);
 			case 'log':
-				break;
+				return ;
 			case 'main':
 				die('need app->main().');
-				break;
 			case 'router':
 				return $this->control(404);
-				break;
 			case 'control':
 				return call_user_func_array($args[0] ?? [$this, 'main'], $args);
-				break;
 			case 'i18n':
 				return $args[0];
-				break;
 			case 'config':
 				return isset($this->config[$args[0]]) ?$this->config[$args[0]] :(isset($args[1]) ?$args[1] :null);
 			case 'view':
