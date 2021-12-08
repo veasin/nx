@@ -40,7 +40,9 @@ class multiple{
 		$ok=$table->execute()->first();
 		$count=null !== $ok ?$ok['COUNT'] :0;
 		if($count > 0){
-			if(array_key_exists('sort', $options)) $table->sort($options['sort'], 'DESC');
+			$desc =$options['desc'] ?? 'DESC';
+			if(is_int($desc)) $desc =['ASC', 'DESC'][$desc] ?? 'DESC';
+			if(array_key_exists('sort', $options)) $table->sort($options['sort'], $desc);
 			if(array_key_exists('page', $options)) $table->page($options['page'] ?? 1, $options['max'] ?? 10);
 			$table->select(array_key_exists('select', $options) ?$options['select'] :[]);
 			if(array_key_exists('LIST', $options) && is_callable($options['LIST'])) call_user_func($options['LIST'], $table, $conditions, $options);
