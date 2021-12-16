@@ -22,7 +22,7 @@ use nx\parts\o2;
 class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 	use o2;
 	public function __construct($data=[]){
-		if(PHP_SAPI == 'cli'){
+		if(PHP_SAPI === 'cli'){
 			$argv=$_SERVER['argv'];
 			array_shift($argv);
 			$this->data['params']=$argv;
@@ -38,14 +38,14 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 			$this->data['file']=&$_FILES;
 		}
 	}
-	public function &offsetGet($offset){
+	public function &offsetGet($offset):mixed{
 		if(!array_key_exists($offset, $this->data)){
 			switch($offset){
 				case 'header':
 					if(!function_exists('getallheaders')){
 						$this->data['header']=[];
 						foreach($_SERVER as $name=>$value){
-							if('HTTP_' === substr($name, 0, 5)) $this->data['header'][str_replace(' ', '-', strtolower(str_replace('_', ' ', substr($name, 5))))]=$value;
+							if(strpos($name, 'HTTP_') === 0) $this->data['header'][str_replace(' ', '-', strtolower(str_replace('_', ' ', substr($name, 5))))]=$value;
 						}
 					}else{
 						foreach(getallheaders() as $key=>$value){
@@ -72,11 +72,19 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 								$this->data['body'] = $vars;
 								break;
 							case 'application/json':
-								$this->data['body'] = json_decode($this['input'], true);
+								try{
+									$this->data['body']=json_decode($this['input'], true, 512, JSON_THROW_ON_ERROR);
+								}catch(\JsonException $e){
+									$this->data['body']=[];
+								}
 								break;
 							case 'application/xml':
 								$xml = simplexml_load_string($this['input']);
-								$this->data['body'] = json_decode(json_encode($xml), true);
+								try{
+									$this->data['body']=json_decode(json_encode($xml, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
+								}catch(\JsonException $e){
+									$this->data['body']=[];
+								}
 								break;
 							case 'text/plain':
 							case 'text/html':
@@ -97,9 +105,9 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 	 * @param $arg
 	 * @return array|null
 	 */
-	public function file($arg){
+	public function file($arg):?array{
 		$f=&$this->data['file'][$arg];
-		return (isset($f['name']) && isset($f['type']) && isset($f['size']) && isset($f['tmp_name']) && isset($f['error']) && ($f['error'] == UPLOAD_ERR_OK) && is_file($f['tmp_name']) && is_uploaded_file($f['tmp_name']) && is_readable($f['tmp_name']))
+		return (isset($f['name'], $f['type'], $f['size'], $f['tmp_name'], $f['error']) && ($f['error'] === UPLOAD_ERR_OK) && is_file($f['tmp_name']) && is_uploaded_file($f['tmp_name']) && is_readable($f['tmp_name']))
 			?$f :null;
 	}
 	/**
@@ -125,15 +133,12 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 			case 'file':
 			case 'cookie':
 				$data =&$this[$from];
-				if(null !==$key){
-					if(\nx\app::$instance) \nx\app::$instance->log("       ->{$from}[{$key}]");
-					//$app->log('  : {value}', ['value'=>json_encode($data[$key] ?? null)]);
-				}
+				if((null !== $key) && \nx\app::$instance) \nx\app::$instance->log("       ->{$from}[{$key}]");
 				return null ===$key ?$data :$data[$key]??null;
 			case 'uri':
 				return null ===$key ?$this->data['uri'] :($this->data['params'][$key]??null);
 			case 'method':
-				return null ===$key ?$this->data['method'] :$this->data['method'] == strtolower($key);
+				return null ===$key ?$this->data['method'] :$this->data['method'] === strtolower($key);
 			default:
 				return null;
 		}

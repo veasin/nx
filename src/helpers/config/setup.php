@@ -13,7 +13,7 @@ class setup implements \ArrayAccess{
 	 * @param null        $defaultValue 如不存在的默认值
 	 * @return mixed|null
 	 */
-	public function get(string $key, $defaultValue=null){
+	public function get(string $key, $defaultValue=null):mixed{
 		return self::_get($this->data, explode($this->split, $key), $defaultValue);
 	}
 	/**
@@ -53,16 +53,16 @@ class setup implements \ArrayAccess{
 			return self::_get($data[$key], $keys, $default);
 		}else return $data[$key] ?? $default;
 	}
-	public function offsetSet($offset, $value){
+	public function offsetSet($offset, $value):void{
 		$this->set($offset, $value);
 	}
-	public function offsetGet($offset){
+	public function offsetGet($offset):mixed{
 		return $this->get($offset);
 	}
-	public function offsetExists($offset){
+	public function offsetExists($offset):bool{
 		return $this->has($offset);
 	}
-	public function offsetUnset($offset){
+	public function offsetUnset($offset):void{
 		$this->set($offset, null);
 	}
 }
