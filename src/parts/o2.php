@@ -10,14 +10,14 @@ namespace nx\parts;
 trait o2{
 	protected $data;
 	//IteratorAggregate
-	public function getIterator(){ return new \ArrayIterator($this->data); } //foreach($this as ..)
+	public function getIterator():\Iterator { return new \ArrayIterator($this->data); } //foreach($this as ..)
 	//Countable
-	public function count(){ return count($this->data??[]); } //->count($this)
+	public function count():int{ return count($this->data??[]); } //->count($this)
 	//ArrayAccess
-	public function offsetSet($offset, $value){ $this->data[$offset]=$value; }   //$this['xx'] ='xx'
-	public function &offsetGet($offset){ return $this->data[$offset]; }           //=$this['zz']
-	public function offsetExists($offset){ return isset($this->data[$offset]); }       //isset($this['xx']
-	public function offsetUnset($offset){ unset($this->data[$offset]); }                //unset($this['xx']
+	public function offsetSet($offset, $value):void{ $this->data[$offset]=$value; }   //$this['xx'] ='xx'
+	public function &offsetGet($offset):mixed{ return $this->data[$offset]; }           //=$this['zz']
+	public function offsetExists($offset):bool{ return isset($this->data[$offset]); }       //isset($this['xx']
+	public function offsetUnset($offset):void{ unset($this->data[$offset]); }                //unset($this['xx']
 	////php5.2+?
 	//public function __toString(){
 	//	//if(isset($this->data['__toString'])) return $this->data['__toString'];

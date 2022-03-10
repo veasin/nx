@@ -38,7 +38,7 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 			$this->data['file']=&$_FILES;
 		}
 	}
-	public function &offsetGet($offset){
+	public function &offsetGet($offset):mixed{
 		if(!array_key_exists($offset, $this->data)){
 			switch($offset){
 				case 'header':

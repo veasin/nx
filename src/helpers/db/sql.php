@@ -1032,13 +1032,13 @@ class sql implements \ArrayAccess{
 		return (new sql\part($name, 'function'))->arguments(...$arguments);
 	}
 	//-------------------------------------------------------------------------------------------------------------
-	public function offsetSet($offset, $value){
+	public function offsetSet($offset, $value):void{
 		//
 	}
-	public function offsetExists($offset) {
+	public function offsetExists($offset):bool{
 		//
 	}
-	public function offsetUnset($offset) {
+	public function offsetUnset($offset):void{
 		//
 	}
 	/**
