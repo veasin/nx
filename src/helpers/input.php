@@ -5,8 +5,9 @@
  * Date: 2018/08/23 023
  * Time: 00:39
  */
-namespace nx;
+namespace nx\helpers;
 
+use nx\app;
 use nx\parts\o2;
 
 /**
@@ -45,7 +46,7 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 					if(!function_exists('getallheaders')){
 						$this->data['header']=[];
 						foreach($_SERVER as $name=>$value){
-							if(strpos($name, 'HTTP_') === 0) $this->data['header'][str_replace(' ', '-', strtolower(str_replace('_', ' ', substr($name, 5))))]=$value;
+							if(str_starts_with($name, 'HTTP_')) $this->data['header'][str_replace(' ', '-', strtolower(str_replace('_', ' ', substr($name, 5))))]=$value;
 						}
 					}else{
 						foreach(getallheaders() as $key=>$value){
@@ -59,38 +60,34 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 				case 'body':
 					$content_type =$this->header('content-type');
 					if($content_type){
-						$content_type = strtolower(trim(false !== strpos($content_type, ';')
+						$content_type = strtolower(trim(str_contains($content_type, ';')
 							?explode(';', $content_type)[0]
 							:$content_type
 						));
-						switch($content_type){//触发header更新
-							case 'multipart/form-data':
-								$this->data['body'] = $_POST;
-								break;
-							case 'application/x-www-form-urlencoded':
-								parse_str($this['input'], $vars);
-								$this->data['body'] = $vars;
-								break;
-							case 'application/json':
-								try{
-									$this->data['body']=json_decode($this['input'], true, 512, JSON_THROW_ON_ERROR);
-								}catch(\JsonException $e){
-									$this->data['body']=[];
-								}
-								break;
-							case 'application/xml':
-								$xml = simplexml_load_string($this['input']);
-								try{
-									$this->data['body']=json_decode(json_encode($xml, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
-								}catch(\JsonException $e){
-									$this->data['body']=[];
-								}
-								break;
-							case 'text/plain':
-							case 'text/html':
-							default:
-								$this->data['body'] = $this['input'];
-								break;
+						if(array_key_exists($content_type, $this->bodyContentTypeParseMap) && is_callable($this->bodyContentTypeParseMap[$content_type])){
+							$this->data['body'] =call_user_func($this->bodyContentTypeParseMap[$content_type], $this['input']);
+						} else{
+							switch($content_type){//触发header更新
+								case 'multipart/form-data':
+									$this->data['body']=$_POST;
+									break;
+								case 'application/x-www-form-urlencoded':
+									parse_str($this['input'], $vars);
+									$this->data['body']=$vars;
+									break;
+								case 'application/json':
+									try{
+										$this->data['body']=json_decode($this['input'], true, 512, JSON_THROW_ON_ERROR);
+									}catch(\JsonException){
+										$this->data['body']=[];
+									}
+									break;
+								case 'text/plain':
+								case 'text/html':
+								default:
+									$this->data['body']=$this['input'];
+									break;
+							}
 						}
 					} else $this->data['body'] =null;
 					break;
@@ -112,10 +109,11 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 	}
 	/**
 	 * 返回请求ip
-	 * @return mixed
+	 * @return string|null
 	 */
-	public function ip(){
-		if(!empty($_SERVER['HTTP_CLIENT_IP'])) return $_SERVER['HTTP_CLIENT_IP'];elseif(!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) return $_SERVER['HTTP_X_FORWARDED_FOR'];
+	public function ip():?string{
+		if(!empty($_SERVER['HTTP_CLIENT_IP'])) return $_SERVER['HTTP_CLIENT_IP'];
+		elseif(!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) return $_SERVER['HTTP_X_FORWARDED_FOR'];
 		return $_SERVER['REMOTE_ADDR'];
 	}
 	/**
@@ -133,7 +131,7 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 			case 'file':
 			case 'cookie':
 				$data =&$this[$from];
-				if((null !== $key) && \nx\app::$instance) \nx\app::$instance->log("       ->{$from}[{$key}]");
+				if((null !== $key) && app::$instance) app::$instance->log("       ->{$from}[{$key}]");
 				return null ===$key ?$data :$data[$key]??null;
 			case 'uri':
 				return null ===$key ?$this->data['uri'] :($this->data['params'][$key]??null);
@@ -142,5 +140,9 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 			default:
 				return null;
 		}
+	}
+	private array $bodyContentTypeParseMap =[];
+	public function registerContentTypeParse(string $contentType, callable $callable):void{
+		$this->bodyContentTypeParseMap[$contentType] =$callable;
 	}
 }

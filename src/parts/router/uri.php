@@ -7,14 +7,20 @@
  */
 namespace nx\parts\router;
 
+/**
+ * @method log(string $string)
+ * @method control(mixed $call, \Closure $next, $param, array $_args, $param1, array $route)
+ * @property-read array        $setup
+ * @property \nx\helpers\input $in
+ */
 trait uri{
 	protected function router(){
-		$setup =$this->config['router/uri'];
+		$setup =$this->setup['router/uri'];
 
 		$rules=$setup['rules'] ?? [];
 		$actions=$setup['actions'] ?? [];
 		$uri=$setup['uri'] ?? (isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO']) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING']??'');
-		$method=$setup['method'] ?? $this->app->in['method'] ?? 'unknown';
+		$method=$setup['method'] ?? $this->in['method'] ?? 'unknown';
 
 		yield $this->log("uri: {$uri}");//默认暂停
 		foreach($rules as $rule){//0 method 1 uri 2 action[controller, action, args] 3 action...
@@ -26,12 +32,12 @@ trait uri{
 			$_uri=array_shift($rule);
 			if($uri === $_uri || '*' === $_uri){//如果网址和规则相同
 				$is_match=1;
-			}elseif(preg_match_all('#([d|w]?)\:([a-zA-Z0-9_]*)#', $_uri) > 0){
+			}elseif(preg_match_all('#([d|w]?):(\w*)#', $_uri) > 0){
 				$end=substr($_uri, -1);
-				$pattern='#^'.preg_replace_callback('#([d|w]?)\:([a-zA-Z0-9_]*)#', function($matches){
+				$pattern='#^'.preg_replace_callback('#([d|w]?):(\w*)#', static function($matches){
 						$m=['d'=>'\d+', 'w'=>'\w+', ''=>'[^/]+'];
-						return '('.('' != $matches[2] ?'?P<'.$matches[2].'>' :'').$m[$matches[1]].')';
-					}, $_uri).($end == '+' ?'#' :'$#');
+						return '('.('' !== $matches[2] ?'?P<'.$matches[2].'>' :'').$m[$matches[1]].')';
+					}, $_uri).($end === '+' ?'#' :'$#');
 				$is_match=preg_match($pattern, $uri, $params);
 			}
 			if($is_match){//如果匹配规则成功
@@ -56,7 +62,7 @@ trait uri{
 		}
 		return null;
 	}
-	public function run(...$route){
+	public function run(...$route):mixed{
 		$g=$this->router();
 		$next=function(...$_args) use (&$next, $g, $route){
 			$g->next();//因为next本身是作为下一个函数调用的，即需要先知道下一步的call，so，需要先yield一次

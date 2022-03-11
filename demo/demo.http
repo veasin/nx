@@ -1,0 +1,6 @@
+###
+POST http://192.168.100.6/self/nx/demo/rest.php
+x-test: 1;
+content-type: xxx;
+
+xxx,xxx,xxx

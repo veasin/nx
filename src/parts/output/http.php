@@ -2,14 +2,19 @@
 namespace nx\parts\output;
 
 use nx\helpers\network\context\status;
+use nx\helpers\output;
 
+/**
+ * @method log(string $string)
+ */
 trait http{
-	public function render_http(\nx\output $out, callable $callback=null):void{
+	public ?output $out =null;
+	public function render_http(\nx\helpers\output $out, callable $callback=null):void{
 		$r =$out();
 		$status =$out->buffer['status'] ?? ( null !==$r ?200 :404);
 		$message =status::$Message[$status] ?? '';
 		$this->log( 'status: '.$status.' '.$message);
-		header($_SERVER["SERVER_PROTOCOL"].' '.$status.' '.$message);//HTTP/1.1
+		header(($_SERVER["SERVER_PROTOCOL"] ?? "HTTP/1.1").' '.$status.' '.$message);//HTTP/1.1
 		header_remove('X-Powered-By');
 
 		$headers =$out->buffer['header'] ?? [];
@@ -26,7 +31,10 @@ trait http{
 		if(null!==$callback) $callback($r);
 		else echo $r;
 	}
-	protected function nx_parts_output_http():void{
+	protected function nx_parts_output_http():?\Generator{
+		$this->out =new output();
 		$this->out->setRender([$this, 'render_http']);
+		yield;
+		$this->out =null;
 	}
 }

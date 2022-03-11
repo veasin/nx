@@ -7,7 +7,7 @@ namespace nx\parts\log;
  * @package nx\log
  */
 trait dump{
-	public function log($var){
+	public function log($var):void{
 		var_dump($var);
 	}
 }

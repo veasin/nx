@@ -7,21 +7,23 @@
  */
 namespace nx\parts\output;
 
-use nx\helpers\network\context\status;
+use nx\helpers\output;
 
 trait rest{
 	use http;
-	protected function nx_parts_output_http():void{}
-	protected function nx_parts_output_rest():void{
+	protected function nx_parts_output_rest():?\Generator{
+		$this->out =new output();
 		$this->out->setRender([$this, 'render_http'], function($r){
 			if(!is_null($r)){
 				header('Content-Type:application/json; charset=UTF-8');
 				try{
 					echo json_encode($r, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
-				}catch(\JsonException $e){
+				}catch(\JsonException){
 					echo "Error Format Output.";
 				}
 			}
 		});
+		yield;
+		$this->out =null;
 	}
 }

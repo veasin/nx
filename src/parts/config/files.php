@@ -1,22 +1,24 @@
 <?php
 namespace nx\parts\config;
 
+use nx\parts\path;
+
 /**
  * Trait files
- * @trait   app
- * @package nx\config
+ * @trait      app
+ * @package    nx\config
  * @deprecated 2020-06-23 Vea 使用config对象替换
+ * @property-read $app
  */
 trait files{
-	/**
-	 * @var array 直接缓存结果 config key
-	 */
-	protected $_files_config=[];
+	use path;
+
 	protected function nx_parts_config_files(){
-		$it=is_a($this, 'nx\app') ?$this :$this->app;
+		$it=$this instanceof \nx\app ?$this :$this->app;
 		$it->buffer['config/files']=$it->setup['config/files'] ?? [];
 		$it->buffer['config/files']['path']=$it->buffer['config/files']['path'] ?? $it->getPath('./config/');
 		$it->buffer['config/files']['cache']=$it->setup['config'] ?? [];
+		$it->buffer['config/files']['config']=[];//直接缓存结果 config key
 	}
 	/**
 	 * 读取配置内容
@@ -24,12 +26,12 @@ trait files{
 	 * @param null $params 默认值
 	 * @return null
 	 */
-	public function config($word, $params=null){
-		$it=is_a($this, 'nx\app') ?$this :$this->app;
-		if(array_key_exists($word, $it->_files_config)) return $it->_files_config[$word];
+	public function config($word, $params=null):mixed{
+		$it=$this instanceof \nx\app ?$this :$this->app;
+		if(array_key_exists($word, $it->buffer['config/files']['config'])) return $it->buffer['config/files']['config'][$word];
 		$_ns=$word;
 		$_key=null;
-		if(false !== strpos($word, '.')) [$_ns, $_key]=explode('.', $word, 2);
+		if(str_contains($word, '.')) [$_ns, $_key]=explode('.', $word, 2);
 		$buffer=&$it->buffer['config/files']['cache'];
 		if(!array_key_exists($_ns, $buffer)){
 			$config=[];
@@ -38,7 +40,7 @@ trait files{
 			}
 			$buffer[$_ns]=$config;
 		}
-		$it->_files_config[$word]=is_null($_key) ?$buffer[$_ns] :(isset($buffer[$_ns][$_key]) ?$buffer[$_ns][$_key] :$params);
-		return $it->_files_config[$word];
+		$it->buffer['config/files']['config'][$word]=is_null($_key) ?$buffer[$_ns] :($buffer[$_ns][$_key] ?? $params);
+		return $it->buffer['config/files']['config'][$word];
 	}
 }

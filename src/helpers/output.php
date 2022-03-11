@@ -1,6 +1,6 @@
 <?php
 
-namespace nx;
+namespace nx\helpers;
 
 use nx\parts\o2;
 

@@ -10,6 +10,7 @@ class single{
 	use callApp, plugin, cache, table;
 
 	public $id=0;
+	protected $id_key ='id';
 	protected $data=[];
 	protected $_data=[];//初始化数据
 	protected $tombstone=false; //逻辑删除
@@ -18,7 +19,7 @@ class single{
 	protected $field_of_deleted ='delete_time';
 	public function __construct(array $data=[]){
 		$this->data=$this->_data=$data ?? [];
-		$this->id=$this->data['id'] ?? 0;
+		$this->id=$this->data[$this->id_key] ?? 0;
 		if(0 === $this->id) $this->default($data);
 	}
 	/**
@@ -37,7 +38,7 @@ class single{
 			$update=array_diff_assoc($this->data, $this->_data);//对比出需要更新数据
 			if(empty($update)) return true;//如果无须更新返回成功
 			if($this->field_of_updated) $update[$this->field_of_updated]=time();
-			$ok=$this->table()->where(['id'=>$this->id])->update($update)->execute()->ok();
+			$ok=$this->table()->where([$this->id_key=>$this->id])->update($update)->execute()->ok();
 			$this->_data=$this->data;
 			if($ok) $this->plugin('update');
 		}else{
@@ -46,8 +47,8 @@ class single{
 			$id=$this->table()->create($this->data)->execute()->lastInsertId();
 			$ok=$id > 0;
 			if($ok){
-				$this->data=$this->_data=$this->table()->where(['id'=>$id])->select()->execute()->first();
-				$this->id=$this->data['id'];
+				$this->data=$this->_data=$this->table()->where([$this->id_key=>$id])->select()->execute()->first();
+				$this->id=$this->data[$this->id_key];
 				$this->plugin('create');
 				$this->save();//触发二次保存逻辑
 			}
@@ -61,7 +62,7 @@ class single{
 	public function delete():bool{
 		if($this->id > 0){
 			$this->_data=$this->data;
-			$table=$this->table()->where(['id'=>$this->id]);
+			$table=$this->table()->where([$this->id_key=>$this->id]);
 			if($this->tombstone && $this->field_of_deleted){//逻辑删除
 				$table->update([$this->field_of_deleted=>time()]);
 			}else $table->delete();

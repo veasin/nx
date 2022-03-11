@@ -8,7 +8,7 @@
 namespace nx\parts;
 
 trait o2{
-	protected $data;
+	public mixed $data=null;
 	//IteratorAggregate
 	public function getIterator():\ArrayIterator{ return new \ArrayIterator($this->data); } //foreach($this as ..)
 	//Countable
