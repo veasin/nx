@@ -1,7 +1,7 @@
 <?php
 namespace nx\parts\output;
 
-use nx\helpers\network\context\status;
+use nx\helpers\http\status;
 use nx\helpers\output;
 
 /**
