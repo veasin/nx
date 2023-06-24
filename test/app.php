@@ -23,7 +23,7 @@ class app extends TestCase{
 	public function testApp(){
 		define('AGREE_LICENSE', true);
 		$app=new \nx\app();
-		$this->assertInternalType('object', $app);
+		$this->assertIsObject($app);
 	}
 	public function testBuffer(){
 		define('AGREE_LICENSE', true);

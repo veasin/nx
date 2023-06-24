@@ -1,36 +1,33 @@
 <?php
+declare(strict_types=1);
 namespace nx;
 
-use Error;
-use Exception;
-use Throwable;
 use nx\helpers\buffer;
 
 /**
  * Class app
  * @package nx
  *
- * @method log($any, $template=false) 输出日志
+ * @method log(...$var) 输出日志
  * @method main(array $route) 执行默认控制方法
  * @method string i18n() 返回对应语言文本
  * @method array|string|null config(string $word, $params=null) 读取配置
- * @method helpers\db\pdo db($name='default') 根据$app->setup['db/pdo'] 的配置创建pdo对象
- * @method @deprecated request() 返回全部输入内容
- * @method @deprecated response(array|string $string) 设置默认输出方法
+ * @method \nx\helpers\db\pdo db($name='default') 根据$app->setup['db/pdo'] 的配置创建pdo对象
  * @property \nx\helpers\input in
  * @property \nx\helpers\output out
  * @method in() 返回全部输入内容
  * @method out(array|string $string) 设置默认输出方法
- * @method throw($codeOrException=400, $message='', $exception=Exception::class) 抛出指定异常
+ * @method throw($codeOrException=400, $message='', $exception=\Exception::class) 抛出指定异常
  * @method filter(array|string $vars=[], array $options=[]) 过滤器，对输入进行过滤。可指定输入内容来源或设置来源数组。
  * @method filterValue(mixed $value, array $options=[]) 过滤器，针对值做过滤，不包含取值逻辑。
  * @method control(mixed $route)
  */
+#[\AllowDynamicProperties]
 class app{
 	/**
-	 * @var static 静态实例;
+	 * @var static|null 静态实例;
 	 */
-	public static app $instance;
+	public static ?app $instance=null;
 	/**
 	 * @var string 唯一id
 	 */
@@ -83,36 +80,35 @@ class app{
 	}
 	/**
 	 * 魔术方法
-	 * @param string $name 调用函数名
-	 * @param array  $args 调用参数数组
-	 * @return mixed|null|void
+	 *
+	 * @param string $name      调用函数名
+	 * @param array  $arguments 调用参数数组
+	 * @return mixed
 	 * @throws \Throwable
 	 */
-	public function __call(string $name, array $args){
+	public function __call(string $name, array $arguments): mixed{
 		switch($name){
 			case 'throw':
-				if($args[0] instanceof Throwable) throw $args[0];
-				$exp=$args[2] ?? '\Exception';
-				$msg=$args[1] ?? '';
-				throw new $exp($msg, $args[0]);
+				if($arguments[0] instanceof \Throwable) throw $arguments[0];
+				$exp = $arguments[2] ?? '\Exception';
+				$msg = $arguments[1] ?? '';
+				throw new $exp($msg, $arguments[0]);
 			case 'log':
-				return;
+				return null;
 			case 'router':
 				return $this->control(404);
 			case 'control':
-				return ($args[0] ?? false) ?call_user_func_array($args[0], $args) :$this->main(...$args);
+				return ($arguments[0] ?? false) ?call_user_func_array($arguments[0], $arguments) :$this->main(...$arguments);
 			case 'config':
-				return $this->setup[$args[0]] ?? ($args[1] ?? null);
+				return $this->setup[$arguments[0]] ?? ($arguments[1] ?? null);
 			case 'in':
 			case 'out':
 				if(!property_exists($this, $name)){
-					//$io="nx\helpers\\{$name}put";
-					//$this->{$name}=new $io();
-					throw new Error("Call to undefined method ".static::class."->$name(), u maybe need a nx\parts\\{$name}put.");
+					throw new \Error("Call to undefined method ".static::class."->$name(), u maybe need a nx\parts\\{$name}put.");
 				}
-				return ($this->$name)(...$args);
+				return ($this->$name)(...$arguments);
 		}
-		throw new Error("Call to undefined method ".static::class."->$name(), u maybe need nx\parts\\$name.");
+		throw new \Error("Call to undefined method ".static::class."->$name(), u maybe need nx\parts\\$name.");
 	}
 	public function __get($name){
 		switch($name){

@@ -18,7 +18,7 @@ trait middleware{
 	 * @param mixed               ...$args
 	 * @return mixed
 	 */
-	public function control(callable|array|null $call=null, ...$args){
+	public function control(callable|array|null $call=null, ...$args): mixed{
 		if(isset($call[1]) && $call[1] instanceof \Closure){//[null, function(){}],
 			return call_user_func_array($call[1]->bindTo($call[0] ?? $this), $args);
 		}
@@ -41,5 +41,6 @@ trait middleware{
 			$this->log("     {$name} (✗)");
 			return null;
 		}
+		return null;
 	}
 }

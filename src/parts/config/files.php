@@ -13,7 +13,7 @@ use nx\parts\path;
 trait files{
 	use path;
 
-	protected function nx_parts_config_files(){
+	protected function nx_parts_config_files(): void{
 		$it=$this instanceof \nx\app ?$this :$this->app;
 		$it->buffer['config/files']=$it->setup['config/files'] ?? [];
 		$it->buffer['config/files']['path']=$it->buffer['config/files']['path'] ?? $it->getPath('./config/');

@@ -18,7 +18,7 @@ trait http{
 		header_remove('X-Powered-By');
 
 		$headers =$out->buffer['header'] ?? [];
-		$headers['nx']='vea 2005-2022';
+		$headers['nx']='vea 2005-2023';
 		$headers['Status']=$status;
 		foreach($headers as $header=>$value){
 			if(is_array($value)){

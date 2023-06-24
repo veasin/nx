@@ -2,9 +2,9 @@
 namespace nx\helpers\config;
 
 class setup implements \ArrayAccess{
-	protected $data=[];
-	protected $split=".";
-	public function __construct($data=[]){
+	protected array $data=[];
+	protected string $split=".";
+	public function __construct(array $data=[]){
 		$this->data=$data;
 	}
 	/**
@@ -27,7 +27,7 @@ class setup implements \ArrayAccess{
 	/**
 	 * 设置指定配置中的key和对应值，可以一次设置多个环境的
 	 * @param string $key   配置名
-	 * @param        $value 设置值
+	 * @param $value 设置值
 	 * @return bool
 	 */
 	public function set(string $key, $value):bool{

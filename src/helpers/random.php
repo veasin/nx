@@ -8,11 +8,12 @@ class random{
 	const READ ='bcdfghjklmnprstvwxzaeiou';
 	/**
 	 * 返回随机字符
-	 * @param $len
+	 *
+	 * @param int    $len
 	 * @param string $chars
 	 * @return string
 	 */
-	static public function char($len, $chars=self::CHARS){
+	static public function char(int $len, string $chars=self::CHARS): string{
 		$r = '';
 		mt_srand((double)microtime()*1000000);
 		$_len =strlen($chars)-1;
@@ -21,19 +22,21 @@ class random{
 	}
 	/**
 	 * 返回随机字母
-	 * @param $len
-	 * @param bool|false $case
+	 *
+	 * @param int  $len
+	 * @param bool $case
 	 * @return string
 	 */
-	static public function letter($len, $case =false){
+	static public function letter(int $len, bool $case =false): string{
 		return static::char($len, $case ?self::LETTER.strtoupper(self::LETTER) :self::LETTER);
 	}
 	/**
 	 * 返回可读单词
-	 * @param $len
+	 *
+	 * @param int $len
 	 * @return string
 	 */
-	static public function word($len){
+	static public function word(int $len): string{
 		$char=self::READ;
 		$r = '';
 		mt_srand((double)microtime()*1000000);
@@ -42,17 +45,18 @@ class random{
 	}
 	/**
 	 * 返回指定长度的数字串
-	 * @param $len
+	 *
+	 * @param int $len
 	 * @return string
 	 */
-	static public function number($len){
+	static public function number(int $len): string{
 		return self::char($len, self::NUMBER);
 	}
 	/**
 	 * pseudo v4
 	 * @return string
 	 */
-	static public function uuid(){
+	static public function uuid(): string{
 		return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
 			mt_rand(0, 0xffff), mt_rand(0, 0xffff),
 			mt_rand(0, 0xffff),

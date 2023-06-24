@@ -22,15 +22,15 @@ namespace nx\parts;
  * @method string getPath(string $subPath) 获取相对app的目录
  * @method throw($codeOrException=400, $message='', $exception='\Exception') 抛出指定异常
  * @method filter(array|string $vars=[], array $options=[]) 过滤器，对输入进行过滤。可指定输入内容来源或设置来源数组。
- * @method filterValue(mixed $value, array $options=[]) 过滤器，针对值做过滤，不包含取值逻辑。
  */
 trait callApp{
 	/**
 	 * 魔术方法，属性转发到app上 $this->something
+	 *
 	 * @param string $name
 	 * @return mixed
 	 */
-	public function __get($name){
+	public function __get(string $name): mixed{
 		return \nx\app::$instance->$name;
 		//$this->$name=&\nx\app::$instance->$name;
 		//return $this->$name;
