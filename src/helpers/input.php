@@ -131,7 +131,7 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 			case 'file':
 			case 'cookie':
 				$data =&$this[$from];
-				if((null !== $key) && app::$instance) app::$instance->log("       ->$from[$key]");
+				if((null !== $key) && app::$instance) app::$instance->log("       ->{$from}[{$key}]");
 				return null ===$key ?$data :$data[$key]??null;
 			case 'uri':
 				return null ===$key ?$this->data['uri'] :($this->data['params'][$key]??null);
