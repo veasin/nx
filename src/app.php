@@ -9,6 +9,7 @@ use nx\helpers\buffer;
  * @package nx
  *
  * @method log(...$var) 输出日志
+ * @method runtime(...$var) 输出日志
  * @method main(array $route) 执行默认控制方法
  * @method string i18n() 返回对应语言文本
  * @method array|string|null config(string $word, $params=null) 读取配置
@@ -93,6 +94,7 @@ class app{
 				$exp = $arguments[2] ?? '\Exception';
 				$msg = $arguments[1] ?? '';
 				throw new $exp($msg, $arguments[0]);
+			case 'runtime':
 			case 'log':
 				return null;
 			case 'router':

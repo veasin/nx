@@ -35,10 +35,10 @@ trait middleware{
 			}
 			if($this->buffer['control/middleware'][$name] ?? false){
 				$exists=method_exists($this->buffer['control/middleware'][$name], $call[1]);
-				$this->log("     {$name}->{$call[1]}()".($exists ?'' :' (✗)'));
+				$this->runtime("     {$name}->{$call[1]}()".($exists ?'' :' (✗)'));
 				return ($exists) ?call_user_func_array([$this->buffer['control/middleware'][$name], $call[1]], $args) :null;
 			}
-			$this->log("     {$name} (✗)");
+			$this->runtime("     {$name} (✗)");
 			return null;
 		}
 		return null;

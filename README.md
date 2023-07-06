@@ -21,6 +21,7 @@
 - [cache-redis](https://github.com/urn2/nx-cache-redis) 基于redis的cache简单封装
 - [db-pdo](https://github.com/urn2/nx-db-pdo) 数据库访问，提供ar
 - [filter-from](https://github.com/urn2/nx-filter-from) 过滤器，可书写混乱规则
+- [log](https://github.com/urn2/nx-log) 日志，支持同时多个writer
 - [log-cli](https://github.com/urn2/nx-log-cli) 在shell中输出，提供颜色封装
 - [model](https://github.com/urn2/nx-model) mvc的m封装
 - [network-context](https://github.com/urn2/nx-network-context) 网络请求封装

@@ -13,7 +13,7 @@ trait http{
 		$r =$out();
 		$status =$out->buffer['status'] ?? ( null !==$r ?200 :404);
 		$message =status::$Message[$status] ?? '';
-		$this->log( 'status: '.$status.' '.$message);
+		$this->runtime( 'status: '.$status.' '.$message);
 		header(($_SERVER["SERVER_PROTOCOL"] ?? "HTTP/1.1").' '.$status.' '.$message);//HTTP/1.1
 		header_remove('X-Powered-By');
 
