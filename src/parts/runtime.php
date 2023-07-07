@@ -21,7 +21,7 @@ trait runtime{
 		$this->runtime("$method:$uri");
 		yield;
 		$this->runtime("done.");
-		$this->log->log('runtime',"runtime: \n".implode("\n", $this->buffer['runtime']['list'])."\n");
+		$this->log->log('runtime',"\n".implode("\n", $this->buffer['runtime']['list'])."\n");
 	}
 	/**
 	 * @param         $var
@@ -36,6 +36,6 @@ trait runtime{
 			}
 		}
 		$step=sprintf("%05.2f", (microtime(true) - $this->buffer['runtime']['start-micro']) * 1000);
-		$this->buffer['runtime']['list'][]="[$step] $var";
+		$this->buffer['runtime']['list'][]=" [$step] $var";
 	}
 }

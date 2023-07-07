@@ -124,6 +124,7 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 	 */
 	public function __call(string $from, array $arguments){
 		$key =$arguments[0]??null;
+		if((null !== $key) && app::$instance) app::$instance->runtime("      ->{$from}[{$key}]");
 		switch($from){
 			case 'query':
 			case 'body':
@@ -131,7 +132,6 @@ class input implements \ArrayAccess, \Countable, \IteratorAggregate{
 			case 'file':
 			case 'cookie':
 				$data =&$this[$from];
-				if((null !== $key) && app::$instance) app::$instance->runtime("       ->{$from}[{$key}]");
 				return null ===$key ?$data :$data[$key]??null;
 			case 'uri':
 				return null ===$key ?$this->data['uri'] :($this->data['params'][$key]??null);

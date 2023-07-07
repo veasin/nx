@@ -14,7 +14,7 @@ namespace nx\parts\router;
  * @property \nx\helpers\input $in
  */
 trait uri{
-	protected function router(){
+	protected function router(): ?\Generator{
 		$setup =$this->setup['router/uri'];
 
 		$rules=$setup['rules'] ?? [];
@@ -41,7 +41,7 @@ trait uri{
 				$is_match=preg_match($pattern, $uri, $params);
 			}
 			if($is_match){//如果匹配规则成功
-				$this->runtime("route: {$_uri}");
+				$this->runtime("  route: {$_uri}");
 				for($i=0, $max=count($params); $i < $max; $i++){
 					unset($params[$i]);
 				}

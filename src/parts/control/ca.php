@@ -11,8 +11,7 @@ namespace nx\parts\control;
  * @method log(string $string)
  * @property-read \nx\helpers\buffer $buffer
  */
-trait middleware{
-	protected array $cacheControllers=[];
+trait ca{
 	/**
 	 * @param callable|array|null $call
 	 * @param mixed               ...$args
@@ -29,16 +28,16 @@ trait middleware{
 				$pos=strrpos(__CLASS__, '\\');
 				$name=substr(__CLASS__, 0, $pos ?:strlen(__CLASS__)).'\controllers\\'.$call[0];
 			}
-			if(!isset($this->buffer['control/middleware'])) $this->buffer['control/middleware']=[];
-			if(!array_key_exists($name, $this->buffer['control/middleware'])){
-				$this->buffer['control/middleware'][$name]=class_exists($name, true) ?new $name($this) :null;
+			if(!isset($this->buffer['control/ca'])) $this->buffer['control/ca']=[];
+			if(!array_key_exists($name, $this->buffer['control/ca'])){
+				$this->buffer['control/ca'][$name]=class_exists($name, true) ?new $name($this) :null;
 			}
-			if($this->buffer['control/middleware'][$name] ?? false){
-				$exists=method_exists($this->buffer['control/middleware'][$name], $call[1]);
-				$this->runtime("     {$name}->{$call[1]}()".($exists ?'' :' (✗)'));
-				return ($exists) ?call_user_func_array([$this->buffer['control/middleware'][$name], $call[1]], $args) :null;
+			if($this->buffer['control/ca'][$name] ?? false){
+				$exists=method_exists($this->buffer['control/ca'][$name], $call[1]);
+				$this->runtime("    {$name}->{$call[1]}()".($exists ?'' :' (✗)'));
+				return ($exists) ?call_user_func_array([$this->buffer['control/ca'][$name], $call[1]], $args) :null;
 			}
-			$this->runtime("     {$name} (✗)");
+			$this->runtime("    {$name} (✗)");
 			return null;
 		}
 		return null;
