@@ -1,69 +1,196 @@
 <?php
-namespace nx\helpers\http;
 
+namespace nx\helpers\http;
+/**
+ * @see https://datatracker.ietf.org/doc/html/rfc9110#name-status-codes
+ * @see https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
+ *
+ */
 final class status{
-	static public array $Message = [//请求已被接受，需要继续处理
-		100 => "Continue",
-		101 => "Switching Protocols",
-		102 => "Processing",
-		//请求已成功被服务器接收、理解、并接受
-		200 => "OK",
-		201 => "Created",//POST PUT PATCH 成功  新的资源已经依据请求的需要而建立
-		202 => "Accepted",//异步已添加到队列
-		203 => "Non-Authoritative Information",//
-		204 => "No Content",//DELETE 成功 禁止包含任何消息体
-		205 => "Reset Content",//禁止包含任何消息体
-		206 => "Partial Content",//已经成功处理了部分 GET 请求
-		207 => "Multi-Status",//可能依照之前子请求数量的不同，包含一系列独立的响应代码
-		//需要客户端采取进一步的操作才能完成请求
-		300 => "Multiple Choices",
-		301 => "Moved Permanently",//被请求的资源已永久移动到新位置
-		302 => "Found",//请求的资源临时从不同的 URI响应请求 临时
-		303 => "See Other",//对应当前请求的响应可以在另一个 URI 上被找到，而且客户端应当采用 GET 的方式访问那个资源
-		304 => "Not Modified",//禁止包含消息体
-		305 => "Use Proxy",//被请求的资源必须通过指定的代理才能被访问
-		306 => "Switch Proxy",//废弃
-		307 => "Temporary Redirect",//请求的资源临时从不同的URI 响应请求
-		//客户端看起来可能发生了错误，妨碍了服务器的处理
-		400 => "Bad Request",//POST PUT PATCH 无效操作 结果幂等 请求参数有误
-		401 => "Unauthorized",//无权限 令牌 用户名 密码错误
-		402 => "Payment Required",//需付费
-		403 => "Forbidden",//用户得到授权 但禁止访问
-		404 => "Not Found", //不存在
-		405 => "Method Not Allowed", //方法不被允许
-		406 => "Not Acceptable",//请求格式无效
-		407 => "Proxy Authentication Required",//与401响应类似，只不过客户端必须在代理服务器上进行身份验证
-		408 => "Request Timeout",//请求超时
-		409 => "Conflict",//指令冲突
-		410 => "Gone",//永久删除
-		411 => "Length Required",//服务器拒绝在没有定义 Content-Length 头的情况下接受请求
-		412 => "Precondition Failed",//服务器在验证在请求的头字段中给出先决条件时，没能满足其中的一个或多个 Token in header
-		413 => "Request Entity Too Large",//请求实体过大
-		414 => "Request-URI Too Long",//请求地址过长
-		415 => "Unsupported Media Type",//不支持的请求格式
-		416 => "Requested Range Not Satisfiable",//请求范围超出
-		417 => "Expectation Failed",//预期内容错误
-		421 => "There are too many connections from your internet address",
-		422 => "Unprocessable Entity", //POST PUT PATCH 创建时验证失败 请求格式正确，但是由于含有语义错误
-		423 => "Locked", //当前资源被锁定
-		424 => "Failed Dependency", //由于之前的某个请求发生的错误，导致当前请求失败，例如 PROPPATCH
-		425 => "Unordered Collection",
-		426 => "Upgrade Required", //客户端应当切换到TLS/1.0
-		429 => "Too Many Requests", //请求数过多
-		431 => "Request Header Fields Too Large", //请求头字段过大
-		449 => "Retry With", //由微软扩展，代表请求应当在执行完适当的操作后进行重试
-		451 => "Unavailable For Legal Reasons", //该请求因法律原因不可用
-		//服务器在处理请求的过程中有错误或者异常状态发生
-		500 => "Internal Server Error ", //服务器错误 用户无法判断是否成功
-		501 => "Not Implemented ",
-		502 => "Bad Gateway ",
-		503 => "Service Unavailable ",
-		504 => "Gateway Timeout ",
-		505 => "HTTP Version Not Supported ",
-		506 => "Variant Also Negotiates ",
-		507 => "Insufficient Storage ",
-		509 => "Bandwidth Limit Exceeded ",
-		510 => "Not Extended ",
-		600 => "Unparseable Response Headers ",//源站没有返回响应头部，只返回实体内容
+	/*
+	Method
+	get 获取 200 成功
+	head 获取 无内容
+	post 处理 创建 追加 201 已创建 206 一部分 304 未修改 416 范围不满足 303 已存在并重定向
+	put 创建或替换 201 创建 200 替换 204 替换但不返回内容 409 冲突 415 替换时格式不同
+	delete 删除 202 已接受 操作可能成功但可能未成功 204 成功无返回 200 成功返回一些信息
+	options 获取可选项
+
+	Request Context Fields 18.4
+	期待
+	Expect =      #expectation
+	expectation = token [ "=" ( token / quoted-string ) parameters ]
+	从
+	From    = mailbox
+	mailbox = <mailbox, see [RFC5322], Section 3.4>
+	引用者
+	Referer = absolute-URI / partial-URI
+	挂载 https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Trailer
+	TE                 = #t-codings
+	t-codings          = "trailers" / ( transfer-coding [ weight ] )
+	transfer-coding    = token *( OWS ";" OWS transfer-parameter )
+	transfer-parameter = token BWS "=" BWS ( token / quoted-string )
+	用户代理
+	User-Agent = product *( RWS ( product / comment ) )
+	product         = token ["/" product-version]
+	product-version = token
+	允许
+	Allow = #method
+	位置 201 位置指向资源 3xx 重定向到资源(get <=303 Location:xxx)
+	Location = URI-reference
+	重试后
+	Retry-After = HTTP-date / delay-seconds
+	delay-seconds  = 1*DIGIT
+	服务器 Server: CERN/3.0 libwww/2.17
+	Server = product *( RWS ( product / comment ) )
+	身份验证
+		方案
+		auth-scheme    = token
+		参数
+		token68        = 1*( ALPHA / DIGIT / "-" / "." / "_" / "~" / "+" / "/" ) *"="
+		auth-param     = token BWS "=" BWS ( token / quoted-string )
+		挑战与回应
+		challenge   = auth-scheme [ 1*SP ( token68 / #auth-param ) ]
+		凭证
+		credentials = auth-scheme [ 1*SP ( token68 / #auth-param ) ]
+		万维网认证
+		WWW-Authenticate = #challenge
+		授权
+		Authorization = credentials
+		身份验证信息
+		Authentication-Info = #auth-param
+	向代理验证客户端
+		代理身份验证
+		Proxy-Authenticate = #challenge
+		代理授权
+		Proxy-Authentication-Info = #auth-param
+	内容协商
+		质量
+		weight = OWS ";" OWS "q=" qvalue
+		qvalue = ( "0" [ "." 0*3DIGIT ] ) / ( "1" [ "." 0*3("0") ] )
+		接受
+		Accept = #( media-range [ weight ] )
+		media-range    = ( "* /*" / ( type "/" "*" ) / ( type "/" subtype ) ) parameters
+		接受字符集
+		Accept-Charset = #( ( token / "*" ) [ weight ] )
+		接受编码
+		Accept-Encoding  = #( codings [ weight ] )
+		codings          = content-coding / "identity" / "*"
+		接受语言
+		Accept-Language = #( language-range [ weight ] )
+		language-range  = <language-range, see [RFC4647], Section 2.1>
+		变化
+		Vary = #( "*" / field-name )
+	条件请求
+		如果匹配 412 检查失败 2xx 成功
+		If-Match = "*" / #entity-tag
+		如果不匹配 412 检查失败 2xx 成功 304 未修改
+		If-None-Match = "*" / #entity-tag
+		如果修改自 304 未修改
+		If-Modified-Since = HTTP-date
+		如果未修改自 412 检查失败 2xx 成功
+		If-Unmodified-Since = HTTP-date
+		如果范围
+		If-Range = entity-tag / HTTP-date
+	范围请求
+		range-unit       = token
+		范围说明符
+		ranges-specifier = range-unit "=" range-set
+		range-set        = 1#range-spec
+		range-spec       = int-range / suffix-range / other-range
+		int-range     = first-pos "-" [ last-pos ]
+		first-pos     = 1*DIGIT
+		last-pos      = 1*DIGIT
+		suffix-range  = "-" suffix-length
+		suffix-length = 1*DIGIT
+		other-range   = 1*( %x21-2B / %x2D-7E ); 1*(VCHAR excluding comma)
+		字节范围
+		bytes= 0-999, 4500-5499, -1000
+		范围
+		Range = ranges-specifier
+		接受范围
+		Accept-Ranges     = acceptable-ranges
+		acceptable-ranges = 1#range-unit
+		内容范围 Content-Range: bytes 42-1233/*
+		Content-Range       = range-unit SP ( range-resp / unsatisfied-range )
+		range-resp          = incl-range "/" ( complete-length / "*" )
+		incl-range          = first-pos "-" last-pos
+		unsatisfied-range   = "* /" complete-length
+		complete-length     = 1*DIGIT
+
+
+	 */
+	public static array $Message = [
+		//用于传达连接状态或请求进度的临时响应 在完成请求的操作并发送最终响应之前
+		100 => "Continue", //[RFC9110, Section 15.2.1] 已接受部份，还需要后续再继续
+		101 => "Switching Protocols", //[RFC9110, Section 15.2.2] 切换协议
+		102 => "Processing", //[RFC2518]
+		103 => "Early Hints", //[RFC8297]
+		//客户的请求被成功接收、理解和接受
+		200 => "OK", //[RFC9110, Section 15.3.1] 成功 get 内容 post 操作状态或内容 put delete 操作状态
+		201 => "Created", //[RFC9110, Section 15.3.2] 操作已创建新资源 考虑添加 Content-Location
+		202 => "Accepted", //[RFC9110, Section 15.3.3] 已接受请求但未完成处理 如异步时
+		203 => "Non-Authoritative Information", //[RFC9110, Section 15.3.4] 如中继第三方接口？
+		204 => "No Content", //[RFC9110, Section 15.3.5] 成功但无返回内容 用途如：保存 并可继续编辑
+		205 => "Reset Content", //[RFC9110, Section 15.3.6] 成功并不返回内容同时重置用户界面 用途如：创建并继续创建新条目
+		206 => "Partial Content", //[RFC9110, Section 15.3.7] 成功并返回部分内容 参见If-Range 和 Content-Range
+		207 => "Multi-Status", //[RFC4918]
+		208 => "Already Reported", //[RFC5842]
+		226 => "IM Used", //[RFC3229]
+		//用户代理需要采取进一步行动才能实现请求
+		300 => "Multiple Choices", //[RFC9110, Section 15.4.1] 用户参与选择 返回选项
+		301 => "Moved Permanently", //[RFC9110, Section 15.4.2] 永久移动到新地址 可改用 308
+		302 => "Found", //[RFC9110, Section 15.4.3] 已找到（临时） 可改用307
+		303 => "See Other", //[RFC9110, Section 15.4.4] 查看其他的，可能是 任何
+		304 => "Not Modified", //[RFC9110, Section 15.4.5] 数据未修改或未变化
+		305 => "Use Proxy", //[RFC9110, Section 15.4.6] 使用代理 废弃
+		306 => "(Unused)", //[RFC9110, Section 15.4.7] 废弃
+		307 => "Temporary Redirect", //[RFC9110, Section 15.4.8] 临时重定向
+		308 => "Permanent Redirect", //[RFC9110, Section 15.4.9] 永久重定向
+		//客户端似乎犯了错误
+		400 => "Bad Request", //[RFC9110, Section 15.5.1] 错误请求，服务器不知道应该怎样处理 例如，格式错误的请求语法、无效的请求 消息框架或欺骗性请求路由
+		401 => "Unauthorized", //[RFC9110, Section 15.5.2] 未经授权，可考虑包含诊断信息 生成 401 响应的服务器必须发送 WWW 身份验证标头字段 （第 11.6.1 节）
+		402 => "Payment Required", //[RFC9110, Section 15.5.3] 需要付款 保留
+		403 => "Forbidden", //[RFC9110, Section 15.5.4] 禁止访问(服务器理解请求，但拒绝满足它) 如权限不足？
+		404 => "Not Found", //[RFC9110, Section 15.5.5] 未找到(未找到资源或不愿意返回资源)
+		405 => "Method Not Allowed", //[RFC9110, Section 15.5.6] 方法不允许 存在资源但不接受method
+		406 => "Not Acceptable", //[RFC9110, Section 15.5.7] 不可接受 参见 User-Agent 12.1
+		407 => "Proxy Authentication Required", //[RFC9110, Section 15.5.8] 需要代理身份验证 类似 401
+		408 => "Request Timeout", //[RFC9110, Section 15.5.9] 请求超时（服务器在时间内未收到完整的请求消息 它准备等待）
+		409 => "Conflict", //[RFC9110, Section 15.5.10] 冲突（由于与目标的当前状态冲突而无法完成 资源） 如多次PUT请求
+		410 => "Gone", //[RFC9110, Section 15.5.11] 消失（资源没了，已经确定了的，没确定用404）
+		411 => "Length Required", //[RFC9110, Section 15.5.12] 需要长度 参见Content-Length
+		412 => "Precondition Failed", //[RFC9110, Section 15.5.13] 前提条件失败（服务器拒绝处理请求）参见 IF 13
+		413 => "Content Too Large", //[RFC9110, Section 15.5.14] 内容太大（服务器拒绝处理请求）可考虑添加 Retry-After
+		414 => "URI Too Long", //[RFC9110, Section 15.5.15] URI 太长，服务器不愿意解释 如重定向的参数等
+		415 => "Unsupported Media Type", //[RFC9110, Section 15.5.16] 不支持的媒体类型 参见 Content-Type 或 Content-Encoding
+		416 => "Range Not Satisfiable", //[RFC9110, Section 15.5.17] 范围不满足 参见14.2
+		417 => "Expectation Failed", //[RFC9110, Section 15.5.18] 预期失败 参见 Expect 10.1.1
+		418 => "(Unused)", //[RFC9110, Section 15.5.19] 哈哈 coffee
+		421 => "Misdirected Request", //[RFC9110, Section 15.5.20] 错误定向请求?
+		422 => "Unprocessable Content", //[RFC9110, Section 15.5.21] 无法处理的内容(服务器了解但无法处理)
+		423 => "Locked", //[RFC4918]
+		424 => "Failed Dependency", //[RFC4918]
+		425 => "Too Early", //[RFC8470]
+		426 => "Upgrade Required", //[RFC9110, Section 15.5.22] 需要升级 参见 7.8 Upgrade: HTTP/3.0
+		428 => "Precondition Required", //[RFC6585]
+		429 => "Too Many Requests", //[RFC6585]
+		431 => "Request Header Fields Too Large", //[RFC6585]
+		451 => "Unavailable For Legal Reasons", //[RFC7725]
+		//服务器知道它已出错或无法执行请求的方法
+		500 => "Internal Server Error", //[RFC9110, Section 15.6.1] 内部服务器错误 未拦截异常或未知错误
+		501 => "Not Implemented", //[RFC9110, Section 15.6.2] 未实现(服务器不支持满足请求所需的功能。 当服务器无法识别 请求方法，并且无法为任何资源支持它)
+		502 => "Bad Gateway", //[RFC9110, Section 15.6.3] 错误的网关 如中继第三方接口？
+		503 => "Service Unavailable", //[RFC9110, Section 15.6.4] 服务不可用(由于临时过载，服务器当前无法处理请求 或定期维护，这可能会在延迟一段时间后得到缓解)
+		504 => "Gateway Timeout", //[RFC9110, Section 15.6.5] 网关超时 如中继第三方接口？
+		505 => "HTTP Version Not Supported", //[RFC9110, Section 15.6.6] 不支持 HTTP 版本
+		506 => "Variant Also Negotiates", //[RFC2295]
+		507 => "Insufficient Storage", //[RFC4918]
+		508 => "Loop Detected", //[RFC5842]
+		510 => "Not Extended (OBSOLETED)", //[RFC2774][status-change-http-experiments-to-historic]
+		511 => "Network Authentication Required", //[RFC6585]
 	];
+	public static function message(int $status): string{
+		return "$status " . (self::$Message[$status] ?? '');
+	}
 }

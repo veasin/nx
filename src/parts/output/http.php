@@ -12,20 +12,25 @@ trait http{
 	public function render_http(\nx\helpers\output $out, callable $callback=null):void{
 		$r =$out();
 		$status =$out->buffer['status'] ?? ( null !==$r ?200 :404);
-		$message =status::$Message[$status] ?? '';
-		$this->runtime( 'status: '.$status.' '.$message);
-		header(($_SERVER["SERVER_PROTOCOL"] ?? "HTTP/1.1").' '.$status.' '.$message);//HTTP/1.1
+		$message =status::message($status);
+		$this->runtime( "status: $status");
+		header(($_SERVER["SERVER_PROTOCOL"] ?? "HTTP/1.1").' '.$message);//HTTP/1.1
 		header_remove('X-Powered-By');
 
 		$headers =$out->buffer['header'] ?? [];
-		$headers['nx']='vea 2005-2023';
-		$headers['Status']=$status;
+		$headers['NX']='Vea 2005-2023';
 		foreach($headers as $header=>$value){
-			if(is_array($value)){
-				foreach($value as $v){
-					header($header.': '.$v);
+			if(is_int($header)){
+				if(is_array($value)){
+					foreach($value as $v){
+						header($header.': '.$v);
+					}
+				} else if(is_string($value) || $value instanceof \Stringable){
+					header($value);//['Status: 200']
+				} else{
+					//to do nothing...
 				}
-			}elseif(is_int($header)) header($value);
+			}
 			else header($header.': '.$value);
 		}
 		if(null!==$callback) $callback($r);
