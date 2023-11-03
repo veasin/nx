@@ -11,6 +11,7 @@ namespace nx\parts;
  * Trait callApp
  * @package nx\base
  * @method log($any, $template=false) 输出日志
+ * @method runtime($any, string $from) 输出运行日志
  * @method array|string|null config(string $word, $params=null) 读取配置
  * @method \nx\helpers\db\pdo db($name='default') 根据$app->setup['db/pdo'] 的配置创建pdo对象
  * @method in() 返回全部输入内容
@@ -42,6 +43,6 @@ trait callApp{
 	 * @return mixed
 	 */
 	public function __call(string $name, array $args){
-		return call_user_func_array([\nx\app::$instance, $name], $args);
+		return \nx\app::$instance->{$name}(...$args);
 	}
 }

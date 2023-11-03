@@ -8,21 +8,20 @@
 namespace nx\parts\router;
 
 /**
- * @method log(string $string)
+ * @method runtime(string $string, string $from)
  * @method control(mixed $call, \Closure $next, $param, array $_args, $param1, array $route)
  * @property-read array        $setup
  * @property \nx\helpers\input $in
  */
 trait uri{
 	protected function router(): ?\Generator{
-		$setup =$this->setup['router/uri'];
-
+		$setup =$this['router/uri'];
 		$rules=$setup['rules'] ?? [];
 		$actions=$setup['actions'] ?? [];
 		$uri=$setup['uri'] ?? (isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO']) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING']??'');
 		$method=$setup['method'] ?? $this->in['method'] ?? 'unknown';
 
-		yield $this->runtime("uri: {$uri}");//默认暂停
+		yield $this->runtime("uri: {$uri}", 'uri');//默认暂停
 		foreach($rules as $rule){//0 method 1 uri 2 action[controller, action, args] 3 action...
 			if(empty($rule[2])) continue;//如果没定义处理方法，那么继续
 			$_method=array_shift($rule);
@@ -41,7 +40,7 @@ trait uri{
 				$is_match=preg_match($pattern, $uri, $params);
 			}
 			if($is_match){//如果匹配规则成功
-				$this->runtime("  route: {$_uri}");
+				$this->runtime("route: {$_uri}", 'uri');
 				for($i=0, $max=count($params); $i < $max; $i++){
 					unset($params[$i]);
 				}
