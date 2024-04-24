@@ -52,7 +52,7 @@ class app extends Container{
 			case 'throw':
 				if($arguments[0] instanceof \Throwable) throw $arguments[0];
 				$exp = $arguments[2] ?? '\Exception';
-				throw new $exp($arguments[1] ?? null, $arguments[0]);
+				throw new $exp($arguments[1] ?? '', $arguments[0]);
 			case 'runtime':
 			case 'log':
 				return null;
