@@ -10,10 +10,8 @@ class app extends Container{
 	 * @var static|null 静态实例;
 	 */
 	public static ?app $instance = null;
-	/**
-	 * @throws \Exception
-	 */
 	public function __construct(array|Container $setup=[]){
+		(defined('AGREE_LICENSE') && AGREE_LICENSE === true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
 		parent::__construct($setup);
 		static::$instance = $this;
 		//todo 加载setup，需要调整容器可加载容器
@@ -33,14 +31,6 @@ class app extends Container{
 	}
 	public function __get($name){
 		return $this[$name];
-		//$r = $this[$name] ?? null;
-		//if(null === $r){
-		//	switch($name){
-		//		case 'log':
-		//			return null;
-		//	}
-		//}
-		//return $r;
 	}
 	/**
 	 * @throws \Throwable

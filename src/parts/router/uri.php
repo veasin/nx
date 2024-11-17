@@ -23,21 +23,30 @@ trait uri{
 
 		yield $this->runtime("uri: {$uri}", 'uri');//默认暂停
 		foreach($rules as $rule){//0 method 1 uri 2 action[controller, action, args] 3 action...
-			if(empty($rule[2])) continue;//如果没定义处理方法，那么继续
 			$_method=array_shift($rule);
+			if(strlen($_method)>1 && ":"===$_method[1]){//简写 G:/xxx
+				$_uri =substr($_method, 2);
+				$_method =['G'=>'get', 'P'=>'post', 'U'=>'put', 'A'=>'patch', 'D'=>'delete', 'O'=>'options'][$_method[0]] ?? $_method[0];
+			} else $_uri=array_shift($rule);
+
+			if(empty($rule)) continue;//如果没定义处理方法，那么继续
 			if(!($method === $_method || '*' === $_method)) continue;//如果没有匹配直接继续下一个
 			$is_match=0;
 			$params=[];
-			$_uri=array_shift($rule);
 			if($uri === $_uri || '*' === $_uri){//如果网址和规则相同
 				$is_match=1;
-			}elseif(preg_match_all('#([d|w]?):(\w*)#', $_uri) > 0){
-				$end=substr($_uri, -1);
-				$pattern='#^'.preg_replace_callback('#([d|w]?):(\w*)#', static function($matches){
-						$m=['d'=>'\d+', 'w'=>'\w+', ''=>'[^/]+'];
-						return '('.('' !== $matches[2] ?'?P<'.$matches[2].'>' :'').$m[$matches[1]].')';
-					}, $_uri).($end === '+' ?'#' :'$#');
-				$is_match=preg_match($pattern, $uri, $params);
+			}else{
+				$__uri =$_uri;
+				$_end='+'===$_uri[strlen($_uri)-1];
+				$_end_pattern ='$';
+				if($_end){
+					$_end_pattern ='';
+					$__uri =substr($_uri, 0, -1);
+				}
+				if($_end || preg_match_all('#([d|w]?):(\w*)#', $__uri) > 0){
+					$pattern =preg_replace_callback('#([d|w]?):(\w*)#', fn($matches)=>'('.('' !== $matches[2] ?'?P<'.$matches[2].'>' :'').['d'=>'\d+', 'w'=>'\w+', ''=>'[^/]+'][$matches[1]].')', $__uri);
+					$is_match=preg_match("#^$pattern$_end_pattern#", $uri, $params);
+				}
 			}
 			if($is_match){//如果匹配规则成功
 				$this->runtime("route: {$_uri}", 'uri');
@@ -46,11 +55,14 @@ trait uri{
 				}
 				foreach($rule as $call){
 					if(is_string($call)){
-						if(array_key_exists($call, $actions)){
-							foreach($actions[$call] as $_call){
-								$this->in['params'] =array_key_exists(2, $_call) ?array_merge($params, $_call[2] ?? []) :$params;
+						if(array_key_exists($call, $actions)) {
+							foreach ($actions[$call] as $_call) {
+								$this->in['params'] = array_key_exists(2, $_call) ? array_merge($params, $_call[2] ?? []) : $params;
 								yield [$_call[0], $_call[1]];
 							}
+						}elseif(str_contains($call, '::')){
+							$this->in['params'] =$params;
+							yield explode("::", $call);
 						}
 					}else{
 						$this->in['params'] =array_key_exists(2, $call) ?array_merge($params, $call[2] ?? []) :$params;

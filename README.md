@@ -3,12 +3,12 @@
      __ \  \/  /
     /  \ \  \ /
    /  / \ \  \
-  /  /\  / \  \   php.nx.cn
- /__/  \/__/\__\  vea, 2020
+  /  /\  / \  \   
+ /__/  \/__/\__\  vea, 2025
 ```
 
 # ![nx](./logo.png) is **"a next-gen framework"**
-  php 8.2+
+  php 8.1+
   
     small,fast,emmmm...
   
@@ -18,14 +18,17 @@
 
 # resources
 
-- [cache-redis](https://github.com/urn2/nx-cache-redis) 基于redis的cache简单封装
-- [db-pdo](https://github.com/urn2/nx-db-pdo) 数据库访问，提供ar
-- [filter-from](https://github.com/urn2/nx-filter-from) 过滤器，可书写混乱规则
-- [log](https://github.com/urn2/nx-log) 日志，支持同时多个writer
-- [log-cli](https://github.com/urn2/nx-log-cli) 在shell中输出，提供颜色封装
-- [model](https://github.com/urn2/nx-model) mvc的m封装
-- [network-context](https://github.com/urn2/nx-network-context) 网络请求封装
-- [queue-amqp](https://github.com/urn2/nx-queue-amqp) 简单的amqp队列封装
+- [cache-redis](https://github.com/veasin/nx-cache-redis) 基于redis的cache简单封装
+- [db-pdo](https://github.com/veasin/nx-db-pdo) 数据库访问，提供ar
+- [filter-from](https://github.com/veasin/nx-filter-from) 过滤器，可书写混乱规则
+- [log](https://github.com/veasin/nx-log) 日志，支持同时多个writer
+- [log-cli](https://github.com/veasin/nx-log-cli) 在shell中输出，提供颜色封装
+- [log-ws](https://github.com/veasin/nx-log-ws) 通过websocket输出日志和调试
+- [model](https://github.com/veasin/nx-model) mvc的m封装
+- [controller-model](https://github.com/veasin/nx-controller-model) mvc的c封装
+- [network-context](https://github.com/veasin/nx-network-context) 网络请求封装
+- [queue-amqp](https://github.com/veasin/nx-queue-amqp) 简单的amqp队列封装
+- [router-annotation](https://github.com/veasin/nx-router-annotation) 注解生成路由
 
 # feature
 - [x] trait,trait,trait!!!
@@ -54,7 +57,6 @@ class app extends \nx\app{
   use \nx\log\file,
       \nx\control\mvc,
       \nx\router\ca,
-      \nx\config\ini,
       \nx\db\pdo;
 }
 (new app)->run();

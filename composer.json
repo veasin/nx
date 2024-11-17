@@ -18,8 +18,7 @@
   },
   "autoload": {
     "psr-4": {
-      "nx\\": "src/",
-      "nx\\tools\\": "tools/"
+      "nx\\": "src/"
     }
   }
 }
