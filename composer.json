@@ -12,7 +12,8 @@
   "require": {
     "php": ">=8.1",
     "ext-json": "*",
-    "veasin/nx-io": ">=0.0.8"
+    "veasin/nx-io": ">=0.0.8",
+    "veasin/nx-log": ">=0.0.5"
   },
   "autoload": {
     "psr-4": {
