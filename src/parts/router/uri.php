@@ -10,27 +10,23 @@ namespace nx\parts\router;
 /**
  * @method runtime(string $string, string $from)
  * @method control(mixed $call, \Closure $next, $param, array $_args, $param1, array $route)
- * @property-read array        $setup
  * @property \nx\helpers\input $in
  */
 trait uri{
 	protected function router(): ?\Generator{
-		$setup =$this['router/uri'];
-		$rules=$setup['rules'] ?? [];
-		$actions=$setup['actions'] ?? [];
-		$uri=$setup['uri'] ?? (isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO']) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING']??'');
-		$method=$setup['method'] ?? $this->in['method'] ?? 'unknown';
-
-		yield $this->runtime("uri: {$uri}", 'uri');//默认暂停
-		foreach($rules as $rule){//0 method 1 uri 2 action[controller, action, args] 3 action...
+		['rules'=>$rules,'actions'=>$actions, 'uri'=>$uri, 'method'=>$method]=$this['router/uri'];
+		if(null ===$uri) $uri =(!empty($_SERVER['PATH_INFO']) ?$_SERVER['PATH_INFO'] :$_SERVER['QUERY_STRING']??'');
+		$simpleMethod =['G'=>'get', 'P'=>'post', 'U'=>'put', 'A'=>'patch', 'D'=>'delete', 'O'=>'options'];
+		yield $this->runtime("uri: $uri", 'uri');//默认暂停
+		foreach($rules ?? [] as $rule){//0 method 1 uri 2 action[controller, action, args] 3 action...
 			$_method=array_shift($rule);
 			if(strlen($_method)>1 && ":"===$_method[1]){//简写 G:/xxx
 				$_uri =substr($_method, 2);
-				$_method =['G'=>'get', 'P'=>'post', 'U'=>'put', 'A'=>'patch', 'D'=>'delete', 'O'=>'options'][$_method[0]] ?? $_method[0];
+				$_method =$simpleMethod[$_method[0]] ?? $_method[0];
 			} else $_uri=array_shift($rule);
 
 			if(empty($rule)) continue;//如果没定义处理方法，那么继续
-			if(!($method === $_method || '*' === $_method)) continue;//如果没有匹配直接继续下一个
+			if(!(($method ?? $this->in['method'] ?? 'unknown') === $_method || '*' === $_method)) continue;//如果没有匹配直接继续下一个
 			$is_match=0;
 			$params=[];
 			if($uri === $_uri || '*' === $_uri){//如果网址和规则相同
@@ -49,13 +45,13 @@ trait uri{
 				}
 			}
 			if($is_match){//如果匹配规则成功
-				$this->runtime("route: {$_uri}", 'uri');
+				$this->runtime("route: $_uri", 'uri');
 				for($i=0, $max=count($params); $i < $max; $i++){
 					unset($params[$i]);
 				}
 				foreach($rule as $call){
 					if(is_string($call)){
-						if(array_key_exists($call, $actions)) {
+						if(array_key_exists($call, $actions ?? [])) {
 							foreach ($actions[$call] as $_call) {
 								$this->in['params'] = array_key_exists(2, $_call) ? array_merge($params, $_call[2] ?? []) : $params;
 								yield [$_call[0], $_call[1]];

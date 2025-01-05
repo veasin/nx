@@ -27,14 +27,15 @@ trait ca{
 				$pos=strrpos(__CLASS__, '\\');
 				$name=substr(__CLASS__, 0, $pos ?:strlen(__CLASS__)).'\controllers\\'.$call[0];
 			}
-			if(!isset($this['control/ca'])) $this['control/ca']=[];
-			if(!array_key_exists($name, $this['control/ca'])){
-				$this['control/ca'][$name]=class_exists($name, true) ?new $name($this) :null;
+			if(!isset($this['control:ca'])) $this['control:ca']=[];
+			$ca =&$this['control:ca'];
+			if(!array_key_exists($name, $ca)){
+				$ca[$name]=class_exists($name, true) ?new $name($this) :null;
 			}
-			if($this['control/ca'][$name] ?? false){
-				$exists=method_exists($this['control/ca'][$name], $call[1]);
+			if($ca[$name] ?? false){
+				$exists=method_exists($ca[$name], $call[1]);
 				$this->runtime("  $name->$call[1]()".($exists ?'' :' (✗)'), 'ca');
-				return ($exists) ?$this['control/ca'][$name]->{$call[1]}(...$args) :null;
+				return ($exists) ?$ca[$name]->{$call[1]}(...$args) :null;
 			}
 			$this->runtime("  $name (✗)", 'ca');
 			return null;

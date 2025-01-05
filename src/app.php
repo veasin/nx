@@ -2,17 +2,18 @@
 
 namespace nx;
 use nx\parts\input;
+use nx\parts\o2;
 
-class app extends Container{
-	use parts\control\main, input;
+class app implements \ArrayAccess, \Countable{
+	use o2, parts\control\main, input;
 
 	/**
 	 * @var static|null 静态实例;
 	 */
 	public static ?app $instance = null;
-	public function __construct(array|Container $setup=[]){
-		(defined('AGREE_LICENSE') && AGREE_LICENSE === true) || die('thx use nx(from github[urn2/nx]), need AGREE_LICENSE !');
-		parent::__construct($setup);
+	public function __construct(array $setup=[]){
+		(defined('AGREE_LICENSE') && AGREE_LICENSE === true) || die('thx use nx(from github[veasin/nx]), need AGREE_LICENSE !');
+		$this->data=[...$this->data??[], ...$setup];
 		static::$instance = $this;
 		//todo 加载setup，需要调整容器可加载容器
 		if(!isset($this['app:uuid'])) $this['app:uuid'] = bin2hex(random_bytes(3));

@@ -6,15 +6,13 @@
   "authors": [
     {
       "name": "Vea",
-      "homepage": "http://www.uper.net",
       "email": "vea@live.cn"
     }
   ],
   "require": {
     "php": ">=8.1",
     "ext-json": "*",
-    "veasin/nx-container": "*",
-    "veasin/nx-io": "*"
+    "veasin/nx-io": ">=0.0.8"
   },
   "autoload": {
     "psr-4": {
